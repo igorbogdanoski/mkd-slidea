@@ -160,9 +160,9 @@ const Nav = ({ setView }) => {
           </button>
           <button 
             onClick={() => setView('dashboard')}
-            className="bg-slate-900 text-white px-6 py-3 rounded-2xl text-sm font-bold hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 active:scale-95"
+            className="bg-slate-900 text-white px-6 py-3 rounded-2xl text-sm font-bold hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 active:scale-95 flex items-center gap-2"
           >
-            Мој Панел
+            <LayoutGrid size={18} /> Админ Панел
           </button>
         </div>
       </div>

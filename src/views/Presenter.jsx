@@ -86,20 +86,26 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
       const colors = ['bg-amber-100', 'bg-emerald-100', 'bg-rose-100', 'bg-sky-100', 'bg-violet-100'];
       return (
         <div className="grid grid-cols-3 gap-8 max-h-[600px] overflow-y-auto pr-4 scrollbar-hide p-4">
-          {currentPoll.options.map((opt, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, scale: 0.8, rotate: Math.random() * 10 - 5 }}
-              animate={{ opacity: 1, scale: 1, rotate: Math.random() * 6 - 3 }}
-              whileHover={{ scale: 1.05, rotate: 0 }}
-              className={`${colors[i % colors.length]} p-8 rounded-xl shadow-xl border-t-4 border-black/5 relative min-h-[200px] flex items-center justify-center`}
-            >
-              <div className="absolute top-4 left-4 w-4 h-4 bg-black/10 rounded-full" />
-              <p className="text-slate-800 text-2xl font-black leading-tight text-center font-mono">
-                {opt.text}
-              </p>
-            </motion.div>
-          ))}
+          {currentPoll.options.length === 0 ? (
+             <div className="col-span-3 py-20 text-center text-slate-500 font-bold text-2xl border-2 border-dashed border-slate-800 rounded-[3rem]">
+                Сè уште нема одговори...
+             </div>
+          ) : (
+            currentPoll.options.map((opt, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, scale: 0.8, rotate: Math.random() * 10 - 5 }}
+                animate={{ opacity: 1, scale: 1, rotate: Math.random() * 6 - 3 }}
+                whileHover={{ scale: 1.05, rotate: 0 }}
+                className={`${colors[i % colors.length]} p-8 rounded-xl shadow-xl border-t-4 border-black/5 relative min-h-[200px] flex items-center justify-center`}
+              >
+                <div className="absolute top-4 left-4 w-4 h-4 bg-black/10 rounded-full" />
+                <p className="text-slate-800 text-2xl font-black leading-tight text-center font-mono">
+                  {opt.text}
+                </p>
+              </motion.div>
+            ))
+          )}
         </div>
       );
     }
@@ -269,7 +275,7 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
 
       {/* Footer Info */}
       <div className="mt-auto pt-10 flex items-center justify-between border-t border-slate-800/50 text-slate-600 font-black text-xs uppercase tracking-[0.2em]">
-        <p>© 2024 MKD Slidea • Направено во 🇲🇰</p>
+        <p>© 2026 MKD Slidea • Автор: Игор Богданоски • Направено во 🇲🇰</p>
         <p>Најдобрата платформа за интеракција во живо</p>
         <p>100% приватно и безбедно</p>
       </div>

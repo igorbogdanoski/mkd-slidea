@@ -139,7 +139,7 @@ const AppContent = () => {
           <a href="#" className="hover:text-indigo-600 transition-colors">Услови за користење</a>
           <a href="#" className="hover:text-indigo-600 transition-colors">Контакт</a>
         </div>
-        <p>© 2024 MKD Slidea. Со гордост направено во 🇲🇰</p>
+        <p>© 2026 MKD Slidea • Автор: Игор Богданоски • Направено во 🇲🇰</p>
       </footer>
     </div>
   );

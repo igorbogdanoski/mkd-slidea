@@ -59,7 +59,7 @@ const Dashboard = ({ setView }) => {
         <div className="flex items-center justify-between mb-12">
           <div>
             <h1 className="text-3xl font-black text-slate-900 mb-2">Добредојде, Игор Богданоски</h1>
-            <p className="text-slate-400 font-bold">Управувај со твоите интерактивни презентации.</p>
+            <p className="text-slate-400 font-bold">Управувај со твоите интерактивни презентации © 2026.</p>
           </div>
           <div className="flex items-center gap-4">
             <button className="p-3 bg-white border border-slate-100 rounded-xl text-slate-400 hover:text-indigo-600 transition-all">
