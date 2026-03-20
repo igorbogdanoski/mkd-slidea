@@ -8,6 +8,8 @@ export const useEvent = (eventCode) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [reactions, setReactions] = useState([]);
+
   useEffect(() => {
     if (!eventCode) return;
 
@@ -62,15 +64,52 @@ export const useEvent = (eventCode) => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'questions', filter: `event_id=eq.${event?.id}` }, fetchEventData)
       .subscribe();
 
+    const reactionSubscription = supabase
+      .channel('public:reactions')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reactions', filter: `event_id=eq.${event?.id}` }, (payload) => {
+        setReactions(prev => [...prev, payload.new]);
+        // Auto-remove reactions after animation
+        setTimeout(() => {
+          setReactions(prev => prev.filter(r => r.id !== payload.new.id));
+        }, 5000);
+      })
+      .subscribe();
+
     return () => {
       pollSubscription.unsubscribe();
       questionSubscription.unsubscribe();
+      reactionSubscription.unsubscribe();
     };
   }, [eventCode, event?.id]);
 
-  const vote = async (optionId) => {
-    const { error } = await supabase.rpc('increment_vote', { option_id: optionId });
+  const sendReaction = async (emoji) => {
+    if (!event) return;
+    const { error } = await supabase
+      .from('reactions')
+      .insert([{ event_id: event.id, emoji }]);
     return { error };
+  };
+
+  const vote = async (optionId, pollId, textValue) => {
+    if (textValue) {
+      // Check if option with this text exists for this poll
+      const { data: existing } = await supabase
+        .from('options')
+        .select('id')
+        .eq('poll_id', pollId)
+        .eq('text', textValue)
+        .single();
+
+      if (existing) {
+        return await supabase.rpc('increment_vote', { option_id: existing.id });
+      } else {
+        // Insert new option
+        return await supabase
+          .from('options')
+          .insert([{ poll_id: pollId, text: textValue, votes: 1 }]);
+      }
+    }
+    return await supabase.rpc('increment_vote', { option_id: optionId });
   };
 
   const submitQuestion = async (text, author = "Гостин") => {
@@ -85,5 +124,16 @@ export const useEvent = (eventCode) => {
     return { error };
   };
 
-  return { event, polls, questions, loading, error, vote, submitQuestion, upvoteQuestion };
+  return { 
+    event, 
+    polls, 
+    questions, 
+    reactions,
+    loading, 
+    error, 
+    vote, 
+    submitQuestion, 
+    upvoteQuestion,
+    sendReaction
+  };
 };

@@ -7,6 +7,7 @@ import Join from './views/Join';
 import Host from './views/Host';
 import Participant from './views/Participant';
 import Presenter from './views/Presenter';
+import Dashboard from './views/Dashboard';
 import confetti from 'canvas-confetti';
 import { supabase } from './lib/supabase';
 import { useEvent } from './hooks/useEvent';
@@ -14,7 +15,11 @@ import { useEvent } from './hooks/useEvent';
 // Специјална компонента за настанот која користи реални податоци
 const EventWrapper = ({ type, username, setUsername }) => {
   const { id } = useParams();
-  const { event, polls, questions, loading, error, vote, submitQuestion, upvoteQuestion } = useEvent(id);
+  const { 
+    event, polls, questions, reactions, 
+    loading, error, vote, submitQuestion, 
+    upvoteQuestion, sendReaction 
+  } = useEvent(id);
   const [activePollIndex, setActivePollIndex] = useState(0);
   const [userVoted, setUserVoted] = useState(false);
 
@@ -40,7 +45,16 @@ const EventWrapper = ({ type, username, setUsername }) => {
   );
 
   if (type === 'present') {
-    return <Presenter event={event} polls={polls} questions={questions} activePollIndex={activePollIndex} leaderboard={[]} />;
+    return (
+      <Presenter 
+        event={event} 
+        polls={polls} 
+        questions={questions} 
+        reactions={reactions}
+        activePollIndex={activePollIndex} 
+        leaderboard={[]} 
+      />
+    );
   }
 
   return (
@@ -49,16 +63,25 @@ const EventWrapper = ({ type, username, setUsername }) => {
       questions={questions} 
       activePollIndex={activePollIndex}
       userVoted={userVoted}
-      handleVote={async (idx) => {
+      handleVote={async (val) => {
         if (userVoted || polls.length === 0) return;
-        const option = polls[activePollIndex].options[idx];
-        await vote(option.id);
-        setUserVoted(true);
-        if (option.is_correct) {
-          confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#F59E0B', '#FCD34D'] });
+        const currentPoll = polls[activePollIndex];
+        
+        if (typeof val === 'string') {
+          // Text response (wordcloud, open)
+          await vote(null, currentPoll.id, val);
+        } else {
+          // Index response (poll, quiz)
+          const option = currentPoll.options[val];
+          await vote(option.id);
+          if (option.is_correct) {
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#F59E0B', '#FCD34D'] });
+          }
         }
+        setUserVoted(true);
       }}
       handleUpvote={(qid) => upvoteQuestion(qid)}
+      sendReaction={sendReaction}
       newQuestion=""
       setNewQuestion={() => {}}
       submitQuestion={(txt) => submitQuestion(txt, username)}
@@ -82,6 +105,7 @@ const AppContent = () => {
     if (view === 'landing') navigate('/');
     if (view === 'join') navigate('/join');
     if (view === 'host') navigate('/host');
+    if (view === 'dashboard') navigate('/dashboard');
   };
 
   const handleJoin = (e) => {
@@ -101,6 +125,7 @@ const AppContent = () => {
             <Route path="/" element={<Landing code={code} setCode={setCode} setView={setView} />} />
             <Route path="/join" element={<Join code={code} setCode={setCode} handleJoin={handleJoin} setView={setView} />} />
             <Route path="/host" element={<Host polls={[]} questions={[]} setView={setView} onAddPoll={() => {}} activePollIndex={0} setActivePollIndex={() => {}} />} />
+            <Route path="/dashboard" element={<Dashboard setView={setView} />} />
             <Route path="/event/:id/present" element={<EventWrapper type="present" />} />
             <Route path="/event/:id" element={<EventWrapper type="participant" username={username} setUsername={updateUsername} />} />
             <Route path="*" element={<Navigate to="/" />} />

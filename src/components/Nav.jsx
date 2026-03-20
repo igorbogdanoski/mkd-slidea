@@ -70,7 +70,8 @@ const Nav = ({ setView }) => {
     {
       title: "Корпоративни",
       links: [
-        { label: "Состаноци", desc: "Попродуктивни тимови", icon: <Briefcase size={18} />, color: "text-slate-600", bg: "bg-slate-50" },
+        { label: "Бизнис состаноци", desc: "Попродуктивни тимови", icon: <Briefcase size={18} />, color: "text-slate-600", bg: "bg-slate-50" },
+        { label: "Хибридна работа", desc: "Поврзете ги сите", icon: <Globe size={18} />, color: "text-slate-600", bg: "bg-slate-50" },
         { label: "Обуки", desc: "Развој на вработени", icon: <Users size={18} />, color: "text-slate-600", bg: "bg-slate-50" }
       ]
     },
@@ -78,7 +79,25 @@ const Nav = ({ setView }) => {
       title: "Едукација",
       links: [
         { label: "Предавања", desc: "Интерактивни часови", icon: <School size={18} />, color: "text-indigo-600", bg: "bg-indigo-50" },
-        { label: "Настани", desc: "Вебинари и семинари", icon: <Calendar size={18} />, color: "text-indigo-600", bg: "bg-indigo-50" }
+        { label: "Вебинари", desc: "Настани во живо", icon: <Presentation size={18} />, color: "text-indigo-600", bg: "bg-indigo-50" },
+        { label: "Училници", desc: "K-12 и Универзитети", icon: <Calendar size={18} />, color: "text-indigo-600", bg: "bg-indigo-50" }
+      ]
+    }
+  ];
+
+  const resources = [
+    {
+      title: "Учи",
+      links: [
+        { label: "Блог", desc: "Најнови вести", icon: <Presentation size={18} />, color: "text-emerald-600", bg: "bg-emerald-50" },
+        { label: "Студии на случај", desc: "Примери од пракса", icon: <ClipboardList size={18} />, color: "text-emerald-600", bg: "bg-emerald-50" }
+      ]
+    },
+    {
+      title: "Академија",
+      links: [
+        { label: "Упатства", desc: "Како да започнете", icon: <Globe size={18} />, color: "text-blue-600", bg: "bg-blue-50" },
+        { label: "Чести прашања", desc: "Помош и поддршка", icon: <MessageSquare size={18} />, color: "text-blue-600", bg: "bg-blue-50" }
       ]
     }
   ];
@@ -115,7 +134,20 @@ const Nav = ({ setView }) => {
             </div>
 
             <button className="px-4 py-2 rounded-xl text-sm font-bold text-slate-500 hover:text-indigo-600 hover:bg-slate-50 transition-colors">Цени</button>
-            <button className="px-4 py-2 rounded-xl text-sm font-bold text-slate-500 hover:text-indigo-600 hover:bg-slate-50 transition-colors">Ресурси</button>
+            
+            <div className="relative" onMouseEnter={() => setActiveMenu('resources')} onMouseLeave={() => setActiveMenu(null)}>
+              <button className={`px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1 transition-colors ${activeMenu === 'resources' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-50'}`}>
+                Ресурси <ChevronDown size={14} className={`transition-transform duration-300 ${activeMenu === 'resources' ? 'rotate-180' : ''}`} />
+              </button>
+              <MegaMenu isOpen={activeMenu === 'resources'} items={resources} />
+            </div>
+
+            <button 
+              onClick={() => setView('dashboard')}
+              className="px-4 py-2 rounded-xl text-sm font-bold text-slate-500 hover:text-indigo-600 hover:bg-slate-50 transition-colors"
+            >
+              Шаблони
+            </button>
           </div>
         </div>
 
@@ -127,10 +159,10 @@ const Nav = ({ setView }) => {
             Приклучи се
           </button>
           <button 
-            onClick={() => setView('host')}
+            onClick={() => setView('dashboard')}
             className="bg-slate-900 text-white px-6 py-3 rounded-2xl text-sm font-bold hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 active:scale-95"
           >
-            Креирај настан
+            Мој Панел
           </button>
         </div>
       </div>

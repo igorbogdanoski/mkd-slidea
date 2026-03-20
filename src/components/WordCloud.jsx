@@ -2,52 +2,54 @@ import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 import cloud from 'd3-cloud';
 
-const WordCloud = ({ words, width = 600, height = 400 }) => {
+const WordCloud = ({ words }) => {
   const svgRef = useRef();
 
   useEffect(() => {
     if (!words || words.length === 0) return;
 
-    // Clear existing
+    // Filter out words with no text or 0 votes
+    const data = words
+      .filter(w => w.text && w.votes > 0)
+      .map(w => ({ text: w.text, size: 10 + w.votes * 15 }));
+
+    const width = 800;
+    const height = 500;
+
     d3.select(svgRef.current).selectAll("*").remove();
 
     const layout = cloud()
       .size([width, height])
-      .words(words.map(d => ({ text: d.text, size: 10 + d.value * 15 })))
-      .padding(5)
-      .rotate(() => (~~(Math.random() * 6) - 3) * 30)
-      .font("Inter")
+      .words(data)
+      .padding(10)
+      .rotate(() => (~~(Math.random() * 2) * 90))
       .fontSize(d => d.size)
       .on("end", draw);
 
     layout.start();
 
     function draw(words) {
-      d3.select(svgRef.current)
-        .attr("width", layout.size()[0])
-        .attr("height", layout.size()[1])
+      const svg = d3.select(svgRef.current)
+        .attr("viewBox", `0 0 ${width} ${height}`)
         .append("g")
-        .attr("transform", "translate(" + layout.size()[0] / 2 + "," + layout.size()[1] / 2 + ")")
-        .selectAll("text")
+        .attr("transform", `translate(${width / 2},${height / 2})`);
+
+      svg.selectAll("text")
         .data(words)
         .enter().append("text")
-        .style("font-size", d => d.size + "px")
-        .style("font-family", "Inter")
+        .style("font-size", d => `${d.size}px`)
+        .style("font-family", "Black Ops One, system-ui")
         .style("font-weight", "900")
         .style("fill", () => d3.schemeTableau10[Math.floor(Math.random() * 10)])
         .attr("text-anchor", "middle")
-        .attr("transform", d => "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")")
-        .text(d => d.text)
-        .style("opacity", 0)
-        .transition()
-        .duration(1000)
-        .style("opacity", 1);
+        .attr("transform", d => `translate(${d.x},${d.y})rotate(${d.rotate})`)
+        .text(d => d.text);
     }
-  }, [words, width, height]);
+  }, [words]);
 
   return (
-    <div className="flex justify-center items-center bg-white/50 backdrop-blur-sm rounded-[3rem] p-8 border border-slate-100 shadow-xl">
-      <svg ref={svgRef}></svg>
+    <div className="w-full h-full flex items-center justify-center bg-slate-800/20 rounded-[4rem] border border-slate-700/50 p-8">
+      <svg ref={svgRef} className="w-full h-full max-h-[600px]" preserveAspectRatio="xMidYMid meet" />
     </div>
   );
 };

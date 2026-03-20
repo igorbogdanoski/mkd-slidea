@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, Plus, Trash2, Save } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const CreatePollModal = ({ isOpen, onClose, onSave }) => {
+const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll' }) => {
   const [question, setQuestion] = useState('');
   const [options, setOptions] = useState(['', '']);
 
@@ -24,11 +24,26 @@ const CreatePollModal = ({ isOpen, onClose, onSave }) => {
     setOptions(newOptions);
   };
 
+  const getTitle = () => {
+    switch (type) {
+      case 'wordcloud': return 'Нов облак со зборови';
+      case 'rating': return 'Ново оценување';
+      case 'open': return 'Нов отворен текст';
+      case 'ranking': return 'Ново рангирање';
+      default: return 'Нова анкета';
+    }
+  };
+
+  const hasOptions = ['poll', 'ranking'].includes(type);
+
   const handleSave = () => {
-    if (!question.trim() || options.some(opt => !opt.trim())) return;
+    if (!question.trim()) return;
+    if (hasOptions && options.some(opt => !opt.trim())) return;
+
     onSave({
       question,
-      options: options.map(text => ({ text, votes: 0 })),
+      options: hasOptions ? options.map(text => ({ text, votes: 0 })) : [],
+      type,
       active: true
     });
     setQuestion('');
@@ -60,7 +75,7 @@ const CreatePollModal = ({ isOpen, onClose, onSave }) => {
               <X className="w-6 h-6" />
             </button>
 
-            <h3 className="text-2xl font-black mb-8">Нова анкета</h3>
+            <h3 className="text-2xl font-black mb-8">{getTitle()}</h3>
 
             <div className="space-y-6">
               <div>
@@ -74,45 +89,47 @@ const CreatePollModal = ({ isOpen, onClose, onSave }) => {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Опции</label>
-                <div className="space-y-3">
-                  {options.map((opt, i) => (
-                    <div key={i} className="flex gap-2">
-                      <input 
-                        type="text" 
-                        placeholder={`Опција ${i + 1}`}
-                        value={opt}
-                        onChange={(e) => handleOptionChange(i, e.target.value)}
-                        className="flex-1 bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-3 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all"
-                      />
-                      {options.length > 2 && (
-                        <button 
-                          onClick={() => removeOption(i)}
-                          className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
+              {hasOptions && (
+                <div>
+                  <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Опции</label>
+                  <div className="space-y-3">
+                    {options.map((opt, i) => (
+                      <div key={i} className="flex gap-2">
+                        <input 
+                          type="text" 
+                          placeholder={`Опција ${i + 1}`}
+                          value={opt}
+                          onChange={(e) => handleOptionChange(i, e.target.value)}
+                          className="flex-1 bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-3 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all"
+                        />
+                        {options.length > 2 && (
+                          <button 
+                            onClick={() => removeOption(i)}
+                            className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  {options.length < 6 && (
+                    <button 
+                      onClick={addOption}
+                      className="mt-4 flex items-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-700 px-1"
+                    >
+                      <Plus className="w-4 h-4" /> Додај уште една опција
+                    </button>
+                  )}
                 </div>
-                {options.length < 6 && (
-                  <button 
-                    onClick={addOption}
-                    className="mt-4 flex items-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-700 px-1"
-                  >
-                    <Plus className="w-4 h-4" /> Додај уште една опција
-                  </button>
-                )}
-              </div>
+              )}
 
               <button 
                 onClick={handleSave}
-                disabled={!question.trim() || options.some(opt => !opt.trim())}
+                disabled={!question.trim() || (hasOptions && options.some(opt => !opt.trim()))}
                 className="w-full py-5 bg-indigo-600 text-white rounded-[1.5rem] font-black text-xl flex items-center justify-center gap-3 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl shadow-indigo-200 active:scale-[0.98] mt-4"
               >
-                <Save className="w-6 h-6" /> Зачувај анкета
+                <Save className="w-6 h-6" /> Зачувај активност
               </button>
             </div>
           </motion.div>
