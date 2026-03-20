@@ -272,34 +272,74 @@ const Dashboard = ({ setView }) => {
   );
 
   const renderPlan = () => (
-    <div className="max-w-4xl mx-auto space-y-12 text-center py-12">
-      <div>
-        <h2 className="text-4xl font-black text-slate-900 mb-4">Изберете го вашиот план</h2>
-        <p className="text-slate-400 font-bold text-lg italic">Игор, моментално сте на <span className="text-indigo-600 not-italic">Professional Plan</span> за 2026.</p>
+    <div className="max-w-6xl mx-auto space-y-16 py-12 px-6">
+      <div className="text-center space-y-4">
+        <h2 className="text-5xl font-black text-slate-900 leading-tight">Изберете го вашиот план</h2>
+        <p className="text-slate-400 font-bold text-xl max-w-2xl mx-auto leading-relaxed">
+          Игор, како автор на платформата имате <span className="text-indigo-600">Целосен Пристап</span>. 
+          Понудете им на вашите корисници флексибилност.
+        </p>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm relative overflow-hidden">
-          <div className="bg-slate-100 text-slate-500 text-[10px] font-black px-4 py-1 rounded-full absolute top-6 right-6">FREE</div>
-          <h3 className="text-2xl font-black mb-2">Бесплатен</h3>
-          <div className="text-4xl font-black mb-8">€0<span className="text-lg text-slate-300">/мес</span></div>
-          <ul className="text-left space-y-4 font-bold text-slate-500 mb-10">
-            <li className="flex items-center gap-2"><ShieldCheck className="text-emerald-500" size={18} /> До 100 учесници</li>
-            <li className="flex items-center gap-2"><ShieldCheck className="text-emerald-500" size={18} /> 3 анкети по настан</li>
-            <li className="flex items-center gap-2"><ShieldCheck className="text-emerald-500" size={18} /> Основни извештаи</li>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        {/* Бесплатен План */}
+        <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm flex flex-col hover:shadow-xl transition-all relative">
+          <div className="bg-slate-100 text-slate-500 text-[10px] font-black px-4 py-1 rounded-full absolute top-8 right-8 uppercase tracking-widest">Basic</div>
+          <h3 className="text-2xl font-black mb-1">Бесплатен</h3>
+          <p className="text-slate-400 font-bold text-xs mb-6 uppercase tracking-widest">За наставници</p>
+          <div className="text-4xl font-black mb-8">€0<span className="text-lg text-slate-300">/засекогаш</span></div>
+          <ul className="text-left space-y-4 font-bold text-slate-500 mb-10 flex-1">
+            <li className="flex items-start gap-2 leading-tight"><ShieldCheck className="text-emerald-500 shrink-0" size={18} /> До 50 учесници (една училница)</li>
+            <li className="flex items-start gap-2 leading-tight"><ShieldCheck className="text-emerald-500 shrink-0" size={18} /> 3 анкети по настан</li>
+            <li className="flex items-start gap-2 leading-tight"><ShieldCheck className="text-emerald-500 shrink-0" size={18} /> До 5 настани месечно</li>
+            <li className="flex items-start gap-2 leading-tight"><ShieldCheck className="text-emerald-500 shrink-0" size={18} /> Основни извештаи</li>
           </ul>
-          <button className="w-full py-4 bg-slate-50 text-slate-400 rounded-2xl font-black uppercase tracking-widest">Ваш план</button>
+          <button className="w-full py-4 bg-slate-50 text-slate-400 rounded-2xl font-black uppercase tracking-widest text-xs">Вашиот план</button>
         </div>
-        <div className="bg-indigo-600 p-10 rounded-[3rem] shadow-2xl shadow-indigo-100 relative text-white">
-          <div className="bg-indigo-500 text-white text-[10px] font-black px-4 py-1 rounded-full absolute top-6 right-6">POPULAR</div>
-          <h3 className="text-2xl font-black mb-2">Професионален</h3>
-          <div className="text-4xl font-black mb-8">€12<span className="text-lg text-indigo-300">/мес</span></div>
-          <ul className="text-left space-y-4 font-bold text-indigo-100 mb-10">
-            <li className="flex items-center gap-2"><ShieldCheck className="text-indigo-300" size={18} /> Неограничени учесници</li>
-            <li className="flex items-center gap-2"><ShieldCheck className="text-indigo-300" size={18} /> Неограничени активности</li>
-            <li className="flex items-center gap-2"><ShieldCheck className="text-indigo-300" size={18} /> AI асистент за прашања</li>
-            <li className="flex items-center gap-2"><ShieldCheck className="text-indigo-300" size={18} /> Брендирање по желба</li>
+
+        {/* Месечен План */}
+        <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm flex flex-col hover:shadow-xl transition-all relative">
+          <h3 className="text-2xl font-black mb-1">Месечен</h3>
+          <p className="text-slate-400 font-bold text-xs mb-6 uppercase tracking-widest">Флексибилен</p>
+          <div className="text-4xl font-black mb-8">€5<span className="text-lg text-slate-300">/мес</span></div>
+          <ul className="text-left space-y-4 font-bold text-slate-500 mb-10 flex-1">
+            <li className="flex items-start gap-2 leading-tight"><ShieldCheck className="text-indigo-500 shrink-0" size={18} /> До 200 учесници</li>
+            <li className="flex items-start gap-2 leading-tight"><ShieldCheck className="text-indigo-500 shrink-0" size={18} /> 10 анкети по настан</li>
+            <li className="flex items-start gap-2 leading-tight"><ShieldCheck className="text-indigo-500 shrink-0" size={18} /> Неограничени настани</li>
+            <li className="flex items-start gap-2 leading-tight"><ShieldCheck className="text-indigo-500 shrink-0" size={18} /> Приоритетна поддршка</li>
           </ul>
-          <button className="w-full py-4 bg-white text-indigo-600 rounded-2xl font-black uppercase tracking-widest shadow-xl">Надгради</button>
+          <button className="w-full py-4 bg-indigo-50 text-indigo-600 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-indigo-600 hover:text-white transition-all">Избери</button>
+        </div>
+
+        {/* Квартален/Полугодишен План */}
+        <div className="bg-white p-10 rounded-[3rem] border-2 border-indigo-100 shadow-xl shadow-indigo-50 flex flex-col hover:shadow-2xl transition-all relative">
+          <div className="bg-indigo-600 text-white text-[10px] font-black px-4 py-1 rounded-full absolute -top-3 left-1/2 -translate-x-1/2 uppercase tracking-widest">Најпопуларно</div>
+          <h3 className="text-2xl font-black mb-1">Семестрален</h3>
+          <p className="text-slate-400 font-bold text-xs mb-6 uppercase tracking-widest">3 или 6 месеци</p>
+          <div className="text-3xl font-black mb-2 text-indigo-600">€10 / €15</div>
+          <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-8">За целиот период</p>
+          <ul className="text-left space-y-4 font-bold text-slate-500 mb-10 flex-1">
+            <li className="flex items-start gap-2 leading-tight"><ShieldCheck className="text-indigo-500 shrink-0" size={18} /> До 500 учесници</li>
+            <li className="flex items-start gap-2 leading-tight"><ShieldCheck className="text-indigo-500 shrink-0" size={18} /> Неограничени активности</li>
+            <li className="flex items-start gap-2 leading-tight"><ShieldCheck className="text-indigo-500 shrink-0" size={18} /> AI Генерирање прашања</li>
+            <li className="flex items-start gap-2 leading-tight"><ShieldCheck className="text-indigo-500 shrink-0" size={18} /> Напредна аналитика</li>
+          </ul>
+          <button className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-indigo-100">Надгради</button>
+        </div>
+
+        {/* Годишен План */}
+        <div className="bg-slate-900 p-10 rounded-[3rem] shadow-2xl flex flex-col hover:scale-105 transition-all relative text-white">
+          <div className="bg-emerald-500 text-white text-[10px] font-black px-4 py-1 rounded-full absolute top-8 right-8 uppercase tracking-widest">Best Value</div>
+          <h3 className="text-2xl font-black mb-1">Годишен</h3>
+          <p className="text-slate-400 font-bold text-xs mb-6 uppercase tracking-widest">Професионален</p>
+          <div className="text-4xl font-black mb-8 text-emerald-400">€20<span className="text-lg text-slate-500">/год</span></div>
+          <ul className="text-left space-y-4 font-bold text-slate-300 mb-10 flex-1">
+            <li className="flex items-start gap-2 leading-tight"><ShieldCheck className="text-emerald-400 shrink-0" size={18} /> Неограничени учесници</li>
+            <li className="flex items-start gap-2 leading-tight"><ShieldCheck className="text-emerald-400 shrink-0" size={18} /> Целосен AI асистент</li>
+            <li className="flex items-start gap-2 leading-tight"><ShieldCheck className="text-emerald-400 shrink-0" size={18} /> Сопствено брендирање</li>
+            <li className="flex items-start gap-2 leading-tight"><ShieldCheck className="text-emerald-400 shrink-0" size={18} /> Експорт на податоци</li>
+          </ul>
+          <button className="w-full py-4 bg-emerald-500 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-emerald-500/20">Активирај</button>
         </div>
       </div>
     </div>
