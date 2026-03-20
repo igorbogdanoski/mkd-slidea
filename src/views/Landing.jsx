@@ -1,146 +1,287 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Zap, Plus, ArrowRight, Presentation, Globe, MonitorPlay, Users } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Zap, Plus, ArrowRight, Presentation, Globe, 
+  MonitorPlay, Users, Cloud, PieChart, MessageSquare, 
+  Trophy, CheckCircle2, Star, Sparkles, ChevronRight
+} from 'lucide-react';
 
 const Landing = ({ code, setCode, setView }) => {
+  const [activeDemo, setActiveDemo] = useState('wordcloud');
+  const [demoValue, setDemoValue] = useState('');
+  const [demoWords, setDemoWords] = useState([
+    { text: 'Интеракција', size: 40 },
+    { text: 'Учење', size: 30 },
+    { text: 'Квиз', size: 25 },
+    { text: 'Забава', size: 35 },
+    { text: 'Скопје', size: 20 },
+    { text: 'Дигитално', size: 28 },
+  ]);
+
+  const addWord = (e) => {
+    if (e.key === 'Enter' && demoValue.trim()) {
+      setDemoWords([...demoWords, { text: demoValue.trim(), size: Math.random() * 20 + 20 }]);
+      setDemoValue('');
+    }
+  };
+
+  const solutions = [
+    { title: 'Бизнис состаноци', icon: <Presentation className="w-6 h-6" />, color: 'bg-indigo-50 text-indigo-600' },
+    { title: 'Предавања', icon: <Globe className="w-6 h-6" />, color: 'bg-emerald-50 text-emerald-600' },
+    { title: 'Обуки', icon: <Users className="w-6 h-6" />, color: 'bg-amber-50 text-amber-600' },
+    { title: 'Вебинари', icon: <MonitorPlay className="w-6 h-6" />, color: 'bg-rose-50 text-rose-600' },
+  ];
+
   return (
     <motion.div
       key="landing"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="relative overflow-hidden"
+      className="relative"
     >
-      {/* Promo Join Bar */}
-      <div className="bg-gradient-to-r from-indigo-600 via-violet-600 to-pink-600 py-4 shadow-lg">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-center gap-4 text-white">
-          <span className="font-bold text-lg">Се приклучувате како учесник?</span>
-          <div className="flex bg-white/20 p-1 rounded-2xl backdrop-blur-md border border-white/30 w-full md:w-auto">
-            <input 
-              type="text" 
-              placeholder="Внеси го кодот" 
-              value={code}
-              onChange={(e) => setCode(e.target.value.toUpperCase())}
-              className="bg-transparent px-4 py-2 outline-none placeholder:text-white/70 font-bold w-full md:w-40"
-            />
-            <button 
-              onClick={() => setView('join')}
-              className="bg-white text-indigo-600 px-6 py-2 rounded-xl font-black hover:bg-indigo-50 transition-colors"
+      {/* Hero Section */}
+      <section className="relative pt-32 pb-20 overflow-hidden">
+        {/* Background Accents */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10">
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-100/50 rounded-full blur-[120px]" />
+          <div className="absolute bottom-[10%] right-[-5%] w-[30%] h-[30%] bg-pink-100/30 rounded-full blur-[100px]" />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div className="text-left space-y-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 font-black text-xs uppercase tracking-widest shadow-sm"
             >
-              Влези
-            </button>
+              <Sparkles size={14} /> Новата ера на презентации
+            </motion.div>
+            
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-6xl md:text-8xl font-black tracking-tight text-slate-900 leading-[0.95]"
+            >
+              Слајдови кои <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">реагираат.</span>
+            </motion.h1>
+
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-xl text-slate-500 max-w-xl leading-relaxed font-medium"
+            >
+              Трансформирајте ја вашата училница или бизнис состанок во интерактивно доживување. 
+              Најмоќната македонска алатка за анкети и квизови во живо.
+            </motion.p>
+
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="flex flex-wrap gap-4 pt-4"
+            >
+              <button 
+                onClick={() => setView('host')}
+                className="group relative px-10 py-5 bg-slate-900 text-white rounded-[2rem] font-black text-xl hover:bg-slate-800 transition-all shadow-2xl shadow-slate-200 active:scale-95 flex items-center gap-3"
+              >
+                Започни сега <ArrowRight className="group-hover:translate-x-1 transition-transform" />
+              </button>
+              <button 
+                onClick={() => setView('dashboard')}
+                className="px-10 py-5 bg-white text-slate-700 rounded-[2rem] font-black text-xl border-2 border-slate-100 hover:border-indigo-600 hover:text-indigo-600 transition-all active:scale-95"
+              >
+                Погледни демо
+              </button>
+            </motion.div>
+
+            {/* Quick Stats */}
+            <div className="flex items-center gap-12 pt-8 border-t border-slate-100">
+              <div>
+                <div className="text-3xl font-black text-slate-900">50,000+</div>
+                <div className="text-sm font-bold text-slate-400">Корисници месечно</div>
+              </div>
+              <div>
+                <div className="text-3xl font-black text-slate-900">100%</div>
+                <div className="text-sm font-bold text-slate-400">На македонски</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive Demo Block */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9, x: 20 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            className="relative"
+          >
+            <div className="bg-white p-2 rounded-[4rem] shadow-[0_32px_64px_-16px_rgba(79,70,229,0.15)] border border-slate-100">
+              <div className="bg-slate-50 rounded-[3.5rem] overflow-hidden p-8 md:p-12 relative min-h-[500px] flex flex-col">
+                <div className="flex items-center justify-between mb-8">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-100">
+                      <Cloud size={20} />
+                    </div>
+                    <span className="font-black text-slate-400 uppercase tracking-widest text-xs">Демо: Облак со зборови</span>
+                  </div>
+                  <div className="flex gap-1">
+                    {[1, 2, 3].map(i => <div key={i} className="w-2 h-2 rounded-full bg-slate-200" />)}
+                  </div>
+                </div>
+
+                <div className="flex-1 flex flex-wrap items-center justify-center gap-4 py-8 content-center">
+                  <AnimatePresence>
+                    {demoWords.map((word, idx) => (
+                      <motion.span
+                        key={idx}
+                        initial={{ opacity: 0, scale: 0 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        style={{ fontSize: word.size, fontWeight: 900 }}
+                        className="text-indigo-600/80 hover:text-indigo-600 cursor-default transition-colors"
+                      >
+                        {word.text}
+                      </motion.span>
+                    ))}
+                  </AnimatePresence>
+                </div>
+
+                <div className="mt-auto bg-white/80 backdrop-blur-xl p-4 rounded-3xl border border-slate-200/50 shadow-xl">
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3 px-2">Пробај: Внеси збор и притисни Enter</p>
+                  <input 
+                    type="text" 
+                    placeholder="Вашиот збор..."
+                    value={demoValue}
+                    onChange={(e) => setDemoValue(e.target.value)}
+                    onKeyDown={addWord}
+                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all"
+                  />
+                </div>
+              </div>
+            </div>
+            
+            {/* Floating Elements */}
+            <motion.div 
+              animate={{ y: [0, -20, 0] }}
+              transition={{ duration: 4, repeat: Infinity }}
+              className="absolute -top-10 -right-10 bg-white p-6 rounded-3xl shadow-xl border border-slate-50 z-20"
+            >
+              <PieChart size={32} className="text-emerald-500" />
+            </motion.div>
+            <motion.div 
+              animate={{ y: [0, 20, 0] }}
+              transition={{ duration: 5, repeat: Infinity, delay: 1 }}
+              className="absolute -bottom-6 -left-10 bg-white p-6 rounded-3xl shadow-xl border border-slate-50 z-20"
+            >
+              <Trophy size={32} className="text-amber-500" />
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Solutions Grid */}
+      <section className="bg-white py-32 border-t border-slate-100">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center space-y-4 mb-20">
+            <h2 className="text-4xl font-black text-slate-900">Едно решение за сите ваши потреби</h2>
+            <p className="text-slate-500 font-bold max-w-2xl mx-auto">
+              MKD Slidea е дизајнирана да биде вашата десна рака без разлика дали предавате во училница или водите глобален вебинар.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {solutions.map((sol, i) => (
+              <motion.div 
+                key={i}
+                whileHover={{ y: -10 }}
+                className="bg-slate-50 p-10 rounded-[3rem] border border-slate-100 group cursor-pointer hover:bg-white hover:shadow-2xl hover:shadow-indigo-50 transition-all"
+              >
+                <div className={`${sol.color} w-16 h-16 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform`}>
+                  {sol.icon}
+                </div>
+                <h3 className="text-xl font-black text-slate-900 mb-4">{sol.title}</h3>
+                <p className="text-sm text-slate-400 font-bold leading-relaxed mb-8 text-left">
+                  Интерактивни алатки специјално прилагодени за {sol.title.toLowerCase()}.
+                </p>
+                <button className="flex items-center gap-2 text-indigo-600 font-black text-xs uppercase tracking-widest group-hover:translate-x-1 transition-transform">
+                  Дознај повеќе <ChevronRight size={16} />
+                </button>
+              </motion.div>
+            ))}
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Main Hero */}
-      <div className="max-w-7xl mx-auto px-6 pt-20 pb-32 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-        <div className="text-left">
-          <motion.h1 
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="text-6xl md:text-7xl font-black tracking-tight text-slate-900 mb-8 leading-[1.1]"
-          >
-            Слајдови кои <span className="text-indigo-600">слушаат</span>,<br />
-            Идеи кои <span className="bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-pink-600">водат.</span>
-          </motion.h1>
-          <p className="text-xl text-slate-500 mb-10 max-w-xl leading-relaxed">
-            Направете ги вашите презентации двонасочна улица. Најдобрата македонска платформа за квизови, анкети и моќна интеракција во живо.
-          </p>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">
-            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl transition-all group">
-              <div className="bg-indigo-50 p-3 rounded-2xl w-fit mb-4 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                <Plus className="w-6 h-6" />
+      {/* Features Detail */}
+      <section className="py-32 bg-[#F8FAFC]">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
+          <div className="order-2 lg:order-1 relative">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4 pt-12">
+                <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
+                   <MessageSquare className="text-indigo-600 mb-4" />
+                   <h4 className="font-black mb-2">Q&A во живо</h4>
+                   <p className="text-xs text-slate-400 font-bold leading-relaxed">Дајте ѝ глас на публиката без прекинување.</p>
+                </div>
+                <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
+                   <PieChart className="text-emerald-600 mb-4" />
+                   <h4 className="font-black mb-2">Анкети</h4>
+                   <p className="text-xs text-slate-400 font-bold leading-relaxed">Инстант одговори во преубави графикони.</p>
+                </div>
               </div>
-              <h3 className="font-black mb-2">Готови шаблони</h3>
-              <p className="text-sm text-slate-400 font-medium">Пронајдете го вашиот совршен дизајн веднаш.</p>
-              <button className="mt-4 text-indigo-600 font-bold text-sm flex items-center gap-1">Земи бесплатно <ArrowRight className="w-4 h-4" /></button>
-            </div>
-            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl transition-all group">
-              <div className="bg-violet-50 p-3 rounded-2xl w-fit mb-4 group-hover:bg-violet-600 group-hover:text-white transition-colors">
-                <Zap className="w-6 h-6" />
+              <div className="space-y-4">
+                <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
+                   <Trophy className="text-amber-500 mb-4" />
+                   <h4 className="font-black mb-2">Квизови</h4>
+                   <p className="text-xs text-slate-400 font-bold leading-relaxed">Натпреварувајте се и најдете го победникот.</p>
+                </div>
+                <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
+                   <Star className="text-pink-600 mb-4" />
+                   <h4 className="font-black mb-2">Реакции</h4>
+                   <p className="text-xs text-slate-400 font-bold leading-relaxed">Дозволете им на сите да ја покажат емоцијата.</p>
+                </div>
               </div>
-              <h3 className="font-black mb-2">AI Креирање</h3>
-              <p className="text-sm text-slate-400 font-medium">Инстант слајдови со помош на вештачка интелигенција.</p>
-              <button className="mt-4 text-violet-600 font-bold text-sm flex items-center gap-1">Креирај со AI <ArrowRight className="w-4 h-4" /></button>
             </div>
+            {/* Background Circle */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-indigo-50 rounded-full blur-[100px] -z-10" />
           </div>
 
-          <div className="flex flex-wrap gap-4">
+          <div className="order-1 lg:order-2 space-y-8">
+            <h2 className="text-5xl font-black text-slate-900 leading-tight">Сите алатки што ви требаат за успех</h2>
+            <p className="text-xl text-slate-500 font-medium leading-relaxed">
+              Не трошете време на сложени платформи. MKD Slidea ви нуди сè што ви треба на едноставен, но моќен начин.
+            </p>
+            <ul className="space-y-4">
+              {['Неограничени активности', 'Детална аналитика по настан', 'Споделување со еден клик'].map((feat, i) => (
+                <li key={i} className="flex items-center gap-3 font-bold text-slate-700">
+                  <div className="bg-emerald-100 p-1 rounded-full"><CheckCircle2 size={16} className="text-emerald-600" /></div>
+                  {feat}
+                </li>
+              ))}
+            </ul>
             <button 
               onClick={() => setView('host')}
-              className="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black text-lg hover:bg-slate-800 transition-all shadow-xl shadow-slate-200"
+              className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black text-lg hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100"
             >
-              Започни сега
-            </button>
-            <button 
-              onClick={() => setView('dashboard')}
-              className="bg-white text-slate-700 px-8 py-4 rounded-2xl font-black text-lg border-2 border-slate-100 hover:border-indigo-600 transition-all"
-            >
-              Погледни демо
+              Креирај настан бесплатно
             </button>
           </div>
         </div>
+      </section>
 
-        <div className="relative hidden lg:block">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="relative z-10 bg-white p-4 rounded-[3rem] shadow-2xl border border-slate-100"
+      {/* Trust Banner */}
+      <section className="bg-slate-900 py-16">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-8">
+          <h3 className="text-white text-2xl font-black">Подготвени сте да ја подигнете интеракцијата на следно ниво?</h3>
+          <button 
+            onClick={() => setView('host')}
+            className="px-10 py-4 bg-white text-slate-900 rounded-2xl font-black text-lg hover:bg-slate-100 transition-all active:scale-95"
           >
-            <div className="bg-slate-50 rounded-[2.5rem] overflow-hidden border border-slate-100 p-8">
-              <div className="flex items-center gap-3 mb-8">
-                <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white">
-                  <Users className="w-5 h-5" />
-                </div>
-                <span className="font-black text-slate-400">ПРАШАЊЕ ВО ЖИВО</span>
-              </div>
-              <h2 className="text-3xl font-black text-slate-800 mb-10 leading-snug">Кој е главниот град на Македонија?</h2>
-              <div className="space-y-4">
-                <div className="p-5 bg-white rounded-2xl border-2 border-indigo-600 shadow-lg shadow-indigo-100 font-black text-indigo-600 flex justify-between items-center">
-                  Скопје
-                  <div className="w-3 h-3 bg-indigo-600 rounded-full animate-ping"></div>
-                </div>
-                <div className="p-5 bg-white rounded-2xl border-2 border-slate-100 font-bold text-slate-400">Битола</div>
-                <div className="p-5 bg-white rounded-2xl border-2 border-slate-100 font-bold text-slate-400">Охрид</div>
-              </div>
-            </div>
-          </motion.div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-indigo-100/50 rounded-full blur-3xl -z-10"></div>
-          <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-pink-100/50 rounded-full blur-2xl -z-10"></div>
+            Започни бесплатно
+          </button>
         </div>
-      </div>
-
-      {/* Integrations Section */}
-      <div className="bg-white py-24 border-y border-slate-100">
-        <div className="max-w-7xl mx-auto px-6 text-center">
-          <h2 className="text-3xl font-black mb-4 text-slate-900">Интегрирајте беспрекорно</h2>
-          <p className="text-slate-500 mb-16 max-w-2xl mx-auto font-medium">
-            Спречете го постојаното менување апликации. MKD Slidea работи таму каде што се вашите состаноци.
-          </p>
-          <div className="flex flex-wrap justify-center items-center gap-12 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center text-red-600 shadow-sm border border-red-100">
-                <Presentation className="w-8 h-8" />
-              </div>
-              <span className="font-bold text-xs text-slate-400">PowerPoint</span>
-            </div>
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 shadow-sm border border-blue-100">
-                <Globe className="w-8 h-8" />
-              </div>
-              <span className="font-bold text-xs text-slate-400">Google Slides</span>
-            </div>
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 shadow-sm border border-indigo-100">
-                <MonitorPlay className="w-8 h-8" />
-              </div>
-              <span className="font-bold text-xs text-slate-400">Teams / Zoom</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      </section>
     </motion.div>
   );
 };

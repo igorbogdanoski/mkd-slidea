@@ -140,7 +140,12 @@ const Nav = ({ setView }) => {
               <MegaMenu isOpen={activeMenu === 'solutions'} items={solutions} />
             </div>
 
-            <button className="px-4 py-2 rounded-xl text-sm font-bold text-slate-500 hover:text-indigo-600 hover:bg-slate-50 transition-colors">Цени</button>
+            <button 
+              onClick={() => setView('pricing')}
+              className="px-4 py-2 rounded-xl text-sm font-bold text-slate-500 hover:text-indigo-600 hover:bg-slate-50 transition-colors"
+            >
+              Цени
+            </button>
             
             <div className="relative" onMouseEnter={() => setActiveMenu('resources')} onMouseLeave={() => setActiveMenu(null)}>
               <button className={`px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1 transition-colors ${activeMenu === 'resources' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-50'}`}>

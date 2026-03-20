@@ -8,6 +8,7 @@ import Host from './views/Host';
 import Participant from './views/Participant';
 import Presenter from './views/Presenter';
 import Dashboard from './views/Dashboard';
+import Pricing from './views/Pricing';
 import confetti from 'canvas-confetti';
 import { supabase } from './lib/supabase';
 import { useEvent } from './hooks/useEvent';
@@ -106,6 +107,7 @@ const AppContent = () => {
     if (view === 'join') navigate('/join');
     if (view === 'host') navigate('/host', { state: { initialType: type } });
     if (view === 'dashboard') navigate('/dashboard');
+    if (view === 'pricing') navigate('/pricing');
   };
 
   const handleJoin = (e) => {
@@ -126,6 +128,7 @@ const AppContent = () => {
             <Route path="/join" element={<Join code={code} setCode={setCode} handleJoin={handleJoin} setView={setView} />} />
             <Route path="/host" element={<Host polls={[]} questions={[]} setView={setView} onAddPoll={() => {}} activePollIndex={0} setActivePollIndex={() => {}} />} />
             <Route path="/dashboard" element={<Dashboard setView={setView} />} />
+            <Route path="/pricing" element={<Pricing setView={setView} />} />
             <Route path="/event/:id/present" element={<EventWrapper type="present" />} />
             <Route path="/event/:id" element={<EventWrapper type="participant" username={username} setUsername={updateUsername} />} />
             <Route path="*" element={<Navigate to="/" />} />

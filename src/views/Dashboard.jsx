@@ -173,6 +173,9 @@ const Dashboard = ({ setView }) => {
     <div className="max-w-4xl mx-auto space-y-12 py-12">
       <div className="bg-indigo-600 rounded-[3rem] p-12 text-white relative overflow-hidden shadow-2xl shadow-indigo-200">
         <div className="relative z-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest mb-6 border border-white/30">
+            Professional & Semester
+          </div>
           <h2 className="text-4xl font-black mb-4">Креирај Тимски Простор</h2>
           <p className="text-indigo-100 font-bold text-lg mb-8 max-w-lg">
             Споделувајте презентации, соработувајте на шаблони и анализирајте ги резултатите заедно со вашиот тим.
@@ -439,13 +442,18 @@ const Dashboard = ({ setView }) => {
           {activeTab === 'team' && renderTeam()}
           {activeTab === 'plan' && renderPlan()}
           {activeTab === 'integrations' && renderIntegrations()}
-          {['trash'].includes(activeTab) && (
-            <div className="pt-20 text-center">
-              <div className="bg-slate-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Zap size={40} className="text-slate-200" />
+          {activeTab === 'trash' && (
+            <div className="pt-20 text-center space-y-6">
+              <div className="bg-slate-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto shadow-inner">
+                <Trash2 size={40} className="text-slate-300" />
               </div>
-              <h3 className="text-xl font-black text-slate-400 uppercase tracking-widest">Наскоро</h3>
-              <p className="text-slate-300 font-bold mt-2">Оваа опција ќе биде достапна во следната верзија.</p>
+              <div>
+                <h3 className="text-2xl font-black text-slate-900">Корпата е празна</h3>
+                <p className="text-slate-400 font-bold mt-2">Избришаните презентации ќе се појават овде.</p>
+              </div>
+              <button onClick={() => setActiveTab('presentations')} className="text-indigo-600 font-black uppercase tracking-widest text-xs hover:underline">
+                Назад кон презентации
+              </button>
             </div>
           )}
         </motion.div>
