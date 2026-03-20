@@ -6,7 +6,7 @@ import {
   Users, School, Briefcase, Calendar, LayoutGrid
 } from 'lucide-react';
 
-const MegaMenu = ({ isOpen, items }) => (
+const MegaMenu = ({ isOpen, items, setView, setActiveMenu }) => (
   <AnimatePresence>
     {isOpen && (
       <motion.div
@@ -26,7 +26,7 @@ const MegaMenu = ({ isOpen, items }) => (
                   key={lIdx} 
                   className="flex gap-4 group cursor-pointer"
                   onClick={() => {
-                    setView('host', link.type);
+                    if (link.type) setView('host', link.type);
                     setActiveMenu(null);
                   }}
                 >
@@ -130,14 +130,14 @@ const Nav = ({ setView }) => {
               <button className={`px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1 transition-colors ${activeMenu === 'features' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-50'}`}>
                 Производ <ChevronDown size={14} className={`transition-transform duration-300 ${activeMenu === 'features' ? 'rotate-180' : ''}`} />
               </button>
-              <MegaMenu isOpen={activeMenu === 'features'} items={features} />
+              <MegaMenu isOpen={activeMenu === 'features'} items={features} setView={setView} setActiveMenu={setActiveMenu} />
             </div>
 
             <div className="relative" onMouseEnter={() => setActiveMenu('solutions')} onMouseLeave={() => setActiveMenu(null)}>
               <button className={`px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1 transition-colors ${activeMenu === 'solutions' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-50'}`}>
                 Решенија <ChevronDown size={14} className={`transition-transform duration-300 ${activeMenu === 'solutions' ? 'rotate-180' : ''}`} />
               </button>
-              <MegaMenu isOpen={activeMenu === 'solutions'} items={solutions} />
+              <MegaMenu isOpen={activeMenu === 'solutions'} items={solutions} setView={setView} setActiveMenu={setActiveMenu} />
             </div>
 
             <button 
@@ -151,7 +151,7 @@ const Nav = ({ setView }) => {
               <button className={`px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1 transition-colors ${activeMenu === 'resources' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-50'}`}>
                 Ресурси <ChevronDown size={14} className={`transition-transform duration-300 ${activeMenu === 'resources' ? 'rotate-180' : ''}`} />
               </button>
-              <MegaMenu isOpen={activeMenu === 'resources'} items={resources} />
+              <MegaMenu isOpen={activeMenu === 'resources'} items={resources} setView={setView} setActiveMenu={setActiveMenu} />
             </div>
 
             <button 

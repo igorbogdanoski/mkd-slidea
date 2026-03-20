@@ -1,0 +1,107 @@
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import confetti from 'canvas-confetti';
+import { useEvent } from '../hooks/useEvent';
+import Presenter from '../views/Presenter';
+import Participant from '../views/Participant';
+
+const EventWrapper = ({ type, username, setUsername }) => {
+  const { id } = useParams();
+  const { 
+    event, polls, questions, reactions, 
+    loading, error, vote, submitQuestion, 
+    upvoteQuestion, sendReaction 
+  } = useEvent(id);
+  
+  const activePollIndex = event?.active_poll_id 
+    ? polls.findIndex(p => p.id === event.active_poll_id) 
+    : 0;
+
+  const [userVoted, setUserVoted] = useState(false);
+
+  useEffect(() => {
+    // Reset voting state when poll changes
+    setUserVoted(false);
+  }, [event?.active_poll_id]);
+
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
+    </div>
+  );
+
+  if (error || !event) return (
+    <div className="text-center pt-32 px-6">
+      <div className="bg-red-50 text-red-600 p-12 rounded-[3rem] border border-red-100 inline-block max-w-md shadow-2xl shadow-red-100">
+        <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm">
+           <span className="text-4xl">🔍</span>
+        </div>
+        <h2 className="text-3xl font-black mb-2">Настанот не е пронајден</h2>
+        <p className="font-bold opacity-80 mb-8 leading-relaxed text-slate-500">
+          Проверете го кодот <span className="bg-red-100 px-2 py-0.5 rounded text-red-700">#{id}</span>. Можно е настанот да е истечен или избришан.
+        </p>
+        <button 
+          onClick={() => window.location.href='/'} 
+          className="w-full bg-red-600 text-white px-8 py-4 rounded-2xl font-black hover:bg-red-700 transition-all active:scale-95 shadow-lg shadow-red-200"
+        >
+          Назад на почетна
+        </button>
+      </div>
+    </div>
+  );
+
+  if (type === 'present') {
+    return (
+      <Presenter 
+        event={event} 
+        polls={polls} 
+        questions={questions} 
+        reactions={reactions}
+        activePollIndex={activePollIndex} 
+        leaderboard={[]} 
+      />
+    );
+  }
+
+  return (
+    <Participant 
+      polls={polls.length > 0 ? polls : [{ question: "Чекаме домаќинот да активира анкета...", options: [], is_quiz: false }]} 
+      questions={questions} 
+      activePollIndex={activePollIndex}
+      userVoted={userVoted}
+      handleVote={async (val) => {
+        if (userVoted || polls.length === 0) return;
+        const currentPoll = polls[activePollIndex];
+        
+        try {
+          if (typeof val === 'string') {
+            await vote(null, currentPoll.id, val);
+          } else {
+            const option = currentPoll.options[val];
+            await vote(option.id);
+            if (option.is_correct) {
+              confetti({ 
+                particleCount: 150, 
+                spread: 70, 
+                origin: { y: 0.6 }, 
+                colors: ['#F59E0B', '#FCD34D', '#Indigo-600'] 
+              });
+            }
+          }
+          setUserVoted(true);
+        } catch (err) {
+          console.error("Vote failed:", err);
+        }
+      }}
+      handleUpvote={(qid) => upvoteQuestion(qid)}
+      sendReaction={sendReaction}
+      newQuestion=""
+      setNewQuestion={() => {}}
+      submitQuestion={(txt) => submitQuestion(txt, username)}
+      username={username}
+      setUsername={setUsername}
+    />
+  );
+};
+
+export default EventWrapper;

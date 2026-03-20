@@ -1,96 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate, Navigate, useParams } from 'react-router-dom';
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import Nav from './components/Nav';
 import Landing from './views/Landing';
 import Join from './views/Join';
 import Host from './views/Host';
-import Participant from './views/Participant';
-import Presenter from './views/Presenter';
 import Dashboard from './views/Dashboard';
 import Pricing from './views/Pricing';
-import confetti from 'canvas-confetti';
-import { supabase } from './lib/supabase';
-import { useEvent } from './hooks/useEvent';
-
-// Специјална компонента за настанот која користи реални податоци
-const EventWrapper = ({ type, username, setUsername }) => {
-  const { id } = useParams();
-  const { 
-    event, polls, questions, reactions, 
-    loading, error, vote, submitQuestion, 
-    upvoteQuestion, sendReaction 
-  } = useEvent(id);
-  const [activePollIndex, setActivePollIndex] = useState(0);
-  const [userVoted, setUserVoted] = useState(false);
-
-  useEffect(() => {
-    // Reset voting state when poll changes
-    setUserVoted(false);
-  }, [activePollIndex]);
-
-  if (loading) return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
-    </div>
-  );
-
-  if (error || !event) return (
-    <div className="text-center pt-32">
-      <div className="bg-red-50 text-red-600 p-8 rounded-[3rem] border border-red-100 inline-block max-w-md">
-        <h2 className="text-3xl font-black mb-2">Настанот не постои!</h2>
-        <p className="font-bold opacity-80 mb-6">Проверете го кодот #{id} и обидете се повторно.</p>
-        <button onClick={() => window.location.href='/'} className="bg-red-600 text-white px-8 py-3 rounded-2xl font-black">Назад на почетна</button>
-      </div>
-    </div>
-  );
-
-  if (type === 'present') {
-    return (
-      <Presenter 
-        event={event} 
-        polls={polls} 
-        questions={questions} 
-        reactions={reactions}
-        activePollIndex={activePollIndex} 
-        leaderboard={[]} 
-      />
-    );
-  }
-
-  return (
-    <Participant 
-      polls={polls.length > 0 ? polls : [{ question: "Чекаме домаќинот да креира анкета...", options: [], is_quiz: false }]} 
-      questions={questions} 
-      activePollIndex={activePollIndex}
-      userVoted={userVoted}
-      handleVote={async (val) => {
-        if (userVoted || polls.length === 0) return;
-        const currentPoll = polls[activePollIndex];
-        
-        if (typeof val === 'string') {
-          // Text response (wordcloud, open)
-          await vote(null, currentPoll.id, val);
-        } else {
-          // Index response (poll, quiz)
-          const option = currentPoll.options[val];
-          await vote(option.id);
-          if (option.is_correct) {
-            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#F59E0B', '#FCD34D'] });
-          }
-        }
-        setUserVoted(true);
-      }}
-      handleUpvote={(qid) => upvoteQuestion(qid)}
-      sendReaction={sendReaction}
-      newQuestion=""
-      setNewQuestion={() => {}}
-      submitQuestion={(txt) => submitQuestion(txt, username)}
-      username={username}
-      setUsername={setUsername}
-    />
-  );
-};
+import EventWrapper from './components/EventWrapper';
 
 const AppContent = () => {
   const navigate = useNavigate();
@@ -103,11 +20,17 @@ const AppContent = () => {
   };
 
   const setView = (view, type = 'poll') => {
-    if (view === 'landing') navigate('/');
-    if (view === 'join') navigate('/join');
-    if (view === 'host') navigate('/host', { state: { initialType: type } });
-    if (view === 'dashboard') navigate('/dashboard');
-    if (view === 'pricing') navigate('/pricing');
+    const routes = {
+      landing: '/',
+      join: '/join',
+      host: '/host',
+      dashboard: '/dashboard',
+      pricing: '/pricing'
+    };
+    
+    if (routes[view]) {
+      navigate(routes[view], view === 'host' ? { state: { initialType: type } } : {});
+    }
   };
 
   const handleJoin = (e) => {
@@ -126,7 +49,7 @@ const AppContent = () => {
           <Routes>
             <Route path="/" element={<Landing code={code} setCode={setCode} setView={setView} />} />
             <Route path="/join" element={<Join code={code} setCode={setCode} handleJoin={handleJoin} setView={setView} />} />
-            <Route path="/host" element={<Host polls={[]} questions={[]} setView={setView} onAddPoll={() => {}} activePollIndex={0} setActivePollIndex={() => {}} />} />
+            <Route path="/host" element={<Host setView={setView} />} />
             <Route path="/dashboard" element={<Dashboard setView={setView} />} />
             <Route path="/pricing" element={<Pricing setView={setView} />} />
             <Route path="/event/:id/present" element={<EventWrapper type="present" />} />
@@ -140,9 +63,9 @@ const AppContent = () => {
         <div className="flex items-center justify-center gap-6 mb-4">
           <a href="#" className="hover:text-indigo-600 transition-colors">Политика на приватност</a>
           <a href="#" className="hover:text-indigo-600 transition-colors">Услови за користење</a>
-          <a href="#" className="hover:text-indigo-600 transition-colors">Контакт</a>
+          <a href="#" className="hover:text-indigo-600 transition-colors text-indigo-600">Направено со ❤️ во МК</a>
         </div>
-        <p>© 2026 MKD Slidea • Автор: Игор Богданоски • Направено во 🇲🇰</p>
+        <p className="font-bold">© 2026 MKD Slidea • Автор: Игор Богданоски</p>
       </footer>
     </div>
   );
