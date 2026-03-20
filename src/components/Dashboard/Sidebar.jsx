@@ -1,18 +1,20 @@
 import React from 'react';
 import { 
   Home, Presentation, LayoutGrid, Users, 
-  CreditCard, Share2, Trash2, LogOut, BarChart2
+  CreditCard, Share2, Trash2, LogOut, BarChart2, Lock
 } from 'lucide-react';
 
 const Sidebar = ({ activeTab, setActiveTab }) => {
+  const userPlan = 'basic'; // This would come from auth context
+
   const menuItems = [
     { id: 'home', label: 'Почетна', icon: <Home size={20} /> },
     { id: 'presentations', label: 'Мои презентации', icon: <Presentation size={20} /> },
-    { id: 'analytics', label: 'Аналитика', icon: <BarChart2 size={20} /> },
+    { id: 'analytics', label: 'Аналитика', icon: <BarChart2 size={20} />, locked: userPlan === 'basic' },
     { id: 'templates', label: 'Сите шаблони', icon: <LayoutGrid size={20} /> },
-    { id: 'team', label: 'Креирај тим', icon: <Users size={20} /> },
+    { id: 'team', label: 'Креирај тим', icon: <Users size={20} />, locked: userPlan === 'basic' },
     { id: 'plan', label: 'Мој план', icon: <CreditCard size={20} /> },
-    { id: 'integrations', label: 'Интеграции', icon: <Share2 size={20} /> },
+    { id: 'integrations', label: 'Интеграции', icon: <Share2 size={20} />, locked: userPlan === 'basic' },
     { id: 'trash', label: 'Корпа', icon: <Trash2 size={20} /> },
   ];
 
@@ -30,7 +32,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
           <button
             key={item.id}
             onClick={() => setActiveTab(item.id)}
-            className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-black text-sm transition-all ${
+            className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-black text-sm transition-all relative ${
               activeTab === item.id 
                 ? 'bg-indigo-50 text-indigo-600 shadow-sm' 
                 : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
@@ -38,7 +40,10 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
           >
             {item.icon}
             {item.label}
-            {activeTab === item.id && (
+            {item.locked && (
+              <Lock size={14} className="ml-auto text-slate-300" />
+            )}
+            {activeTab === item.id && !item.locked && (
               <div className="ml-auto w-1.5 h-1.5 bg-indigo-600 rounded-full" />
             )}
           </button>

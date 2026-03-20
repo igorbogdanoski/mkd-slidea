@@ -3,8 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Zap, ChevronDown, PieChart, MessageSquare, Cloud, 
   ClipboardList, Trophy, LineChart, Presentation, Globe,
-  Users, School, Briefcase, Calendar, LayoutGrid
+  Users, School, Briefcase, Calendar, LayoutGrid, LogIn
 } from 'lucide-react';
+import LoginModal from './LoginModal';
 
 const MegaMenu = ({ isOpen, items, setView, setActiveMenu }) => (
   <AnimatePresence>
@@ -53,6 +54,7 @@ const MegaMenu = ({ isOpen, items, setView, setActiveMenu }) => (
 
 const Nav = ({ setView }) => {
   const [activeMenu, setActiveMenu] = useState(null);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
 
   const features = [
     {
@@ -166,18 +168,30 @@ const Nav = ({ setView }) => {
         <div className="flex items-center gap-4">
           <button 
             onClick={() => setView('join')}
-            className="text-sm font-bold text-slate-700 hover:text-indigo-600 transition-colors px-4 py-2"
+            className="text-sm font-black text-slate-500 hover:text-indigo-600 transition-all px-4 py-2 uppercase tracking-widest"
           >
             Приклучи се
           </button>
+          <div className="w-px h-6 bg-slate-100 mx-2" />
           <button 
-            onClick={() => setView('dashboard')}
-            className="bg-slate-900 text-white px-6 py-3 rounded-2xl text-sm font-bold hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 active:scale-95 flex items-center gap-2"
+            onClick={() => setIsLoginOpen(true)}
+            className="text-sm font-black text-slate-900 hover:text-indigo-600 transition-all px-6 py-2"
           >
-            <LayoutGrid size={18} /> Админ Панел
+            Најави се
+          </button>
+          <button 
+            onClick={() => setIsLoginOpen(true)}
+            className="bg-indigo-600 text-white px-8 py-3.5 rounded-2xl text-sm font-black hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 active:scale-95 flex items-center gap-2"
+          >
+            Регистрирај се
           </button>
         </div>
       </div>
+      <LoginModal 
+        isOpen={isLoginOpen} 
+        onClose={() => setIsLoginOpen(false)} 
+        onLogin={() => setView('dashboard')} 
+      />
     </nav>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import Nav from './components/Nav';
 import Landing from './views/Landing';
@@ -11,6 +11,7 @@ import EventWrapper from './components/EventWrapper';
 
 const AppContent = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [code, setCode] = useState('');
   const [username, setUsername] = useState(() => localStorage.getItem('mkd_slidea_user') || '');
 
@@ -40,11 +41,13 @@ const AppContent = () => {
     }
   };
 
+  const isPublicRoute = ['/', '/join', '/pricing'].includes(location.pathname);
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-700">
-      <Nav setView={setView} />
+      {isPublicRoute && <Nav setView={setView} />}
       
-      <main className="pt-16">
+      <main className={isPublicRoute ? "pt-16" : ""}>
         <AnimatePresence mode="wait">
           <Routes>
             <Route path="/" element={<Landing code={code} setCode={setCode} setView={setView} />} />
@@ -59,14 +62,16 @@ const AppContent = () => {
         </AnimatePresence>
       </main>
       
-      <footer className="py-12 text-center text-slate-400 text-sm font-medium border-t border-slate-100 mt-20">
-        <div className="flex items-center justify-center gap-6 mb-4">
-          <a href="#" className="hover:text-indigo-600 transition-colors">Политика на приватност</a>
-          <a href="#" className="hover:text-indigo-600 transition-colors">Услови за користење</a>
-          <a href="#" className="hover:text-indigo-600 transition-colors text-indigo-600">Направено со ❤️ во МК</a>
-        </div>
-        <p className="font-bold">© 2026 MKD Slidea • Автор: Игор Богданоски</p>
-      </footer>
+      {isPublicRoute && (
+        <footer className="py-12 text-center text-slate-400 text-sm font-medium border-t border-slate-100 mt-20">
+          <div className="flex items-center justify-center gap-6 mb-4">
+            <a href="#" className="hover:text-indigo-600 transition-colors">Политика на приватност</a>
+            <a href="#" className="hover:text-indigo-600 transition-colors">Услови за користење</a>
+            <a href="#" className="hover:text-indigo-600 transition-colors text-indigo-600">Направено со ❤️ во МК</a>
+          </div>
+          <p className="font-bold">© 2026 MKD Slidea • Автор: Игор Богданоски</p>
+        </footer>
+      )}
     </div>
   );
 };
