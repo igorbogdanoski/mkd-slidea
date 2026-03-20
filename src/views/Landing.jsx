@@ -74,7 +74,10 @@ const Landing = ({ code, setCode, setView }) => {
             >
               Започни сега
             </button>
-            <button className="bg-white text-slate-700 px-8 py-4 rounded-2xl font-black text-lg border-2 border-slate-100 hover:border-indigo-600 transition-all">
+            <button 
+              onClick={() => setView('dashboard')}
+              className="bg-white text-slate-700 px-8 py-4 rounded-2xl font-black text-lg border-2 border-slate-100 hover:border-indigo-600 transition-all"
+            >
               Погледни демо
             </button>
           </div>
