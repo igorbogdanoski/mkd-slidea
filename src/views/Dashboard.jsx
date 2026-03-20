@@ -16,8 +16,7 @@ const Dashboard = ({ setView, user, onLogout }) => {
         .from('events')
         .insert([{ 
           code: eventCode, 
-          title: template.title,
-          user_id: user?.id 
+          title: template.title
         }])
         .select()
         .single();
