@@ -4,8 +4,8 @@ import {
   CreditCard, Share2, Trash2, LogOut, BarChart2, Lock
 } from 'lucide-react';
 
-const Sidebar = ({ activeTab, setActiveTab }) => {
-  const userPlan = 'basic'; // This would come from auth context
+const Sidebar = ({ activeTab, setActiveTab, user, onLogout }) => {
+  const userPlan = user?.plan || 'basic';
 
   const menuItems = [
     { id: 'home', label: 'Почетна', icon: <Home size={20} /> },
@@ -62,7 +62,10 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
           <CreditCard className="absolute -bottom-4 -right-4 w-24 h-24 text-white/10 rotate-12 group-hover:scale-110 transition-transform" />
         </div>
         
-        <button className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-black text-sm text-red-400 hover:bg-red-50 transition-all mb-4">
+        <button 
+          onClick={onLogout}
+          className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-black text-sm text-red-400 hover:bg-red-50 transition-all mb-4"
+        >
           <LogOut size={20} />
           Одјави се
         </button>

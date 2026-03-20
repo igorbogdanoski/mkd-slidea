@@ -127,6 +127,12 @@ const Host = ({ setView }) => {
     }
   };
 
+  const onDeletePoll = async (pollId) => {
+    if (window.confirm('Дали сте сигурни дека сакате да ја избришете оваа активност?')) {
+      await supabase.from('polls').delete().eq('id', pollId);
+    }
+  };
+
   const handleInteractionSelect = (type) => {
     setSelectedType(type);
     if (type === 'quiz') {
@@ -259,6 +265,7 @@ const Host = ({ setView }) => {
                             activePollIndex={activePollIndex} 
                             setActivePoll={setActivePoll} 
                             onEdit={onEditPoll}
+                            onDelete={onDeletePoll}
                           />
                         ))}
                       </div>

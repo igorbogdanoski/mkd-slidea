@@ -189,7 +189,7 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
         <div className="flex items-center gap-12">
           <div className="text-right">
             <p className="text-slate-500 font-black text-sm uppercase tracking-widest mb-1">Приклучи се на</p>
-            <p className="text-3xl font-black text-indigo-400">slidea.mismath.net</p>
+            <p className="text-3xl font-black text-indigo-400">{window.location.host}</p>
           </div>
           <div className="bg-white p-3 rounded-3xl shadow-2xl border-4 border-slate-800">
             <QRCodeSVG value={joinUrl} size={100} />

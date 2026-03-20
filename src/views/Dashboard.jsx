@@ -4,13 +4,13 @@ import Sidebar from '../components/Dashboard/Sidebar';
 import HomeTab from '../components/Dashboard/HomeTab';
 import AnalyticsTab from '../components/Dashboard/AnalyticsTab';
 
-const Dashboard = ({ setView }) => {
+const Dashboard = ({ setView, user, onLogout }) => {
   const [activeTab, setActiveTab] = useState('home');
 
   const renderContent = () => {
     switch (activeTab) {
       case 'home':
-        return <HomeTab setView={setView} setActiveTab={setActiveTab} />;
+        return <HomeTab setView={setView} setActiveTab={setActiveTab} user={user} />;
       case 'analytics':
         return <AnalyticsTab />;
       case 'presentations':
@@ -209,7 +209,7 @@ const Dashboard = ({ setView }) => {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex font-sans selection:bg-indigo-100 selection:text-indigo-700">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} user={user} onLogout={onLogout} />
       
       <main className="flex-1 min-h-screen relative overflow-y-auto h-screen">
         <AnimatePresence mode="wait">

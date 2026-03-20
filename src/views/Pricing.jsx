@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ShieldCheck, CheckCircle2, Zap, Star, Trophy, Users } from 'lucide-react';
+import { ShieldCheck, CheckCircle2, Zap, Star, Trophy, Users, ArrowRight } from 'lucide-react';
 
 const Pricing = ({ setView }) => {
   const plans = [

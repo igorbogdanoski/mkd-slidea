@@ -16,6 +16,13 @@ const PollCard = ({ poll, index, activePollIndex, setActivePoll, onEdit, onDelet
         >
           <Pencil size={18} />
         </button>
+        <button 
+          onClick={(e) => { e.stopPropagation(); onDelete(poll.id); }}
+          title="Избриши" 
+          className="p-2 hover:bg-white rounded-xl text-slate-400 hover:text-red-500 transition-all"
+        >
+          <Trash2 size={18} />
+        </button>
         {isActive && (
           <>
             <button title="Заклучи гласање" className="p-2 hover:bg-white rounded-xl text-slate-400 hover:text-red-500 transition-all">

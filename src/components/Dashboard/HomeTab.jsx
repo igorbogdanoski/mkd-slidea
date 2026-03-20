@@ -5,7 +5,11 @@ import {
   Presentation, Bell, Zap, MoreVertical
 } from 'lucide-react';
 
-const HomeTab = ({ setView, setActiveTab }) => {
+const HomeTab = ({ setView, setActiveTab, user }) => {
+  const userName = user?.name || 'Игор Богданоски';
+  const userInitials = userName.split(' ').map(n => n[0]).join('').toUpperCase();
+  const userRole = user?.role === 'admin' ? 'Administrator' : 'User';
+  
   const recentPresentations = [
     { id: 1, title: 'AI Navigator & Gemini Mastery', date: 'Пред 2 часа', slides: 5, color: 'bg-indigo-600', code: '123456' },
     { id: 2, title: 'Дигитална трансформација на часот', date: 'Пред 2 дена', slides: 7, color: 'bg-emerald-600', code: '654321' },
@@ -26,7 +30,7 @@ const HomeTab = ({ setView, setActiveTab }) => {
       {/* Header Section */}
       <div className="flex items-center justify-between mb-12">
         <div>
-          <h1 className="text-4xl font-black text-slate-900 mb-2">Добредојде, Игор Богданоски</h1>
+          <h1 className="text-4xl font-black text-slate-900 mb-2">Добредојде, {userName}</h1>
           <p className="text-slate-400 font-bold flex items-center gap-2">
             <Zap size={16} className="text-amber-500" /> Управувај со твоите интерактивни презентации © 2026.
           </p>
@@ -37,11 +41,11 @@ const HomeTab = ({ setView, setActiveTab }) => {
           </button>
           <div className="flex items-center gap-4 bg-white p-2 pr-6 rounded-2xl border border-slate-100 shadow-sm">
              <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center font-black text-white shadow-lg shadow-indigo-100">
-               ИБ
+               {userInitials}
              </div>
              <div className="flex flex-col">
-               <span className="font-black text-sm text-slate-900">Игор Б.</span>
-               <span className="font-bold text-[10px] text-slate-400 uppercase tracking-widest">Administrator</span>
+               <span className="font-black text-sm text-slate-900">{userName}</span>
+               <span className="font-bold text-[10px] text-slate-400 uppercase tracking-widest">{userRole}</span>
              </div>
           </div>
         </div>

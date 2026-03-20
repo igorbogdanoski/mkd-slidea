@@ -19,6 +19,11 @@ const AppContent = () => {
   });
   const [username, setUsername] = useState(() => localStorage.getItem('mkd_slidea_user') || '');
 
+  const updateUsername = (val) => {
+    setUsername(val);
+    localStorage.setItem('mkd_slidea_user', val);
+  };
+
   const handleLogin = (email = 'guest@example.com') => {
     const isAdmin = ['igor@slidea.mk', 'admin@slidea.mk', 'igorbogdanoski@gmail.com', 'igor@mismath.net'].includes(email.toLowerCase());
     const userData = {
