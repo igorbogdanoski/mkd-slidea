@@ -19,7 +19,7 @@ const Pricing = ({ setView }) => {
       button: "Започни бесплатно",
       color: "bg-slate-50 text-slate-900",
       btnColor: "bg-slate-900 text-white",
-      tag: "BASIC"
+      tag: "ОСНОВЕН"
     },
     {
       name: "Месечен",
@@ -30,27 +30,44 @@ const Pricing = ({ setView }) => {
         "До 200 учесници",
         "10 анкети по настан",
         "Неограничени настани",
-        "Приоритетна поддршка",
-        "Без реклами"
+        "AI Генерирање (ограничено)",
+        "Приоритетна поддршка"
       ],
-      button: "Избери План",
+      button: "Избери Месечно",
       color: "bg-white text-slate-900 border-2 border-slate-100",
       btnColor: "bg-indigo-600 text-white",
       tag: "FLEX"
     },
     {
-      name: "Семестрален",
-      price: "10 / 15",
-      period: "",
-      target: "3 или 6 месеци",
+      name: "Квартален",
+      price: "10",
+      period: "/3 мес",
+      target: "Заштеди 33%",
       features: [
         "До 500 учесници",
         "Неограничени анкети",
-        "AI Генерирање прашања",
+        "Целосен AI асистент",
         "Напредна аналитика",
         "Тимска соработка"
       ],
-      button: "Надгради сега",
+      button: "Избери Квартално",
+      color: "bg-white text-slate-900 border-2 border-slate-100",
+      btnColor: "bg-indigo-600 text-white",
+      tag: "SAVER"
+    },
+    {
+      name: "Семестрален",
+      price: "15",
+      period: "/6 мес",
+      target: "Најпопуларно",
+      features: [
+        "До 1000 учесници",
+        "Сè од Кварталниот план",
+        "Експорт на извештаи",
+        "Сопствени бои",
+        "До 5 тимски членови"
+      ],
+      button: "Избери Семестрално",
       color: "bg-white text-slate-900 border-2 border-indigo-100 shadow-xl shadow-indigo-50",
       btnColor: "bg-indigo-600 text-white",
       tag: "ПОПУЛАРНО",
@@ -63,7 +80,7 @@ const Pricing = ({ setView }) => {
       target: "Професионален",
       features: [
         "Неограничени учесници",
-        "Целосен AI асистент",
+        "Најдобра вредност",
         "Сопствено брендирање",
         "Експорт на податоци",
         "PowerPoint Додаток"
@@ -71,7 +88,7 @@ const Pricing = ({ setView }) => {
       button: "Активирај Годишно",
       color: "bg-slate-900 text-white",
       btnColor: "bg-emerald-500 text-white",
-      tag: "BEST VALUE"
+      tag: "НАЈДОБРА ПОНУДА"
     }
   ];
 
@@ -88,7 +105,7 @@ const Pricing = ({ setView }) => {
         </p>
       </div>
 
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         {plans.map((plan, i) => (
           <motion.div
             key={i}

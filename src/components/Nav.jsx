@@ -13,7 +13,7 @@ const MegaMenu = ({ isOpen, items, setView, setActiveMenu }) => (
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 10 }}
-        className="absolute top-full left-0 w-[600px] bg-white rounded-3xl shadow-2xl border border-slate-100 p-8 mt-2 grid grid-cols-2 gap-8 z-50"
+        className="absolute top-full left-0 w-[600px] bg-white rounded-3xl shadow-2xl border border-slate-100 p-8 grid grid-cols-2 gap-8 z-50"
       >
         {items.map((section, idx) => (
           <div key={idx}>

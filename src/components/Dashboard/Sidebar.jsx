@@ -57,10 +57,15 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
           <CreditCard className="absolute -bottom-4 -right-4 w-24 h-24 text-white/10 rotate-12 group-hover:scale-110 transition-transform" />
         </div>
         
-        <button className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-black text-sm text-red-400 hover:bg-red-50 transition-all">
+        <button className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-black text-sm text-red-400 hover:bg-red-50 transition-all mb-4">
           <LogOut size={20} />
           Одјави се
         </button>
+
+        <div className="px-6 py-4 border-t border-slate-50 text-[10px] font-black text-slate-300 uppercase tracking-widest text-center leading-relaxed">
+          © 2026 MKD Slidea <br />
+          Автор: Игор Богданоски
+        </div>
       </div>
     </div>
   );

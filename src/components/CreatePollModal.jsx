@@ -1,10 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Plus, Trash2, Save } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll' }) => {
+const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData = null }) => {
   const [question, setQuestion] = useState('');
   const [options, setOptions] = useState(['', '']);
+
+  useEffect(() => {
+    if (initialData) {
+      setQuestion(initialData.question || '');
+      if (initialData.options && initialData.options.length > 0) {
+        setOptions(initialData.options.map(opt => opt.text || opt));
+      } else {
+        setOptions(['', '']);
+      }
+    } else {
+      setQuestion('');
+      setOptions(['', '']);
+    }
+  }, [initialData, isOpen]);
 
   const addOption = () => {
     if (options.length < 6) {
@@ -25,6 +39,7 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll' }) => {
   };
 
   const getTitle = () => {
+    if (initialData) return 'Измени активност';
     switch (type) {
       case 'wordcloud': return 'Нов облак со зборови';
       case 'rating': return 'Ново оценување';
@@ -129,7 +144,7 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll' }) => {
                 disabled={!question.trim() || (hasOptions && options.some(opt => !opt.trim()))}
                 className="w-full py-5 bg-indigo-600 text-white rounded-[1.5rem] font-black text-xl flex items-center justify-center gap-3 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl shadow-indigo-200 active:scale-[0.98] mt-4"
               >
-                <Save className="w-6 h-6" /> Зачувај активност
+                <Save className="w-6 h-6" /> {initialData ? 'Зачувај промени' : 'Зачувај активност'}
               </button>
             </div>
           </motion.div>

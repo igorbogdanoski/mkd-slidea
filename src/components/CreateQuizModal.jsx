@@ -1,13 +1,31 @@
-import React, { useState } from 'react';
-import { X, Plus, Trash2, Save, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Plus, Trash2, Save, CheckCircle2, Trophy } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const CreateQuizModal = ({ isOpen, onClose, onSave }) => {
+const CreateQuizModal = ({ isOpen, onClose, onSave, initialData = null }) => {
   const [question, setQuestion] = useState('');
   const [options, setOptions] = useState([
     { text: '', isCorrect: true },
     { text: '', isCorrect: false }
   ]);
+
+  useEffect(() => {
+    if (initialData) {
+      setQuestion(initialData.question || '');
+      if (initialData.options && initialData.options.length > 0) {
+        setOptions(initialData.options.map(opt => ({
+          text: opt.text || opt,
+          isCorrect: opt.is_correct || false
+        })));
+      }
+    } else {
+      setQuestion('');
+      setOptions([
+        { text: '', isCorrect: true },
+        { text: '', isCorrect: false }
+      ]);
+    }
+  }, [initialData, isOpen]);
 
   const addOption = () => {
     if (options.length < 6) {
@@ -80,7 +98,7 @@ const CreateQuizModal = ({ isOpen, onClose, onSave }) => {
               <div className="bg-amber-100 p-2 rounded-xl text-amber-600">
                 <Trophy className="w-6 h-6" />
               </div>
-              <h3 className="text-2xl font-black">Ново Квиз Прашање</h3>
+              <h3 className="text-2xl font-black">{initialData ? 'Измени квиз прашање' : 'Ново Квиз Прашање'}</h3>
             </div>
 
             <div className="space-y-6">
@@ -139,7 +157,7 @@ const CreateQuizModal = ({ isOpen, onClose, onSave }) => {
                 disabled={!question.trim() || options.some(opt => !opt.text.trim())}
                 className="w-full py-5 bg-slate-900 text-white rounded-[1.5rem] font-black text-xl flex items-center justify-center gap-3 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl shadow-slate-200 active:scale-[0.98] mt-4"
               >
-                <Save className="w-6 h-6" /> Зачувај квиз
+                <Save className="w-6 h-6" /> {initialData ? 'Зачувај промени' : 'Зачувај квиз'}
               </button>
             </div>
           </motion.div>
@@ -148,8 +166,5 @@ const CreateQuizModal = ({ isOpen, onClose, onSave }) => {
     </AnimatePresence>
   );
 };
-
-// Import needed for icon
-import { Trophy } from 'lucide-react';
 
 export default CreateQuizModal;

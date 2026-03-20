@@ -23,6 +23,7 @@ const Host = ({ setView }) => {
   const [showInteractionGrid, setShowInteractionGrid] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState('poll');
+  const [editingPoll, setEditingPoll] = useState(null);
 
   useEffect(() => {
     const initEvent = async () => {
@@ -58,30 +59,72 @@ const Host = ({ setView }) => {
     return () => { sub.unsubscribe(); };
   }, [event]);
 
-  const onAddPoll = async (newPoll) => {
-    const { data: pollData, error } = await supabase.from('polls').insert([{ 
-      event_id: event.id, 
-      question: newPoll.question, 
-      is_quiz: !!newPoll.is_quiz,
-      type: newPoll.type || 'poll' 
-    }]).select().single();
-    
-    if (error) return;
-    
-    let optionsToInsert = [];
-    if (newPoll.type === 'rating') {
-      optionsToInsert = ['1', '2', '3', '4', '5'].map(val => ({ poll_id: pollData.id, text: val, votes: 0 }));
-    } else if (newPoll.options && newPoll.options.length > 0) {
-      optionsToInsert = newPoll.options.map(o => ({ poll_id: pollData.id, text: o.text, is_correct: !!o.is_correct }));
-    }
-    
-    if (optionsToInsert.length > 0) {
-      await supabase.from('options').insert(optionsToInsert);
+  const onSavePoll = async (pollData) => {
+    if (editingPoll) {
+      // Update existing poll
+      const { error: updateError } = await supabase
+        .from('polls')
+        .update({ 
+          question: pollData.question,
+          type: pollData.type || 'poll'
+        })
+        .eq('id', editingPoll.id);
+      
+      if (!updateError && pollData.options) {
+        // Simple strategy: delete and re-insert options for consistency if changed
+        // In a real app we'd diff, but this is simpler for MVP
+        await supabase.from('options').delete().eq('poll_id', editingPoll.id);
+        
+        let optionsToInsert = [];
+        if (pollData.type === 'rating') {
+          optionsToInsert = ['1', '2', '3', '4', '5'].map(val => ({ poll_id: editingPoll.id, text: val }));
+        } else {
+          optionsToInsert = pollData.options.map(o => ({ 
+            poll_id: editingPoll.id, 
+            text: typeof o === 'string' ? o : o.text,
+            is_correct: o.is_correct || false
+          }));
+        }
+        await supabase.from('options').insert(optionsToInsert);
+      }
+      setEditingPoll(null);
+    } else {
+      // Create new poll (previous logic)
+      const { data: newPoll, error } = await supabase.from('polls').insert([{ 
+        event_id: event.id, 
+        question: pollData.question, 
+        is_quiz: !!pollData.is_quiz,
+        type: pollData.type || 'poll' 
+      }]).select().single();
+      
+      if (!error && pollData.options) {
+        let optionsToInsert = [];
+        if (pollData.type === 'rating') {
+          optionsToInsert = ['1', '2', '3', '4', '5'].map(val => ({ poll_id: newPoll.id, text: val }));
+        } else {
+          optionsToInsert = pollData.options.map(o => ({ 
+            poll_id: newPoll.id, 
+            text: typeof o === 'string' ? o : o.text,
+            is_correct: o.is_correct || false
+          }));
+        }
+        await supabase.from('options').insert(optionsToInsert);
+      }
     }
     
     setIsCreatePollOpen(false);
     setIsCreateQuizOpen(false);
     setShowInteractionGrid(false);
+  };
+
+  const onEditPoll = (poll) => {
+    setEditingPoll(poll);
+    setSelectedType(poll.type || 'poll');
+    if (poll.is_quiz) {
+      setIsCreateQuizOpen(true);
+    } else {
+      setIsCreatePollOpen(true);
+    }
   };
 
   const handleInteractionSelect = (type) => {
@@ -111,15 +154,21 @@ const Host = ({ setView }) => {
       <QRCodeModal isOpen={isQRModalOpen} onClose={() => setIsQRModalOpen(false)} eventCode={event.code} />
       <CreatePollModal 
         isOpen={isCreatePollOpen} 
-        onClose={() => setIsCreatePollOpen(false)} 
-        onSave={onAddPoll} 
+        onClose={() => { setIsCreatePollOpen(false); setEditingPoll(null); }} 
+        onSave={onSavePoll} 
         type={selectedType}
+        initialData={editingPoll}
       />
-      <CreateQuizModal isOpen={isCreateQuizOpen} onClose={() => setIsCreateQuizOpen(false)} onSave={onAddPoll} />
+      <CreateQuizModal 
+        isOpen={isCreateQuizOpen} 
+        onClose={() => { setIsCreateQuizOpen(false); setEditingPoll(null); }} 
+        onSave={onSavePoll} 
+        initialData={editingPoll}
+      />
       <AIAssistantModal 
         isOpen={isAIModalOpen} 
         onClose={() => setIsAIModalOpen(false)} 
-        onGenerate={onAddPoll} 
+        onGenerate={onSavePoll} 
       />
 
       <HostHeader event={event} setIsQRModalOpen={setIsQRModalOpen} setView={setView} />
@@ -209,6 +258,7 @@ const Host = ({ setView }) => {
                             index={index} 
                             activePollIndex={activePollIndex} 
                             setActivePoll={setActivePoll} 
+                            onEdit={onEditPoll}
                           />
                         ))}
                       </div>
