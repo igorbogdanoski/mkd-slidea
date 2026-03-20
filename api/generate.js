@@ -16,31 +16,39 @@ export default async function handler(req) {
 
   // Quota Saving Logic: Use FLASH for simple tasks, PRO for complex (Quiz or Advanced Strategies)
   const isAdvanced = strategy === 'cot' || strategy === 'tot';
-  const modelToUse = (type === 'wordcloud' || type === 'poll') && !isAdvanced ? 'gemini-1.5-flash' : 'gemini-1.5-pro';
+  const modelToUse = (type === 'wordcloud' || type === 'poll' || type === 'open') && !isAdvanced 
+    ? 'gemini-1.5-flash' 
+    : 'gemini-1.5-pro';
 
   let strategyInstructions = "";
   if (strategy === 'cot') {
-    strategyInstructions = "Користи Chain-of-Thought (CoT): Прво анализирај ја темата подлабоко и размисли кој е најдобриот концепт за прашање пред да го генерираш JSON-от.";
+    strategyInstructions = "Користи Chain-of-Thought (CoT): Прво анализирај ја темата подлабоко, идентификувај ги клучните образовни цели и размисли кој е најдобриот концепт за прашање пред да го генерираш JSON-от.";
   } else if (strategy === 'tot') {
-    strategyInstructions = "Користи Tree-of-Thoughts (ToT): Генерирај 3 различни идеи за ова прашање во себе, спореди ги и избери ја онаа што најмногу поттикнува критичко размислување кај учениците.";
+    strategyInstructions = "Користи Tree-of-Thoughts (ToT): Генерирај 3 различни идеи за ова прашање во себе, оцени ги според нивото на Bloom-овата таксономија и избери ја онаа што најмногу поттикнува критичко размислување кај учениците.";
   }
 
-  const systemInstructions = `Ти си експерт за Prompt Engineering за MKD Slidea. 
-Креирај ${type} на тема: ${prompt}.
+  const systemInstructions = `Ти си светски експерт за Prompt Engineering и EdTech за MKD Slidea. 
+Креирај ${type === 'quiz' ? 'КВИЗ' : 'ИНТЕРАКТИВНА АКТИВНОСТ'} на тема: "${prompt}".
 ${strategyInstructions}
-Излезот МОРА да биде САМО JSON објект (без markdown). Македонски јазик.
 
-JSON Шема:
+ПРАВИЛА:
+1. Излезот МОРА да биде САМО валиден JSON објект (без markdown, без објаснувања). 
+2. Користи чист МАКЕДОНСКИ јазик (литературен).
+3. Прашањата треба да бидат провокативни, интересни и едукативни.
+
+JSON Шема за ${type}:
 {
-  "question": "...",
+  "question": "Коректно формулирано прашање",
   "type": "${type}",
   "is_quiz": ${type === 'quiz'},
   "options": [
-    {"text": "...", "is_correct": true},
-    {"text": "...", "is_correct": false}
+    {"text": "Одговор 1", "is_correct": true},
+    {"text": "Одговор 2", "is_correct": false}
   ]
 }
-За квиз точно 3-4 опции. За wordcloud опциите се [].`;
+
+За квиз точно 3-4 опции. За wordcloud, open и rating опциите се []. 
+За rating прашањето треба да биде оцена од 1 до 5.`;
 
   try {
     const response = await fetch(

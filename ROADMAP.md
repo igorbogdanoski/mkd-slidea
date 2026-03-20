@@ -49,11 +49,16 @@
 - **Деплојмент**: Апликацијата е активна на **Vercel** и поврзана со GitHub.
 - **SaaS Logic**: Имплементирани планови (€5-€20) и Admin привилегии.
 - **Template Engine**: Целосно функционална библиотека со Македонски шаблони.
+- **Real-time Pulse (v2.5)**: Имплементирано следење на активни корисници во живо (Presence).
+- **Zustand Engine**: Централизиран менаџмент на состојба за настани.
+- **Enterprise AI**: Поврзување со Gemini 1.5 Pro/Flash преку Vercel Edge Functions.
+- **Advanced AI Strategies**: CoT (Chain-of-Thought) и ToT (Tree-of-Thoughts) за PRO корисници.
+- **Advanced Q&A**: Модерација на прашања и "Mark as Answered" функција.
+- **PowerPoint & Google Slides**: Интеграција со манифести за PPT add-ins.
 
 ## 🚧 Во изработка (In Progress)
-- **Activity Grid System**: Мени за избор на типови интеракции (Poll, Quiz, Word Cloud, Ranking, Rating).
-- **Dashboard Overhaul**: Преглед на сите настани и нивна статистика.
-- **Advanced UI**: Имплементација на пастелни теми и заоблени картички според светските стандарди.
+- **Scale / Radar Diagram**: Скала за оценување со радарски дијаграм.
+- **Offline Mode**: Поддршка за работа при слаба конекција.
 
 ## 🎯 Типови Интеракции за имплементација:
 - [x] **Multiple Choice** (Анкета)

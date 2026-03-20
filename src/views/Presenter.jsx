@@ -1,10 +1,12 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
-import { Hash, Users, Zap, Cloud, Star } from 'lucide-react';
+import { Hash, Users, Zap, Cloud, Star, Activity } from 'lucide-react';
 import WordCloud from '../components/WordCloud';
+import { useEventStore } from '../lib/store';
 
-const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reactions = [] }) => {
+const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reactions = [], markQuestionAnswered }) => {
+  const { activeParticipants } = useEventStore();
   const eventCode = event?.code || "982341";
   const joinUrl = `${window.location.origin}/event/${eventCode}`;
   const currentPoll = polls[activePollIndex] || { 
@@ -224,11 +226,17 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
                 <div className="w-1.5 h-10 bg-indigo-500 rounded-full" />
                 {currentPoll.is_quiz ? 'Табела на лидери' : 'Топ прашања'}
               </h3>
-              {!currentPoll.is_quiz && (
-                <div className="bg-slate-700 px-4 py-2 rounded-2xl text-sm font-black text-indigo-400 flex items-center gap-2">
-                  <Users className="w-4 h-4" /> 24 во живо
+              <div className="bg-slate-700/50 px-5 py-3 rounded-[1.5rem] border border-slate-600/50 flex items-center gap-3 text-indigo-400 font-black shadow-lg">
+                <div className="relative">
+                  <Activity className="w-5 h-5 text-indigo-400" />
+                  <motion.div 
+                    animate={{ scale: [1, 1.5, 1], opacity: [1, 0, 1] }}
+                    transition={{ repeat: Infinity, duration: 2 }}
+                    className="absolute inset-0 bg-indigo-400 rounded-full scale-150 blur-sm opacity-20"
+                  />
                 </div>
-              )}
+                <span className="text-xl">{activeParticipants} во живо</span>
+              </div>
             </div>
 
             <div className="space-y-6 flex-1 overflow-y-auto pr-4 scrollbar-hide">
@@ -260,9 +268,17 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
                     <p className="text-2xl font-bold mb-4 text-slate-200">{q.text}</p>
                     <div className="flex justify-between items-center">
                       <span className="text-xs font-black text-slate-500 uppercase tracking-widest">{q.author}</span>
-                      <div className="flex items-center gap-3 text-indigo-400 font-black">
-                        <span className="text-3xl">{q.votes}</span>
-                        <Hash className="w-4 h-4 text-slate-600" />
+                      <div className="flex items-center gap-4">
+                        <button 
+                          onClick={() => markQuestionAnswered(q.id)}
+                          className="px-3 py-1 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 text-[10px] font-black uppercase rounded-lg border border-indigo-500/20 transition-all"
+                        >
+                          Одговорено
+                        </button>
+                        <div className="flex items-center gap-2 text-indigo-400 font-black">
+                          <span className="text-2xl">{q.votes}</span>
+                          <Hash className="w-4 h-4 text-slate-600" />
+                        </div>
                       </div>
                     </div>
                   </motion.div>

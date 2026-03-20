@@ -23,6 +23,7 @@ export const useEvent = (eventCode) => {
       .from('questions')
       .select('*')
       .eq('event_id', eventId)
+      .eq('is_answered', false)
       .order('votes', { ascending: false });
     setQuestions(data || []);
   }, []);
@@ -149,9 +150,16 @@ export const useEvent = (eventCode) => {
     return await supabase.rpc('increment_question_vote', { question_id: questionId });
   };
 
+  const markQuestionAnswered = async (questionId) => {
+    return await supabase
+      .from('questions')
+      .update({ is_answered: true })
+      .eq('id', questionId);
+  };
+
   return { 
     event, polls, questions, reactions, 
     loading, error, vote, submitQuestion, 
-    upvoteQuestion, sendReaction 
+    upvoteQuestion, markQuestionAnswered, sendReaction 
   };
 };

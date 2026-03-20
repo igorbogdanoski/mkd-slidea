@@ -4,15 +4,52 @@ import confetti from 'canvas-confetti';
 import { useEvent } from '../hooks/useEvent';
 import Presenter from '../views/Presenter';
 import Participant from '../views/Participant';
+import { useEventStore } from '../lib/store';
+import { supabase } from '../lib/supabase';
 
 const EventWrapper = ({ type, username, setUsername }) => {
   const { id } = useParams();
   const { 
     event, polls, questions, reactions, 
     loading, error, vote, submitQuestion, 
-    upvoteQuestion, sendReaction 
+    upvoteQuestion, markQuestionAnswered, sendReaction 
   } = useEvent(id);
   
+  const { setEvent, setPresence, activeParticipants } = useEventStore();
+
+  useEffect(() => {
+    if (event) {
+      setEvent(event);
+      
+      // Setup Real-time Presence (Pulse)
+      const channel = supabase.channel(`presence:${event.id}`, {
+        config: { presence: { key: username || 'anonymous' } }
+      });
+
+      channel
+        .on('presence', { event: 'sync' }, () => {
+          const state = channel.presenceState();
+          const count = Object.keys(state).length;
+          setPresence(count);
+        })
+        .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+          console.log('Join:', key, newPresences);
+        })
+        .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+          console.log('Leave:', key, leftPresences);
+        })
+        .subscribe(async (status) => {
+          if (status === 'SUBSCRIBED') {
+            await channel.track({ online_at: new Date().toISOString() });
+          }
+        });
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [event, username, setEvent, setPresence]);
+
   const activePollIndex = event?.active_poll_id 
     ? polls.findIndex(p => p.id === event.active_poll_id) 
     : 0;
@@ -59,6 +96,7 @@ const EventWrapper = ({ type, username, setUsername }) => {
         reactions={reactions}
         activePollIndex={activePollIndex} 
         leaderboard={[]} 
+        markQuestionAnswered={markQuestionAnswered}
       />
     );
   }

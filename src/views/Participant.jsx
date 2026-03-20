@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Hash, PieChart, MessageSquare, Send, ThumbsUp, Trophy, CheckCircle2, Star } from 'lucide-react';
+import { Hash, PieChart, MessageSquare, Send, ThumbsUp, Trophy, CheckCircle2, Star, Activity } from 'lucide-react';
+import { useEventStore } from '../lib/store';
 
 const Participant = ({ 
   polls, 
@@ -16,6 +17,7 @@ const Participant = ({
   setUsername,
   sendReaction
 }) => {
+  const { activeParticipants } = useEventStore();
   const currentPoll = polls[activePollIndex] || { question: 'Чекаме настан...', options: [], type: 'poll' };
   const [response, setResponse] = React.useState('');
   const [rating, setRating] = React.useState(0);
@@ -77,9 +79,17 @@ const Participant = ({
             </div>
             <span className="font-black text-slate-900">#{polls[0]?.event_id?.substring(0,6) || '982341'}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Во живо</span>
+          <div className="flex items-center gap-3">
+            <div className="bg-slate-100 px-3 py-1.5 rounded-2xl flex items-center gap-2 border border-slate-200">
+              <div className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+              </div>
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{activeParticipants} во живо</span>
+            </div>
+            <div className="w-px h-4 bg-slate-200 mx-1"></div>
+            <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Активно</span>
           </div>
         </div>
 
