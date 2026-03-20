@@ -171,29 +171,101 @@ const Dashboard = ({ setView }) => {
 
   const renderTemplates = () => (
     <div className="space-y-12">
-      <div>
-        <h2 className="text-3xl font-black text-slate-900 mb-2">Шаблони за презентација</h2>
-        <p className="text-slate-400 font-bold">Изберете од стотиците веќе подготвени интерактивни активности.</p>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <h2 className="text-3xl font-black text-slate-900 mb-2">Шаблони за презентација</h2>
+          <p className="text-slate-400 font-bold">Изберете од стотиците веќе подготвени интерактивни активности.</p>
+        </div>
+        <div className="flex bg-white border border-slate-100 p-1.5 rounded-2xl shadow-sm">
+          {['Сите', 'Едукација', 'Бизнис', 'Настани'].map((cat) => (
+            <button key={cat} className="px-6 py-2 rounded-xl text-sm font-black hover:bg-slate-50 transition-all text-slate-500 hover:text-indigo-600">
+              {cat}
+            </button>
+          ))}
+        </div>
       </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {[
-          { title: "Quiz for Students", img: "https://images.unsplash.com/photo-1510070112810-d4e9a46d9e91?q=80&w=600", cat: "Education" },
-          { title: "Team Brainstorming", img: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=600", cat: "Corporate" },
-          { title: "Workshop Icebreaker", img: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?q=80&w=600", cat: "Events" }
+          { 
+            title: "Квиз за крај на часот", 
+            img: "https://images.unsplash.com/photo-1510070112810-d4e9a46d9e91?q=80&w=600", 
+            cat: "Education",
+            desc: "Брза проверка на знаењето по математика или природни науки.",
+            tags: ["Quiz", "Leaderboard"]
+          },
+          { 
+            title: "Тимски Брејнсторминг", 
+            img: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=600", 
+            cat: "Corporate",
+            desc: "Генерирајте идеи за следниот голем проект со облак со зборови.",
+            tags: ["Word Cloud", "Open Text"]
+          },
+          { 
+            title: "Ледоломка за работилница", 
+            img: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?q=80&w=600", 
+            cat: "Events",
+            desc: "Запознајте ја вашата публика низ забавни прашања.",
+            tags: ["Poll", "Reactions"]
+          },
+          { 
+            title: "Годишна ретроспектива", 
+            img: "https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=600", 
+            cat: "Corporate",
+            desc: "Оценете ги постигнувањата на тимот во изминатата година.",
+            tags: ["Rating", "Ranking"]
+          },
+          { 
+            title: "Дигитална трансформација", 
+            img: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=600", 
+            cat: "Education",
+            desc: "Шаблон за предавања за технологија во училницата.",
+            tags: ["Quiz", "Poll"]
+          },
+          { 
+            title: "Гласање за проект", 
+            img: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=600", 
+            cat: "Events",
+            desc: "Овозможете им на сите да гласаат за најдобрата идеја.",
+            tags: ["Ranking", "Analytics"]
+          }
         ].map((t, i) => (
-          <div key={i} className="bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-sm hover:shadow-2xl transition-all cursor-pointer group">
-            <div className="h-48 relative">
-              <img src={t.img} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-              <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-indigo-600">{t.cat}</div>
-            </div>
-            <div className="p-8">
-              <h3 className="text-xl font-black mb-4 group-hover:text-indigo-600 transition-colors">{t.title}</h3>
-              <div className="flex items-center gap-4">
-                <button className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase tracking-widest">Користи</button>
-                <button className="px-4 py-3 bg-slate-50 text-slate-400 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-100">Преглед</button>
+          <motion.div 
+            key={i} 
+            whileHover={{ y: -8 }}
+            className="bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-sm hover:shadow-2xl transition-all cursor-pointer group flex flex-col h-full"
+          >
+            <div className="h-52 relative overflow-hidden">
+              <img src={t.img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-8">
+                <button className="w-full py-4 bg-white text-indigo-600 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl">
+                  Користи овој шаблон
+                </button>
+              </div>
+              <div className="absolute top-6 left-6 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-indigo-600 shadow-sm">
+                {t.cat}
               </div>
             </div>
-          </div>
+            <div className="p-8 flex flex-col flex-1">
+              <div className="flex gap-2 mb-4">
+                {t.tags.map(tag => (
+                  <span key={tag} className="text-[9px] font-black text-slate-400 bg-slate-50 px-2 py-1 rounded-md border border-slate-100 uppercase tracking-tighter">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+              <h3 className="text-xl font-black mb-3 group-hover:text-indigo-600 transition-colors leading-tight">{t.title}</h3>
+              <p className="text-slate-500 font-bold text-sm leading-relaxed mb-8 flex-1">
+                {t.desc}
+              </p>
+              <div className="flex items-center justify-between pt-6 border-t border-slate-50">
+                <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Бесплатен пристап</span>
+                <button className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all">
+                  <ChevronRight size={20} />
+                </button>
+              </div>
+            </div>
+          </motion.div>
         ))}
       </div>
     </div>
