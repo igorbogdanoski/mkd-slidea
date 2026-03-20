@@ -22,7 +22,14 @@ const MegaMenu = ({ isOpen, items }) => (
             </h4>
             <div className="space-y-6">
               {section.links.map((link, lIdx) => (
-                <div key={lIdx} className="flex gap-4 group cursor-pointer">
+                <div 
+                  key={lIdx} 
+                  className="flex gap-4 group cursor-pointer"
+                  onClick={() => {
+                    setView('host', link.type);
+                    setActiveMenu(null);
+                  }}
+                >
                   <div className={`p-2 rounded-xl ${link.bg} ${link.color} group-hover:scale-110 transition-transform`}>
                     {link.icon}
                   </div>
@@ -51,17 +58,17 @@ const Nav = ({ setView }) => {
     {
       title: "Интеракција",
       links: [
-        { label: "Анкети во живо", desc: "Добијте одговори веднаш", icon: <PieChart size={18} />, color: "text-indigo-600", bg: "bg-indigo-50" },
-        { label: "Q&A во живо", desc: "Дајте им глас на сите", icon: <MessageSquare size={18} />, color: "text-violet-600", bg: "bg-violet-50" },
-        { label: "Word Cloud", desc: "Визуелизирајте идеи", icon: <Cloud size={18} />, color: "text-pink-600", bg: "bg-pink-50" }
+        { label: "Анкети во живо", desc: "Добијте одговори веднаш", icon: <PieChart size={18} />, color: "text-indigo-600", bg: "bg-indigo-50", type: "poll" },
+        { label: "Q&A во живо", desc: "Дајте им глас на сите", icon: <MessageSquare size={18} />, color: "text-violet-600", bg: "bg-violet-50", type: "open" },
+        { label: "Word Cloud", desc: "Визуелизирајте идеи", icon: <Cloud size={18} />, color: "text-pink-600", bg: "bg-pink-50", type: "wordcloud" }
       ]
     },
     {
       title: "Оценување",
       links: [
-        { label: "Квизови", desc: "Учење низ игра", icon: <Trophy size={18} />, color: "text-amber-600", bg: "bg-amber-50" },
-        { label: "Аналитика", desc: "Детални извештаи", icon: <LineChart size={18} />, color: "text-emerald-600", bg: "bg-emerald-50" },
-        { label: "Анкети", desc: "Длабоко истражување", icon: <ClipboardList size={18} />, color: "text-blue-600", bg: "bg-blue-50" }
+        { label: "Квизови", desc: "Учење низ игра", icon: <Trophy size={18} />, color: "text-amber-600", bg: "bg-amber-50", type: "quiz" },
+        { label: "Аналитика", desc: "Детални извештаи", icon: <LineChart size={18} />, color: "text-emerald-600", bg: "bg-emerald-50", type: "analytics" },
+        { label: "Анкети", desc: "Длабоко истражување", icon: <ClipboardList size={18} />, color: "text-blue-600", bg: "bg-blue-50", type: "survey" }
       ]
     }
   ];

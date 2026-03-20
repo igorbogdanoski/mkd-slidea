@@ -101,10 +101,10 @@ const AppContent = () => {
     localStorage.setItem('mkd_slidea_user', name);
   };
 
-  const setView = (view) => {
+  const setView = (view, type = 'poll') => {
     if (view === 'landing') navigate('/');
     if (view === 'join') navigate('/join');
-    if (view === 'host') navigate('/host');
+    if (view === 'host') navigate('/host', { state: { initialType: type } });
     if (view === 'dashboard') navigate('/dashboard');
   };
 
