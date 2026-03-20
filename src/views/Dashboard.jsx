@@ -169,65 +169,101 @@ const Dashboard = ({ setView }) => {
     </div>
   );
 
+  const renderTeam = () => (
+    <div className="max-w-4xl mx-auto space-y-12 py-12">
+      <div className="bg-indigo-600 rounded-[3rem] p-12 text-white relative overflow-hidden shadow-2xl shadow-indigo-200">
+        <div className="relative z-10">
+          <h2 className="text-4xl font-black mb-4">Креирај Тимски Простор</h2>
+          <p className="text-indigo-100 font-bold text-lg mb-8 max-w-lg">
+            Споделувајте презентации, соработувајте на шаблони и анализирајте ги резултатите заедно со вашиот тим.
+          </p>
+          <div className="flex gap-4">
+            <button className="px-8 py-4 bg-white text-indigo-600 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl hover:scale-105 transition-all">
+              Креирај нов тим
+            </button>
+            <button className="px-8 py-4 bg-indigo-500 text-white rounded-2xl font-black text-sm uppercase tracking-widest border border-indigo-400">
+              Покани колеги
+            </button>
+          </div>
+        </div>
+        <Users size={200} className="absolute -bottom-10 -right-10 text-white/10 rotate-12" />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+          <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-6">
+            <ShieldCheck size={24} />
+          </div>
+          <h3 className="text-xl font-black mb-2">Администраторски контроли</h3>
+          <p className="text-slate-500 font-bold text-sm leading-relaxed">
+            Целосна контрола врз дозволите и пристапот на секој член на тимот.
+          </p>
+        </div>
+        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+          <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-6">
+            <Share2 size={24} />
+          </div>
+          <h3 className="text-xl font-black mb-2">Заедничка библиотека</h3>
+          <p className="text-slate-500 font-bold text-sm leading-relaxed">
+            Сите ваши тимски шаблони и презентации на едно безбедно место.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderTemplates = () => (
     <div className="space-y-12">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-black text-slate-900 mb-2">Шаблони за презентација</h2>
-          <p className="text-slate-400 font-bold">Изберете од стотиците веќе подготвени интерактивни активности.</p>
-        </div>
-        <div className="flex bg-white border border-slate-100 p-1.5 rounded-2xl shadow-sm">
-          {['Сите', 'Едукација', 'Бизнис', 'Настани'].map((cat) => (
-            <button key={cat} className="px-6 py-2 rounded-xl text-sm font-black hover:bg-slate-50 transition-all text-slate-500 hover:text-indigo-600">
-              {cat}
-            </button>
-          ))}
+          <h2 className="text-3xl font-black text-slate-900 mb-2">Шаблони за решенија</h2>
+          <p className="text-slate-400 font-bold">Спремни за користење за секој бизнис и едукативен модел.</p>
         </div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {[
           { 
-            title: "Квиз за крај на часот", 
-            img: "https://images.unsplash.com/photo-1510070112810-d4e9a46d9e91?q=80&w=600", 
-            cat: "Education",
-            desc: "Брза проверка на знаењето по математика или природни науки.",
+            title: "Бизнис Состанок", 
+            img: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=600", 
+            cat: "Corporate",
+            desc: "Рангирајте ги приоритетите на вашиот следен бизнис состанок.",
+            tags: ["Ranking", "Poll"]
+          },
+          { 
+            title: "Хибридна Работилница", 
+            img: "https://images.unsplash.com/photo-1556761175-b413da4baf72?q=80&w=600", 
+            cat: "Hybrid Work",
+            desc: "Поврзете ги вработените во канцеларија и дома низ заеднички Q&A.",
+            tags: ["Q&A", "Reactions"]
+          },
+          { 
+            title: "Обука за вработени", 
+            img: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=600", 
+            cat: "Training",
+            desc: "Тестирајте го знаењето по секоја одржана професионална обука.",
             tags: ["Quiz", "Leaderboard"]
           },
           { 
-            title: "Тимски Брејнсторминг", 
-            img: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=600", 
-            cat: "Corporate",
-            desc: "Генерирајте идеи за следниот голем проект со облак со зборови.",
-            tags: ["Word Cloud", "Open Text"]
-          },
-          { 
-            title: "Ледоломка за работилница", 
-            img: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?q=80&w=600", 
-            cat: "Events",
-            desc: "Запознајте ја вашата публика низ забавни прашања.",
-            tags: ["Poll", "Reactions"]
-          },
-          { 
-            title: "Годишна ретроспектива", 
-            img: "https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=600", 
-            cat: "Corporate",
-            desc: "Оценете ги постигнувањата на тимот во изминатата година.",
-            tags: ["Rating", "Ranking"]
-          },
-          { 
-            title: "Дигитална трансформација", 
-            img: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=600", 
+            title: "Интерактивно Предавање", 
+            img: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=600", 
             cat: "Education",
-            desc: "Шаблон за предавања за технологија во училницата.",
-            tags: ["Quiz", "Poll"]
+            desc: "Задржете го вниманието на учениците со брзи анкети и word cloud.",
+            tags: ["Word Cloud", "Poll"]
           },
           { 
-            title: "Гласање за проект", 
-            img: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=600", 
-            cat: "Events",
-            desc: "Овозможете им на сите да гласаат за најдобрата идеја.",
-            tags: ["Ranking", "Analytics"]
+            title: "Live Вебинар", 
+            img: "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?q=80&w=600", 
+            cat: "Webinar",
+            desc: "Добијте фидбек веднаш од стотици онлајн учесници.",
+            tags: ["Rating", "Open Text"]
+          },
+          { 
+            title: "Училница на иднината", 
+            img: "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?q=80&w=600", 
+            cat: "Education",
+            desc: "Дигитализирајте го наставниот процес со игри и натпревари.",
+            tags: ["Quiz", "Ranking"]
           }
         ].map((t, i) => (
           <motion.div 
@@ -237,11 +273,6 @@ const Dashboard = ({ setView }) => {
           >
             <div className="h-52 relative overflow-hidden">
               <img src={t.img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-8">
-                <button className="w-full py-4 bg-white text-indigo-600 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl">
-                  Користи овој шаблон
-                </button>
-              </div>
               <div className="absolute top-6 left-6 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-indigo-600 shadow-sm">
                 {t.cat}
               </div>
@@ -258,12 +289,9 @@ const Dashboard = ({ setView }) => {
               <p className="text-slate-500 font-bold text-sm leading-relaxed mb-8 flex-1">
                 {t.desc}
               </p>
-              <div className="flex items-center justify-between pt-6 border-t border-slate-50">
-                <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Бесплатен пристап</span>
-                <button className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all">
-                  <ChevronRight size={20} />
-                </button>
-              </div>
+              <button className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl">
+                Користи шаблон
+              </button>
             </div>
           </motion.div>
         ))}
@@ -408,9 +436,10 @@ const Dashboard = ({ setView }) => {
           {activeTab === 'home' && renderHome()}
           {activeTab === 'presentations' && renderPresentations()}
           {activeTab === 'templates' && renderTemplates()}
+          {activeTab === 'team' && renderTeam()}
           {activeTab === 'plan' && renderPlan()}
           {activeTab === 'integrations' && renderIntegrations()}
-          {['team', 'trash'].includes(activeTab) && (
+          {['trash'].includes(activeTab) && (
             <div className="pt-20 text-center">
               <div className="bg-slate-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Zap size={40} className="text-slate-200" />
