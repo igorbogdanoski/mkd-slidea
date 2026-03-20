@@ -13,11 +13,29 @@ const AppContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [code, setCode] = useState('');
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem('mkd_slidea_user_data');
+    return saved ? JSON.parse(saved) : null;
+  });
   const [username, setUsername] = useState(() => localStorage.getItem('mkd_slidea_user') || '');
 
-  const updateUsername = (name) => {
-    setUsername(name);
-    localStorage.setItem('mkd_slidea_user', name);
+  const handleLogin = (email = 'guest@example.com') => {
+    const isAdmin = ['igor@slidea.mk', 'admin@slidea.mk', 'igorbogdanoski@gmail.com', 'igor@mismath.net'].includes(email.toLowerCase());
+    const userData = {
+      email,
+      name: isAdmin ? 'Игор Богданоски' : 'Корисник',
+      role: isAdmin ? 'admin' : 'user',
+      plan: isAdmin ? 'pro' : 'basic'
+    };
+    setUser(userData);
+    localStorage.setItem('mkd_slidea_user_data', JSON.stringify(userData));
+    navigate('/dashboard');
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('mkd_slidea_user_data');
+    navigate('/');
   };
 
   const setView = (view, type = 'poll') => {
@@ -45,15 +63,15 @@ const AppContent = () => {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-700">
-      {isPublicRoute && <Nav setView={setView} />}
+      {isPublicRoute && <Nav setView={setView} onLogin={handleLogin} user={user} onLogout={handleLogout} />}
       
       <main className={isPublicRoute ? "pt-16" : ""}>
         <AnimatePresence mode="wait">
           <Routes>
             <Route path="/" element={<Landing code={code} setCode={setCode} setView={setView} />} />
             <Route path="/join" element={<Join code={code} setCode={setCode} handleJoin={handleJoin} setView={setView} />} />
-            <Route path="/host" element={<Host setView={setView} />} />
-            <Route path="/dashboard" element={<Dashboard setView={setView} />} />
+            <Route path="/host" element={<Host setView={setView} user={user} />} />
+            <Route path="/dashboard" element={<Dashboard setView={setView} user={user} onLogout={handleLogout} />} />
             <Route path="/pricing" element={<Pricing setView={setView} />} />
             <Route path="/event/:id/present" element={<EventWrapper type="present" />} />
             <Route path="/event/:id" element={<EventWrapper type="participant" username={username} setUsername={updateUsername} />} />

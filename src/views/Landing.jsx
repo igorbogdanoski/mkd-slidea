@@ -50,6 +50,30 @@ const Landing = ({ code, setCode, setView }) => {
 
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div className="text-left space-y-8">
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-gradient-to-r from-indigo-600 to-violet-600 p-4 rounded-[2.5rem] flex items-center gap-4 mb-8 shadow-2xl shadow-indigo-100 max-w-lg"
+            >
+              <span className="text-white font-black text-xs uppercase tracking-widest pl-4 hidden md:block">Приклучи се како учесник:</span>
+              <div className="flex-1 flex gap-2">
+                <input 
+                  type="text" 
+                  maxLength={6}
+                  placeholder="Внеси код..."
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.toUpperCase())}
+                  className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-6 py-3 text-white font-black placeholder:text-white/40 focus:bg-white/20 outline-none w-full"
+                />
+                <button 
+                  onClick={() => setView('join')}
+                  className="bg-white text-indigo-600 px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-all active:scale-95"
+                >
+                  Join
+                </button>
+              </div>
+            </motion.div>
+
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -65,7 +89,8 @@ const Landing = ({ code, setCode, setView }) => {
               className="text-6xl md:text-8xl font-black tracking-tight text-slate-900 leading-[0.95]"
             >
               Слајдови кои <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">реагираат.</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600 italic">слушаат.</span><br />
+              Идеи кои <span className="text-indigo-600">водат.</span>
             </motion.h1>
 
             <motion.p 

@@ -1,14 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Mail, Github, Chrome } from 'lucide-react';
+import { X, Mail, Github, Chrome, Zap } from 'lucide-react';
 
 const LoginModal = ({ isOpen, onClose, onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleEsc);
+    }
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [isOpen, onClose]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    onLogin();
+    onLogin(email);
     onClose();
   };
 
@@ -41,6 +51,9 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
             <div className="text-center mb-10">
               <h3 className="text-3xl font-black mb-2">Добредојдовте</h3>
               <p className="text-slate-400 font-bold">Најавете се на вашиот MKD Slidea профил</p>
+              <div className="mt-2 text-[10px] text-slate-300 font-black uppercase tracking-[0.2em] italic">
+                Професионален систем за интеракција © 2026
+              </div>
             </div>
 
             <div className="space-y-4 mb-8">
@@ -80,11 +93,27 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
               >
                 Најави се
               </button>
+              
+              <div className="pt-4 border-t border-slate-100 mt-6">
+                <button 
+                  type="button"
+                  onClick={() => { setEmail('igor@slidea.mk'); setPassword('admin123'); }}
+                  className="w-full py-3 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
+                >
+                  <Zap size={14} className="fill-indigo-400 text-indigo-400" /> Админ Најава (Игор)
+                </button>
+              </div>
             </form>
 
             <p className="mt-8 text-center text-sm font-bold text-slate-400">
               Немате профил? <button className="text-indigo-600 hover:underline">Креирај профил</button>
             </p>
+            <button 
+              onClick={onClose}
+              className="mt-6 w-full text-center text-[10px] font-black text-slate-300 hover:text-slate-500 uppercase tracking-widest transition-all"
+            >
+              Откажи и затвори
+            </button>
           </motion.div>
         </div>
       )}

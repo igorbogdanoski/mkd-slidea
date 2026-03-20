@@ -14,45 +14,47 @@ const MegaMenu = ({ isOpen, items, setView, setActiveMenu }) => (
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 10 }}
-        className="absolute top-full left-0 w-[600px] bg-white rounded-3xl shadow-2xl border border-slate-100 p-8 grid grid-cols-2 gap-8 z-50"
+        className="absolute top-full -left-10 w-[700px] pt-4 z-50"
       >
-        {items.map((section, idx) => (
-          <div key={idx}>
-            <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 border-b border-slate-50 pb-2">
-              {section.title}
-            </h4>
-            <div className="space-y-6">
-              {section.links.map((link, lIdx) => (
-                <div 
-                  key={lIdx} 
-                  className="flex gap-4 group cursor-pointer"
-                  onClick={() => {
-                    if (link.type) setView('host', link.type);
-                    setActiveMenu(null);
-                  }}
-                >
-                  <div className={`p-2 rounded-xl ${link.bg} ${link.color} group-hover:scale-110 transition-transform`}>
-                    {link.icon}
+        <div className="bg-white rounded-[3rem] shadow-2xl border border-slate-100 p-10 grid grid-cols-2 gap-10">
+          {items.map((section, idx) => (
+            <div key={idx}>
+              <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-8 border-b border-slate-50 pb-4">
+                {section.title}
+              </h4>
+              <div className="space-y-8">
+                {section.links.map((link, lIdx) => (
+                  <div 
+                    key={lIdx} 
+                    className="flex gap-6 group cursor-pointer"
+                    onClick={() => {
+                      if (link.type) setView('host', link.type);
+                      setActiveMenu(null);
+                    }}
+                  >
+                    <div className={`w-12 h-12 rounded-2xl ${link.bg} ${link.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-slate-50`}>
+                      {link.icon}
+                    </div>
+                    <div>
+                      <p className="font-black text-slate-900 group-hover:text-indigo-600 transition-colors mb-1">
+                        {link.label}
+                      </p>
+                      <p className="text-xs text-slate-400 font-bold leading-relaxed">
+                        {link.desc}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-bold text-sm text-slate-800 group-hover:text-indigo-600 transition-colors">
-                      {link.label}
-                    </p>
-                    <p className="text-xs text-slate-400 font-medium leading-relaxed">
-                      {link.desc}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </motion.div>
     )}
   </AnimatePresence>
 );
 
-const Nav = ({ setView }) => {
+const Nav = ({ setView, onLogin, user, onLogout }) => {
   const [activeMenu, setActiveMenu] = useState(null);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
 
@@ -173,24 +175,51 @@ const Nav = ({ setView }) => {
             Приклучи се
           </button>
           <div className="w-px h-6 bg-slate-100 mx-2" />
-          <button 
-            onClick={() => setIsLoginOpen(true)}
-            className="text-sm font-black text-slate-900 hover:text-indigo-600 transition-all px-6 py-2"
-          >
-            Најави се
-          </button>
-          <button 
-            onClick={() => setIsLoginOpen(true)}
-            className="bg-indigo-600 text-white px-8 py-3.5 rounded-2xl text-sm font-black hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 active:scale-95 flex items-center gap-2"
-          >
-            Регистрирај се
-          </button>
+          {user ? (
+            <div className="flex items-center gap-4">
+              {user.role === 'admin' && (
+                <button 
+                  onClick={() => setView('dashboard')}
+                  className="bg-slate-900 text-white px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center gap-2"
+                >
+                  <LayoutGrid size={14} /> Админ Панел
+                </button>
+              )}
+              <button 
+                onClick={() => setView('dashboard')}
+                className="text-sm font-black text-slate-900 hover:text-indigo-600"
+              >
+                Мој Профил
+              </button>
+              <button 
+                onClick={onLogout}
+                className="text-sm font-black text-red-500 hover:text-red-600"
+              >
+                Одјави се
+              </button>
+            </div>
+          ) : (
+            <>
+              <button 
+                onClick={() => setIsLoginOpen(true)}
+                className="text-sm font-black text-slate-900 hover:text-indigo-600 transition-all px-6 py-2"
+              >
+                Најави се
+              </button>
+              <button 
+                onClick={() => setIsLoginOpen(true)}
+                className="bg-indigo-600 text-white px-8 py-3.5 rounded-2xl text-sm font-black hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 active:scale-95 flex items-center gap-2"
+              >
+                Регистрирај се
+              </button>
+            </>
+          )}
         </div>
       </div>
       <LoginModal 
         isOpen={isLoginOpen} 
         onClose={() => setIsLoginOpen(false)} 
-        onLogin={() => setView('dashboard')} 
+        onLogin={onLogin} 
       />
     </nav>
   );
