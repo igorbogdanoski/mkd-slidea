@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Zap, ChevronDown, PieChart, MessageSquare, Cloud, 
   ClipboardList, Trophy, LineChart, Presentation, Globe,
-  Users, School, Briefcase, Calendar
+  Users, School, Briefcase, Calendar, LayoutGrid
 } from 'lucide-react';
 
 const MegaMenu = ({ isOpen, items }) => (
