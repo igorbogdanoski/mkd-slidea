@@ -3,9 +3,61 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '../components/Dashboard/Sidebar';
 import HomeTab from '../components/Dashboard/HomeTab';
 import AnalyticsTab from '../components/Dashboard/AnalyticsTab';
+import { templates } from '../data/templates';
+import { supabase } from '../lib/supabase';
 
 const Dashboard = ({ setView, user, onLogout }) => {
   const [activeTab, setActiveTab] = useState('home');
+
+  const useTemplate = async (template) => {
+    try {
+      const eventCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const { data: event, error: eventError } = await supabase
+        .from('events')
+        .insert([{ 
+          code: eventCode, 
+          title: template.title,
+          user_id: user?.id 
+        }])
+        .select()
+        .single();
+
+      if (eventError) throw eventError;
+
+      for (const poll of template.polls) {
+        const { data: newPoll, error: pollError } = await supabase
+          .from('polls')
+          .insert([{
+            event_id: event.id,
+            question: poll.question,
+            type: poll.type,
+            is_quiz: poll.is_quiz
+          }])
+          .select()
+          .single();
+        
+        if (pollError) throw pollError;
+
+        if (poll.options && poll.options.length > 0) {
+          const optionsToInsert = poll.options.map(opt => ({
+            poll_id: newPoll.id,
+            text: typeof opt === 'string' ? opt : opt.text,
+            is_correct: opt.is_correct || false
+          }));
+          await supabase.from('options').insert(optionsToInsert);
+        } else if (poll.type === 'rating') {
+          const ratings = ['1', '2', '3', '4', '5'].map(val => ({ poll_id: newPoll.id, text: val }));
+          await supabase.from('options').insert(ratings);
+        }
+      }
+
+      localStorage.setItem('active_event_code', eventCode);
+      setView('host');
+    } catch (err) {
+      console.error("Error using template:", err);
+      alert("Грешка при креирање на настанот од шаблонот.");
+    }
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -73,26 +125,11 @@ const Dashboard = ({ setView, user, onLogout }) => {
                 <h2 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">Сите шаблони</h2>
                 <p className="text-slate-400 font-bold">Започнете брзо со еден од нашите претходно дизајнирани шаблони.</p>
               </div>
-              <div className="flex gap-4">
-                <select className="bg-white border border-slate-100 rounded-xl px-4 py-2 font-bold text-sm outline-none">
-                  <option>Сите категории</option>
-                  <option>Едукација</option>
-                  <option>Бизнис</option>
-                  <option>Забава</option>
-                </select>
-              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-               {[
-                 { title: 'Trivia Questions on History', category: 'Quiz Questions', img: 'https://images.unsplash.com/photo-1461280360983-bd93eaa5051b?q=80&w=400&h=250&auto=format&fit=crop' },
-                 { title: 'Christmas Scavenger Hunt', category: 'Interactive Ideas', img: 'https://images.unsplash.com/photo-1543589077-47d81606c1bf?q=80&w=400&h=250&auto=format&fit=crop' },
-                 { title: 'Visual Communication Workshop', category: 'Presentation Ideas', img: 'https://images.unsplash.com/photo-1558403194-611308249627?q=80&w=400&h=250&auto=format&fit=crop' },
-                 { title: 'Meeting Poll Questions', category: 'Business Polls', img: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=400&h=250&auto=format&fit=crop' },
-                 { title: 'Icebreakers for Teams', category: 'Icebreakers', img: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=400&h=250&auto=format&fit=crop' },
-                 { title: 'Student Feedback Survey', category: 'Education', img: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=400&h=250&auto=format&fit=crop' }
-               ].map((temp, i) => (
-                 <div key={i} className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden group cursor-pointer hover:shadow-2xl hover:shadow-indigo-50 transition-all">
+               {templates.map((temp) => (
+                 <div key={temp.id} className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden group cursor-pointer hover:shadow-2xl hover:shadow-indigo-50 transition-all">
                     <div className="h-48 relative overflow-hidden">
                       <img src={temp.img} alt={temp.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                       <div className="absolute top-4 left-4">
@@ -104,7 +141,12 @@ const Dashboard = ({ setView, user, onLogout }) => {
                     <div className="p-8">
                       <h4 className="font-black text-slate-900 mb-6 line-clamp-2">{temp.title}</h4>
                       <div className="flex gap-2">
-                        <button className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-black text-xs hover:bg-indigo-700 transition-all active:scale-95">Користи</button>
+                        <button 
+                          onClick={() => useTemplate(temp)}
+                          className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-black text-xs hover:bg-indigo-700 transition-all active:scale-95"
+                        >
+                          Користи
+                        </button>
                         <button className="flex-1 py-3 bg-slate-50 text-slate-400 rounded-xl font-black text-xs hover:bg-slate-100 transition-all">Преглед</button>
                       </div>
                     </div>

@@ -25,7 +25,7 @@ const AppContent = () => {
   };
 
   const handleLogin = (email = 'guest@example.com') => {
-    const isAdmin = ['igor@slidea.mk', 'admin@slidea.mk', 'igorbogdanoski@gmail.com', 'igor@mismath.net'].includes(email.toLowerCase());
+    const isAdmin = ['igor@slidea.mk', 'admin@slidea.mk', 'igorbogdanoski@gmail.com', 'bogdanoskiigor@gmail.com', 'igor@mismath.net'].includes(email.toLowerCase());
     const userData = {
       email,
       name: isAdmin ? 'Игор Богданоски' : 'Корисник',

@@ -10,8 +10,9 @@ import {
   Lock
 } from 'lucide-react';
 
-const InteractionTypeGrid = ({ onSelect }) => {
-  const userPlan = 'basic';
+const InteractionTypeGrid = ({ onSelect, user }) => {
+  const userPlan = user?.plan || 'basic';
+  const isPro = userPlan === 'pro' || userPlan === 'semester' || user?.isAdmin;
 
   const types = [
     {
@@ -58,7 +59,7 @@ const InteractionTypeGrid = ({ onSelect }) => {
       icon: <Star className="w-8 h-8 text-rose-600" />,
       color: 'bg-rose-50',
       borderColor: 'border-rose-100',
-      locked: userPlan === 'basic'
+      locked: !isPro
     },
     {
       id: 'ranking',
@@ -68,7 +69,7 @@ const InteractionTypeGrid = ({ onSelect }) => {
       icon: <ListOrdered className="w-8 h-8 text-violet-600" />,
       color: 'bg-violet-50',
       borderColor: 'border-violet-100',
-      locked: userPlan === 'basic'
+      locked: !isPro
     },
   ];
 

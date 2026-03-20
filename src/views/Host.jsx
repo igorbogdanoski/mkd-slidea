@@ -12,7 +12,7 @@ import { supabase } from '../lib/supabase';
 import HostHeader from '../components/Host/HostHeader';
 import PollCard from '../components/Host/PollCard';
 
-const Host = ({ setView }) => {
+const Host = ({ setView, user }) => {
   const [event, setEvent] = useState(null);
   const [polls, setPolls] = useState([]);
   const [activePollIndex, setActivePollIndex] = useState(0);
@@ -60,61 +60,71 @@ const Host = ({ setView }) => {
   }, [event]);
 
   const onSavePoll = async (pollData) => {
-    if (editingPoll) {
-      // Update existing poll
-      const { error: updateError } = await supabase
-        .from('polls')
-        .update({ 
-          question: pollData.question,
-          type: pollData.type || 'poll'
-        })
-        .eq('id', editingPoll.id);
-      
-      if (!updateError && pollData.options) {
-        // Simple strategy: delete and re-insert options for consistency if changed
-        // In a real app we'd diff, but this is simpler for MVP
-        await supabase.from('options').delete().eq('poll_id', editingPoll.id);
+    try {
+      if (editingPoll) {
+        // Update existing poll
+        const { error: updateError } = await supabase
+          .from('polls')
+          .update({ 
+            question: pollData.question,
+            type: pollData.type || 'poll',
+            is_quiz: !!pollData.is_quiz
+          })
+          .eq('id', editingPoll.id);
         
-        let optionsToInsert = [];
-        if (pollData.type === 'rating') {
-          optionsToInsert = ['1', '2', '3', '4', '5'].map(val => ({ poll_id: editingPoll.id, text: val }));
-        } else {
-          optionsToInsert = pollData.options.map(o => ({ 
-            poll_id: editingPoll.id, 
-            text: typeof o === 'string' ? o : o.text,
-            is_correct: o.is_correct || false
-          }));
+        if (updateError) throw updateError;
+
+        if (pollData.options) {
+          await supabase.from('options').delete().eq('poll_id', editingPoll.id);
+          
+          let optionsToInsert = [];
+          if (pollData.type === 'rating') {
+            optionsToInsert = ['1', '2', '3', '4', '5'].map(val => ({ poll_id: editingPoll.id, text: val }));
+          } else {
+            optionsToInsert = pollData.options.map(o => ({ 
+              poll_id: editingPoll.id, 
+              text: typeof o === 'string' ? o : o.text,
+              is_correct: o.is_correct || false
+            }));
+          }
+          const { error: optError } = await supabase.from('options').insert(optionsToInsert);
+          if (optError) throw optError;
         }
-        await supabase.from('options').insert(optionsToInsert);
+        setEditingPoll(null);
+      } else {
+        // Create new poll
+        const { data: newPoll, error: pollError } = await supabase.from('polls').insert([{ 
+          event_id: event.id, 
+          question: pollData.question, 
+          is_quiz: !!pollData.is_quiz,
+          type: pollData.type || 'poll' 
+        }]).select().single();
+        
+        if (pollError) throw pollError;
+
+        if (pollData.options && pollData.options.length > 0) {
+          let optionsToInsert = [];
+          if (pollData.type === 'rating') {
+            optionsToInsert = ['1', '2', '3', '4', '5'].map(val => ({ poll_id: newPoll.id, text: val }));
+          } else {
+            optionsToInsert = pollData.options.map(o => ({ 
+              poll_id: newPoll.id, 
+              text: typeof o === 'string' ? o : o.text,
+              is_correct: o.is_correct || false
+            }));
+          }
+          const { error: optError } = await supabase.from('options').insert(optionsToInsert);
+          if (optError) throw optError;
+        }
       }
-      setEditingPoll(null);
-    } else {
-      // Create new poll (previous logic)
-      const { data: newPoll, error } = await supabase.from('polls').insert([{ 
-        event_id: event.id, 
-        question: pollData.question, 
-        is_quiz: !!pollData.is_quiz,
-        type: pollData.type || 'poll' 
-      }]).select().single();
       
-      if (!error && pollData.options) {
-        let optionsToInsert = [];
-        if (pollData.type === 'rating') {
-          optionsToInsert = ['1', '2', '3', '4', '5'].map(val => ({ poll_id: newPoll.id, text: val }));
-        } else {
-          optionsToInsert = pollData.options.map(o => ({ 
-            poll_id: newPoll.id, 
-            text: typeof o === 'string' ? o : o.text,
-            is_correct: o.is_correct || false
-          }));
-        }
-        await supabase.from('options').insert(optionsToInsert);
-      }
+      setIsCreatePollOpen(false);
+      setIsCreateQuizOpen(false);
+      setShowInteractionGrid(false);
+    } catch (err) {
+      console.error("Error saving poll:", err);
+      alert("Настана грешка при зачувување на активноста. Ве молиме обидете се повторно.");
     }
-    
-    setIsCreatePollOpen(false);
-    setIsCreateQuizOpen(false);
-    setShowInteractionGrid(false);
   };
 
   const onEditPoll = (poll) => {
@@ -175,6 +185,7 @@ const Host = ({ setView }) => {
         isOpen={isAIModalOpen} 
         onClose={() => setIsAIModalOpen(false)} 
         onGenerate={onSavePoll} 
+        user={user}
       />
 
       <HostHeader event={event} setIsQRModalOpen={setIsQRModalOpen} setView={setView} />
@@ -200,7 +211,7 @@ const Host = ({ setView }) => {
                   <h3 className="text-2xl font-black">Избери тип на активност</h3>
                   <div className="w-24" /> {/* Spacer */}
                 </div>
-                <InteractionTypeGrid onSelect={handleInteractionSelect} />
+                <InteractionTypeGrid user={user} onSelect={handleInteractionSelect} />
               </motion.div>
             ) : (
               <motion.div

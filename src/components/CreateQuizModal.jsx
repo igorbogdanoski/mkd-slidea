@@ -73,7 +73,7 @@ const CreateQuizModal = ({ isOpen, onClose, onSave, initialData = null }) => {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-6">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

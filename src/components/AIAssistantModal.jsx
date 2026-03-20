@@ -1,35 +1,44 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles, Wand2, ArrowRight, Check, Loader2 } from 'lucide-react';
+import { X, Sparkles, Wand2, ArrowRight, Check, Loader2, Brain, ListTree, Lock } from 'lucide-react';
 
-const AIAssistantModal = ({ isOpen, onClose, onGenerate }) => {
+const AIAssistantModal = ({ isOpen, onClose, onGenerate, user }) => {
   const [prompt, setPrompt] = useState('');
   const [generating, setLoading] = useState(false);
   const [type, setType] = useState('quiz');
+  const [strategy, setStrategy] = useState('default');
+
+  const isPro = user?.plan === 'pro' || user?.plan === 'semester' || user?.role === 'admin';
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
     setLoading(true);
     
-    // Симулираме повикување на AI (Gemini/OpenAI)
-    // Во реална верзија овде ќе се повика API
-    setTimeout(() => {
-      const mockResult = {
-        question: `AI Генерирано: ${prompt}`,
-        type: type,
-        is_quiz: type === 'quiz',
-        options: type === 'quiz' || type === 'poll' ? [
-          { text: 'Опција А (Точна)', is_correct: true },
-          { text: 'Опција Б', is_correct: false },
-          { text: 'Опција В', is_correct: false },
-        ] : []
-      };
+    try {
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt, type, strategy }),
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || 'Failed to generate');
+      }
+
+      const result = await response.json();
       
-      onGenerate(mockResult);
+      onGenerate(result);
       setLoading(false);
       setPrompt('');
       onClose();
-    }, 2000);
+    } catch (err) {
+      console.error("AI Generation failed:", err);
+      alert(err.message || "Грешка при генерирање со AI. Проверете го вашиот клуч.");
+      setLoading(false);
+    }
   };
 
   return (
@@ -73,7 +82,32 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate }) => {
 
             <div className="space-y-8">
               <div>
-                <label className="block text-sm font-black text-slate-700 mb-4">Што сакате да генерирате денес?</label>
+                <label className="block text-sm font-black text-slate-700 mb-4">Избери Мод на Разум (Prompt Strategy)</label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[
+                    { id: 'default', label: 'Стандарден', icon: <Sparkles size={16} />, locked: false },
+                    { id: 'cot', label: 'CoT (Чекор-по-чекор)', icon: <Brain size={16} />, locked: !isPro },
+                    { id: 'tot', label: 'ToT (Длабока Анализа)', icon: <ListTree size={16} />, locked: !isPro },
+                  ].map((s) => (
+                    <button
+                      key={s.id}
+                      onClick={() => !s.locked && setStrategy(s.id)}
+                      className={`relative py-4 px-4 rounded-2xl font-black text-xs transition-all border-2 flex items-center justify-center gap-2 ${
+                        strategy === s.id 
+                          ? 'border-indigo-600 bg-indigo-50 text-indigo-600' 
+                          : s.locked ? 'border-slate-50 bg-slate-50 text-slate-300 cursor-not-allowed' : 'border-slate-100 text-slate-400 hover:border-indigo-200'
+                      }`}
+                    >
+                      {s.icon}
+                      {s.label}
+                      {s.locked && <Lock size={12} className="absolute top-2 right-2" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-black text-slate-700 mb-4">Тип на активност</label>
                 <div className="grid grid-cols-3 gap-4">
                   {[
                     { id: 'quiz', label: 'Квиз' },
