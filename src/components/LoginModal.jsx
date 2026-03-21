@@ -64,19 +64,23 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-6 overflow-y-auto">
+        <>
+          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[150] bg-slate-900/60 backdrop-blur-sm"
           />
+          {/* Scrollable modal wrapper */}
+          <div className="fixed inset-0 z-[151] overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-6">
           <motion.div
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="relative bg-white rounded-[3rem] p-10 max-w-md w-full shadow-2xl overflow-hidden my-auto"
+            className="relative bg-white rounded-[3rem] p-10 max-w-md w-full shadow-2xl overflow-hidden"
           >
             <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-600 to-violet-600" />
 
@@ -213,7 +217,9 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
               </>
             )}
           </motion.div>
-        </div>
+            </div>
+          </div>
+        </>
       )}
     </AnimatePresence>
   );
