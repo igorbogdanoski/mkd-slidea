@@ -74,12 +74,11 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
             className="fixed inset-0 z-[200] bg-slate-900/60 backdrop-blur-sm"
           />
           {/* Centered modal */}
-          <div className="fixed inset-0 z-[201] flex items-center justify-center p-6 pointer-events-none">
           <motion.div
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="relative bg-white rounded-[3rem] p-10 max-w-md w-full shadow-2xl overflow-y-auto max-h-[90vh] pointer-events-auto"
+            className="fixed z-[201] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-[3rem] p-10 w-[calc(100%-3rem)] max-w-md shadow-2xl overflow-hidden"
           >
             <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-600 to-violet-600" />
 
@@ -216,7 +215,6 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
               </>
             )}
           </motion.div>
-          </div>
         </>
       )}
     </AnimatePresence>
