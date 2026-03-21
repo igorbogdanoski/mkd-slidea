@@ -64,7 +64,7 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-6">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-6 overflow-y-auto">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -76,7 +76,7 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="relative bg-white rounded-[3rem] p-10 max-w-md w-full shadow-2xl overflow-hidden"
+            className="relative bg-white rounded-[3rem] p-10 max-w-md w-full shadow-2xl overflow-hidden my-auto"
           >
             <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-600 to-violet-600" />
 
