@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Zap, Plus, ArrowLeft, Sparkles
+import {
+  Zap, Plus, ArrowLeft, Sparkles, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import QRCodeModal from '../components/QRCodeModal';
 import CreatePollModal from '../components/CreatePollModal';
@@ -164,6 +164,19 @@ const Host = ({ setView, user }) => {
     }
   };
 
+  const goNext = () => { if (activePollIndex < polls.length - 1) setActivePoll(activePollIndex + 1); };
+  const goPrev = () => { if (activePollIndex > 0) setActivePoll(activePollIndex - 1); };
+
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.key === 'ArrowRight') goNext();
+      if (e.key === 'ArrowLeft') goPrev();
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [activePollIndex, polls]);
+
   if (loading) return <div className="pt-32 text-center font-bold">Се вчитува...</div>;
   if (!event) return <div className="pt-32 text-center font-bold text-red-500">Грешка.</div>;
 
@@ -269,18 +282,37 @@ const Host = ({ setView, user }) => {
                         </div>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {polls.map((poll, index) => (
-                          <PollCard 
-                            key={poll.id} 
-                            poll={poll} 
-                            index={index} 
-                            activePollIndex={activePollIndex} 
-                            setActivePoll={setActivePoll} 
-                            onEdit={onEditPoll}
-                            onDelete={onDeletePoll}
-                          />
-                        ))}
+                      <div className="space-y-4">
+                        {/* Navigation bar */}
+                        <div className="flex items-center justify-between bg-slate-900 text-white rounded-2xl px-6 py-3">
+                          <button onClick={goPrev} disabled={activePollIndex === 0}
+                            className="flex items-center gap-2 font-black text-sm disabled:opacity-30 hover:text-indigo-400 transition-colors disabled:cursor-not-allowed"
+                          >
+                            <ChevronLeft className="w-5 h-5" /> Претходна
+                          </button>
+                          <span className="font-black text-sm text-slate-300">
+                            Активност <span className="text-white">{activePollIndex + 1}</span> од <span className="text-white">{polls.length}</span>
+                            <span className="ml-3 text-xs text-slate-500">← → тастатура</span>
+                          </span>
+                          <button onClick={goNext} disabled={activePollIndex === polls.length - 1}
+                            className="flex items-center gap-2 font-black text-sm disabled:opacity-30 hover:text-indigo-400 transition-colors disabled:cursor-not-allowed"
+                          >
+                            Следна <ChevronRight className="w-5 h-5" />
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {polls.map((poll, index) => (
+                            <PollCard
+                              key={poll.id}
+                              poll={poll}
+                              index={index}
+                              activePollIndex={activePollIndex}
+                              setActivePoll={setActivePoll}
+                              onEdit={onEditPoll}
+                              onDelete={onDeletePoll}
+                            />
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
