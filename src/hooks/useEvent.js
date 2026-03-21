@@ -104,19 +104,28 @@ export const useEvent = (eventCode) => {
 
     const eventChannel = supabase
       .channel(`event-details-${event.id}`)
-      .on('postgres_changes', 
-        { event: 'UPDATE', schema: 'public', table: 'events', filter: `id=eq.${event.id}` }, 
+      .on('postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'events', filter: `id=eq.${event.id}` },
         (payload) => setEvent(payload.new)
       )
       .subscribe();
 
+    // Polling fallback — syncs active poll every 3s in case real-time misses it
+    const syncInterval = setInterval(async () => {
+      const { data } = await supabase.from('events').select('active_poll_id').eq('id', event.id).single();
+      if (data && data.active_poll_id !== event.active_poll_id) {
+        setEvent(prev => ({ ...prev, active_poll_id: data.active_poll_id }));
+      }
+    }, 3000);
+
     return () => {
+      clearInterval(syncInterval);
       supabase.removeChannel(pollChannel);
       supabase.removeChannel(questionChannel);
       supabase.removeChannel(reactionChannel);
       supabase.removeChannel(eventChannel);
     };
-  }, [event?.id, fetchPolls, fetchQuestions]);
+  }, [event?.id, event?.active_poll_id, fetchPolls, fetchQuestions]);
 
   const sendReaction = async (emoji) => {
     if (!event) return;

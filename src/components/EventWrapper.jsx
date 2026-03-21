@@ -54,12 +54,15 @@ const EventWrapper = ({ type, username, setUsername }) => {
     ? polls.findIndex(p => p.id === event.active_poll_id) 
     : 0;
 
-  const [userVoted, setUserVoted] = useState(false);
-
-  useEffect(() => {
-    // Reset voting state when poll changes
-    setUserVoted(false);
-  }, [event?.active_poll_id]);
+  // Persist voted polls in localStorage so refresh doesn't reset vote state
+  const votedKey = `voted_${event?.id || id}`;
+  const getVoted = () => { try { return JSON.parse(localStorage.getItem(votedKey) || '[]'); } catch { return []; } };
+  const currentPollId = polls[activePollIndex]?.id;
+  const userVoted = currentPollId ? getVoted().includes(currentPollId) : false;
+  const markVoted = (pollId) => {
+    const v = getVoted();
+    if (!v.includes(pollId)) localStorage.setItem(votedKey, JSON.stringify([...v, pollId]));
+  };
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
@@ -126,7 +129,7 @@ const EventWrapper = ({ type, username, setUsername }) => {
               });
             }
           }
-          setUserVoted(true);
+          markVoted(currentPoll.id);
         } catch (err) {
           console.error("Vote failed:", err);
         }
