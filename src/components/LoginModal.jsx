@@ -71,10 +71,10 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-[150] bg-slate-900/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[200] bg-slate-900/60 backdrop-blur-sm"
           />
           {/* Scrollable modal wrapper */}
-          <div className="fixed inset-0 z-[151] overflow-y-auto">
+          <div className="fixed inset-0 z-[201] overflow-y-auto">
             <div className="flex min-h-full items-center justify-center p-6">
           <motion.div
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
