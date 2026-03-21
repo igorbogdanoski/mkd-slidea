@@ -11,6 +11,7 @@ import AIAssistantModal from '../components/AIAssistantModal';
 import { supabase } from '../lib/supabase';
 import HostHeader from '../components/Host/HostHeader';
 import PollCard from '../components/Host/PollCard';
+import RemoteController from '../components/Host/RemoteController';
 
 const Host = ({ setView, user }) => {
   const [event, setEvent] = useState(null);
@@ -20,6 +21,7 @@ const Host = ({ setView, user }) => {
   const [isCreatePollOpen, setIsCreatePollOpen] = useState(false);
   const [isCreateQuizOpen, setIsCreateQuizOpen] = useState(false);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [isRemoteMode, setIsRemoteMode] = useState(false);
   const [showInteractionGrid, setShowInteractionGrid] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState('poll');
@@ -55,7 +57,7 @@ const Host = ({ setView, user }) => {
       if (data) setPolls(data);
     };
     fetchPolls();
-    const sub = supabase.channel('host_polls').on('postgres_changes', { event: '*', schema: 'public', table: 'polls' }, fetchPolls).subscribe();
+    const sub = supabase.channel(`host_polls_${event.id}`).on('postgres_changes', { event: '*', schema: 'public', table: 'polls', filter: `event_id=eq.${event.id}` }, fetchPolls).subscribe();
     return () => { sub.unsubscribe(); };
   }, [event]);
 

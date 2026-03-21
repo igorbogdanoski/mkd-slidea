@@ -8,38 +8,34 @@ import Host from './views/Host';
 import Dashboard from './views/Dashboard';
 import Pricing from './views/Pricing';
 import EventWrapper from './components/EventWrapper';
+import ErrorBoundary from './components/ErrorBoundary';
+import { useAuth } from './hooks/useAuth';
 
 const AppContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [code, setCode] = useState('');
-  const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('mkd_slidea_user_data');
-    return saved ? JSON.parse(saved) : null;
-  });
   const [username, setUsername] = useState(() => localStorage.getItem('mkd_slidea_user') || '');
+
+  const { user, loading, signIn, signInWithMagicLink, signOut } = useAuth();
 
   const updateUsername = (val) => {
     setUsername(val);
     localStorage.setItem('mkd_slidea_user', val);
   };
 
-  const handleLogin = (email = 'guest@example.com') => {
-    const isAdmin = ['igor@slidea.mk', 'admin@slidea.mk', 'igorbogdanoski@gmail.com', 'bogdanoskiigor@gmail.com', 'igor@mismath.net'].includes(email.toLowerCase());
-    const userData = {
-      email,
-      name: isAdmin ? 'Игор Богданоски' : 'Корисник',
-      role: isAdmin ? 'admin' : 'user',
-      plan: isAdmin ? 'pro' : 'basic'
-    };
-    setUser(userData);
-    localStorage.setItem('mkd_slidea_user_data', JSON.stringify(userData));
-    navigate('/dashboard');
+  // Called by LoginModal — supports password and magic link
+  const handleLogin = async (email, password, mode = 'password') => {
+    if (mode === 'magic') {
+      await signInWithMagicLink(email);
+    } else {
+      await signIn(email, password);
+      navigate('/dashboard');
+    }
   };
 
-  const handleLogout = () => {
-    setUser(null);
-    localStorage.removeItem('mkd_slidea_user_data');
+  const handleLogout = async () => {
+    await signOut();
     navigate('/');
   };
 
@@ -49,9 +45,8 @@ const AppContent = () => {
       join: '/join',
       host: '/host',
       dashboard: '/dashboard',
-      pricing: '/pricing'
+      pricing: '/pricing',
     };
-    
     if (routes[view]) {
       navigate(routes[view], view === 'host' ? { state: { initialType: type } } : {});
     }
@@ -59,32 +54,40 @@ const AppContent = () => {
 
   const handleJoin = (e) => {
     if (e) e.preventDefault();
-    if (code.length === 6) {
-      navigate('/event/' + code);
-    }
+    if (code.length === 6) navigate('/event/' + code);
   };
 
   const isPublicRoute = ['/', '/join', '/pricing'].includes(location.pathname);
 
+  // Show blank while auth loads to avoid flash
+  if (loading) return null;
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-700">
-      {isPublicRoute && <Nav setView={setView} onLogin={handleLogin} user={user} onLogout={handleLogout} />}
-      
-      <main className={isPublicRoute ? "pt-16" : ""}>
+      {isPublicRoute && (
+        <Nav setView={setView} onLogin={handleLogin} user={user} onLogout={handleLogout} />
+      )}
+
+      <main className={isPublicRoute ? 'pt-16' : ''}>
         <AnimatePresence mode="wait">
-          <Routes>
-            <Route path="/" element={<Landing code={code} setCode={setCode} setView={setView} />} />
-            <Route path="/join" element={<Join code={code} setCode={setCode} handleJoin={handleJoin} setView={setView} />} />
-            <Route path="/host" element={<Host setView={setView} user={user} />} />
-            <Route path="/dashboard" element={<Dashboard setView={setView} user={user} onLogout={handleLogout} />} />
-            <Route path="/pricing" element={<Pricing setView={setView} />} />
-            <Route path="/event/:id/present" element={<EventWrapper type="present" />} />
-            <Route path="/event/:id" element={<EventWrapper type="participant" username={username} setUsername={updateUsername} />} />
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
+          <ErrorBoundary>
+            <Routes>
+              <Route path="/" element={<Landing code={code} setCode={setCode} setView={setView} />} />
+              <Route path="/join" element={<Join code={code} setCode={setCode} handleJoin={handleJoin} setView={setView} />} />
+              <Route path="/host" element={<Host setView={setView} user={user} />} />
+              <Route path="/dashboard" element={<Dashboard setView={setView} user={user} onLogout={handleLogout} />} />
+              <Route path="/pricing" element={<Pricing setView={setView} />} />
+              <Route path="/event/:id/present" element={<EventWrapper type="present" />} />
+              <Route
+                path="/event/:id"
+                element={<EventWrapper type="participant" username={username} setUsername={updateUsername} />}
+              />
+              <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+          </ErrorBoundary>
         </AnimatePresence>
       </main>
-      
+
       {isPublicRoute && (
         <footer className="py-12 text-center text-slate-400 text-sm font-medium border-t border-slate-100 mt-20">
           <div className="flex items-center justify-center gap-6 mb-4">

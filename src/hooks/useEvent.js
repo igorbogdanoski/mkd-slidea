@@ -74,8 +74,8 @@ export const useEvent = (eventCode) => {
         { event: '*', schema: 'public', table: 'polls', filter: `event_id=eq.${event.id}` }, 
         () => fetchPolls(event.id)
       )
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'options', filter: `poll_id=in.(${polls.map(p => p.id).join(',')})` }, 
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'options' },
         () => fetchPolls(event.id)
       )
       .subscribe();
@@ -116,7 +116,7 @@ export const useEvent = (eventCode) => {
       supabase.removeChannel(reactionChannel);
       supabase.removeChannel(eventChannel);
     };
-  }, [event?.id, fetchPolls, fetchQuestions, polls.length]);
+  }, [event?.id, fetchPolls, fetchQuestions]);
 
   const sendReaction = async (emoji) => {
     if (!event) return;
