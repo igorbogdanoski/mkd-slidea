@@ -53,7 +53,10 @@ const PollCard = ({ poll, index, activePollIndex, setActivePoll, onEdit, onDelet
         )}
       </div>
       <p className="font-black text-xl text-slate-800 leading-tight mb-2">{poll.question}</p>
-      <p className="text-slate-400 font-bold text-sm">{poll.options?.length || 0} опции • 0 одговори</p>
+      <p className="text-slate-400 font-bold text-sm">
+        {['wordcloud','open'].includes(poll.type) ? '' : `${poll.options?.length || 0} опции • `}
+        {poll.options?.reduce((sum, o) => sum + (o.votes || 0), 0) || 0} одговори
+      </p>
       </div>
     </div>
   );

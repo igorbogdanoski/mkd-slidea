@@ -56,8 +56,8 @@ const Sidebar = ({ activeTab, setActiveTab, user, onLogout }) => {
             <div className="relative z-10">
               <h4 className="font-black mb-1">Upgrade to PRO</h4>
               <p className="text-[10px] font-bold text-indigo-100 mb-4 opacity-80 uppercase tracking-widest">Неограничени учесници</p>
-              <button className="w-full py-2.5 bg-white text-indigo-600 rounded-xl font-black text-xs hover:bg-indigo-50 transition-colors">
-                Upgrade Now
+              <button onClick={() => setActiveTab('plan')} className="w-full py-2.5 bg-white text-indigo-600 rounded-xl font-black text-xs hover:bg-indigo-50 transition-colors">
+                Види планови →
               </button>
             </div>
             <CreditCard className="absolute -bottom-4 -right-4 w-24 h-24 text-white/10 rotate-12 group-hover:scale-110 transition-transform" />

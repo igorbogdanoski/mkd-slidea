@@ -59,7 +59,6 @@ const InteractionTypeGrid = ({ onSelect, user }) => {
       icon: <Star className="w-8 h-8 text-rose-600" />,
       color: 'bg-rose-50',
       borderColor: 'border-rose-100',
-      locked: !isPro
     },
     {
       id: 'ranking',
@@ -69,7 +68,6 @@ const InteractionTypeGrid = ({ onSelect, user }) => {
       icon: <ListOrdered className="w-8 h-8 text-violet-600" />,
       color: 'bg-violet-50',
       borderColor: 'border-violet-100',
-      locked: !isPro
     },
   ];
 

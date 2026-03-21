@@ -29,3 +29,4 @@ yarn-error.log*
 
 # Temporary Word files
 ~$*
+.vercel

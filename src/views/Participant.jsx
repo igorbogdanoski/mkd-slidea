@@ -35,26 +35,35 @@ const Participant = ({
     }
   };
 
+  const [nameInput, setNameInput] = React.useState('');
+  const confirmName = () => { const v = nameInput.trim(); if (v) setUsername(v); };
+
   if (!username) {
     return (
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="max-w-md mx-auto px-6 pt-32 text-center"
       >
         <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl border border-slate-100">
-          <h2 className="text-2xl font-black mb-6">Како да те запишеме?</h2>
-          <input 
-            type="text" 
-            placeholder="Твоето име..."
-            className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all mb-6 text-center"
-            onKeyDown={(e) => e.key === 'Enter' && setUsername(e.target.value)}
+          <div className="text-5xl mb-6">👋</div>
+          <h2 className="text-2xl font-black mb-2">Kako да те запишеме?</h2>
+          <p className="text-slate-400 font-bold mb-8">Твоето ime ќе се прикаже на лидерборд и во прашања</p>
+          <input
+            type="text"
+            placeholder="Твоето ime..."
+            value={nameInput}
+            onChange={(e) => setNameInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && confirmName()}
+            autoFocus
+            className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all mb-6 text-center text-xl"
           />
-          <button 
-            onClick={(e) => setUsername(e.currentTarget.previousSibling.value)}
-            className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
+          <button
+            onClick={confirmName}
+            disabled={!nameInput.trim()}
+            className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
           >
-            Започни
+            Започни →
           </button>
         </div>
       </motion.div>

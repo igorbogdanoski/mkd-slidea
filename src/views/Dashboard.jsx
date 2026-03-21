@@ -61,7 +61,7 @@ const Dashboard = ({ setView, user, onLogout }) => {
   const renderContent = () => {
     switch (activeTab) {
       case 'home':
-        return <HomeTab setView={setView} setActiveTab={setActiveTab} user={user} />;
+        return <HomeTab setView={setView} setActiveTab={setActiveTab} user={user} useTemplate={useTemplate} />;
       case 'analytics':
         return <AnalyticsTab />;
       case 'presentations':
