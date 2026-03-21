@@ -55,10 +55,11 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
   };
 
   const translateError = (msg) => {
+    if (msg?.includes('TIMEOUT')) return 'Врската е бавна. Обидете се повторно.';
     if (msg?.includes('Invalid login credentials')) return 'Погрешна лозинка или е-маил адреса.';
     if (msg?.includes('Email not confirmed')) return 'Потврдете ја вашата е-маил адреса прво.';
     if (msg?.includes('Too many requests')) return 'Премногу обиди. Обидете се подоцна.';
-    return 'Настана грешка. Обидете се повторно.';
+    return msg || 'Настана грешка. Обидете се повторно.';
   };
 
   return (

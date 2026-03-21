@@ -63,7 +63,7 @@ export const useAuth = () => {
   const signIn = async (email, password) => {
     const signInPromise = supabase.auth.signInWithPassword({ email, password });
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Врската е бавна. Обидете се повторно.')), 5000)
+      setTimeout(() => reject(new Error('TIMEOUT')), 15000)
     );
     const { error } = await Promise.race([signInPromise, timeoutPromise]);
     if (error) throw error;
