@@ -49,36 +49,53 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
 
     if (currentPoll.type === 'ranking') {
       const sortedOptions = [...currentPoll.options].sort((a, b) => b.votes - a.votes);
+      const medals = ['🥇', '🥈', '🥉'];
+      const rankColors = [
+        'border-amber-500/60 bg-amber-500/10 shadow-amber-500/10',
+        'border-slate-400/60 bg-slate-400/10 shadow-slate-400/10',
+        'border-orange-600/60 bg-orange-600/10 shadow-orange-600/10',
+      ];
+      const barColors = ['bg-amber-400', 'bg-slate-400', 'bg-orange-500'];
       return (
-        <div className="space-y-6">
+        <div className="space-y-5">
           <AnimatePresence mode="popLayout">
-            {sortedOptions.map((option, i) => (
-              <motion.div 
-                key={option.id || i}
-                layout
-                initial={{ opacity: 0, x: -50 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="flex items-center gap-8 bg-slate-800/40 p-8 rounded-[2rem] border border-slate-700/50"
-              >
-                <div className="bg-indigo-600 w-20 h-20 rounded-2xl flex items-center justify-center text-4xl font-black shadow-lg shadow-indigo-500/20">
-                  {i + 1}
-                </div>
-                <div className="flex-1">
-                  <h4 className="text-3xl font-bold text-white mb-2">{option.text}</h4>
-                  <div className="h-4 bg-slate-700 rounded-full overflow-hidden">
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: `${totalVotes > 0 ? (option.votes / totalVotes) * 100 : 0}%` }}
-                      className="h-full bg-indigo-500"
-                    />
+            {sortedOptions.map((option, i) => {
+              const pct = totalVotes > 0 ? Math.round((option.votes / totalVotes) * 100) : 0;
+              const isTop = i < 3;
+              return (
+                <motion.div
+                  key={option.id || i}
+                  layout
+                  initial={{ opacity: 0, x: -60 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.08, type: 'spring', stiffness: 200, damping: 20 }}
+                  className={`flex items-center gap-8 p-7 rounded-[2rem] border shadow-lg ${
+                    isTop ? rankColors[i] : 'bg-slate-800/40 border-slate-700/50'
+                  }`}
+                >
+                  <div className={`w-20 h-20 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0 ${
+                    isTop ? 'bg-slate-900/60 text-4xl' : 'bg-indigo-600/20 border border-indigo-500/30 text-2xl font-black text-indigo-300'
+                  }`}>
+                    {isTop ? medals[i] : i + 1}
                   </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-4xl font-black text-indigo-400">{option.votes}</p>
-                  <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Поени</p>
-                </div>
-              </motion.div>
-            ))}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-3xl font-black text-white mb-3 truncate">{option.text}</h4>
+                    <div className="h-3 bg-slate-700/60 rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${pct}%` }}
+                        transition={{ duration: 1.2, ease: 'circOut', delay: i * 0.08 + 0.2 }}
+                        className={`h-full rounded-full ${isTop ? barColors[i] : 'bg-indigo-500'}`}
+                      />
+                    </div>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-4xl font-black text-white">{option.votes}</p>
+                    <p className="text-xs font-black text-slate-500 uppercase tracking-widest">{pct}%</p>
+                  </div>
+                </motion.div>
+              );
+            })}
           </AnimatePresence>
         </div>
       );
@@ -112,31 +129,47 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
       );
     }
 
+    const barPalette = [
+      { bar: 'bg-indigo-600', glow: 'rgba(99,102,241,0.35)', text: 'text-indigo-400' },
+      { bar: 'bg-violet-600', glow: 'rgba(139,92,246,0.35)', text: 'text-violet-400' },
+      { bar: 'bg-emerald-500', glow: 'rgba(16,185,129,0.35)', text: 'text-emerald-400' },
+      { bar: 'bg-amber-500',  glow: 'rgba(245,158,11,0.35)',  text: 'text-amber-400'  },
+      { bar: 'bg-rose-500',   glow: 'rgba(239,68,68,0.35)',   text: 'text-rose-400'   },
+      { bar: 'bg-cyan-500',   glow: 'rgba(6,182,212,0.35)',   text: 'text-cyan-400'   },
+    ];
+    const maxVotes = Math.max(...currentPoll.options.map(o => o.votes || 0), 1);
+
     return (
-      <div className="space-y-8">
+      <div className="space-y-7">
         <AnimatePresence mode="popLayout">
           {currentPoll.options.map((option, i) => {
             const percentage = totalVotes > 0 ? Math.round((option.votes / totalVotes) * 100) : 0;
+            const isLeading = option.votes === maxVotes && option.votes > 0;
+            const palette = barPalette[i % barPalette.length];
             return (
-              <motion.div 
+              <motion.div
                 key={i}
                 layout
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.06, type: 'spring', stiffness: 200, damping: 22 }}
                 className="relative"
               >
-                <div className="flex justify-between items-end mb-4 px-2">
-                  <span className="text-3xl font-bold text-slate-200">{option.text}</span>
-                  <span className="text-4xl font-black text-indigo-400">{percentage}%</span>
+                <div className="flex justify-between items-end mb-3 px-2">
+                  <span className={`text-3xl font-black ${isLeading ? 'text-white' : 'text-slate-300'}`}>
+                    {isLeading && '👑 '}{option.text}
+                  </span>
+                  <span className={`text-4xl font-black ${palette.text}`}>{percentage}%</span>
                 </div>
-                <div className="h-20 w-full bg-slate-800 rounded-[1.5rem] overflow-hidden border border-slate-700 p-2">
-                  <motion.div 
+                <div className="h-20 w-full bg-slate-800 rounded-[1.5rem] overflow-hidden border border-slate-700/50 p-2">
+                  <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${percentage}%` }}
-                    transition={{ duration: 1.5, ease: "circOut" }}
-                    className="h-full bg-indigo-600 rounded-xl relative shadow-[0_0_30px_rgba(79,70,229,0.3)]"
+                    transition={{ duration: 1.5, ease: 'circOut', delay: i * 0.06 }}
+                    className={`h-full ${palette.bar} rounded-xl relative`}
+                    style={{ boxShadow: `0 0 30px ${palette.glow}` }}
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent" />
                   </motion.div>
                 </div>
               </motion.div>
@@ -150,6 +183,8 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
   const getSubTitle = () => {
     if (currentPoll.type === 'wordcloud') return '☁️ Облак со зборови';
     if (currentPoll.type === 'open') return '💬 Отворени одговори';
+    if (currentPoll.type === 'rating') return '⭐ Оценување во живо';
+    if (currentPoll.type === 'ranking') return '🏅 Рангирање во живо';
     if (currentPoll.is_quiz) return '🏆 Квиз во живо';
     return '📊 Анкета во живо';
   };
@@ -241,21 +276,32 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
 
             <div className="space-y-6 flex-1 overflow-y-auto pr-4 scrollbar-hide">
               {currentPoll.is_quiz ? (
-                leaderboard.sort((a, b) => b.points - a.points).map((user, i) => (
-                  <motion.div 
-                    key={i}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.1 }}
-                    className="flex items-center justify-between p-6 bg-slate-800 rounded-3xl border border-slate-700/30"
-                  >
-                    <div className="flex items-center gap-4">
-                      <span className={`text-xl font-black ${i === 0 ? 'text-amber-400' : 'text-slate-500'}`}>#{i+1}</span>
-                      <span className="text-xl font-bold">{user.username}</span>
-                    </div>
-                    <span className="text-2xl font-black text-indigo-400">{user.points}</span>
-                  </motion.div>
-                ))
+                [...leaderboard].sort((a, b) => b.points - a.points).map((user, i) => {
+                  const medals = ['🥇', '🥈', '🥉'];
+                  const topColors = [
+                    'bg-amber-500/20 border-amber-500/40 text-amber-300',
+                    'bg-slate-400/10 border-slate-400/30 text-slate-300',
+                    'bg-orange-600/10 border-orange-600/30 text-orange-300',
+                  ];
+                  const isTop = i < 3;
+                  return (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.08 }}
+                      className={`flex items-center justify-between p-5 rounded-2xl border ${
+                        isTop ? topColors[i] : 'bg-slate-800 border-slate-700/30 text-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <span className="text-2xl">{isTop ? medals[i] : `#${i + 1}`}</span>
+                        <span className="text-xl font-black truncate max-w-[120px]">{user.username}</span>
+                      </div>
+                      <span className={`text-2xl font-black ${isTop ? '' : 'text-indigo-400'}`}>{user.points} pts</span>
+                    </motion.div>
+                  );
+                })
               ) : (
                 questions.map((q, i) => (
                   <motion.div 
