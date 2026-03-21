@@ -35,11 +35,11 @@ export const useEventStore = create((set, get) => ({
   // Real-time subscriptions
   subscribeToEvent: (eventId) => {
     const channel = supabase.channel(`event_${eventId}`)
-      .on('postgres_changes', { 
-        event: 'UPDATE', 
-        schema: 'public', 
-        table: 'events', 
-        filter: `id=eq.${eventId}` 
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'events',
+        filter: `id=eq.${eventId}`
       }, (payload) => {
         set({ activePollId: payload.new.active_poll_id });
       })
@@ -48,6 +48,13 @@ export const useEventStore = create((set, get) => ({
         schema: 'public',
         table: 'polls',
         filter: `event_id=eq.${eventId}`
+      }, () => {
+        get().fetchPolls(eventId);
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'options',
       }, () => {
         get().fetchPolls(eventId);
       })
