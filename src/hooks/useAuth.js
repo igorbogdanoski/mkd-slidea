@@ -27,8 +27,10 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load initial session
+    // Load initial session with timeout fallback (handles Tracking Prevention blocking storage)
+    const timeout = setTimeout(() => setLoading(false), 3000);
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      clearTimeout(timeout);
       if (session?.user) {
         const profile = await fetchProfile(session.user.id);
         setUser(buildUserProfile(session.user, profile));

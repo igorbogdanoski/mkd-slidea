@@ -59,8 +59,12 @@ const AppContent = () => {
 
   const isPublicRoute = ['/', '/join', '/pricing'].includes(location.pathname);
 
-  // Show blank while auth loads to avoid flash
-  if (loading) return null;
+  // Show minimal loader while auth initializes (max ~2s then renders anyway)
+  if (loading) return (
+    <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
+      <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-700">
