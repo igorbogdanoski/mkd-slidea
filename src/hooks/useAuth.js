@@ -61,11 +61,7 @@ export const useAuth = () => {
   };
 
   const signIn = async (email, password) => {
-    const signInPromise = supabase.auth.signInWithPassword({ email, password });
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('TIMEOUT')), 15000)
-    );
-    const { error } = await Promise.race([signInPromise, timeoutPromise]);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
   };
 
