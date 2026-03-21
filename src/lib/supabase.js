@@ -11,3 +11,9 @@ export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
   supabaseAnonKey || 'placeholder'
 );
+
+// Keep-alive ping every 9 minutes to prevent Supabase cold starts on free tier
+// Remove this if you upgrade to Supabase Pro
+setInterval(() => {
+  supabase.from('events').select('id').limit(1).then(() => {});
+}, 9 * 60 * 1000);
