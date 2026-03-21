@@ -73,10 +73,10 @@ export const useAuth = () => {
     if (error) throw error;
   };
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
+  const signOut = () => {
     setUser(null);
     localStorage.removeItem('mkd_slidea_user_data');
+    supabase.auth.signOut(); // fire and forget
   };
 
   return { user, loading, signIn, signInWithMagicLink, signOut };
