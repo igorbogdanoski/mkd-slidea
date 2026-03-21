@@ -112,14 +112,13 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
             onClick={onClose}
             className="fixed inset-0 z-[200] bg-slate-900/60 backdrop-blur-sm"
           />
-          <div className="fixed inset-0 z-[201] overflow-y-auto" onClick={onClose}>
-            <div className="flex min-h-full items-center justify-center p-4">
+          <div className="fixed inset-0 z-[201] overflow-y-auto py-10" onClick={onClose}>
             <motion.div
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative bg-white rounded-[3rem] p-10 max-w-md w-full shadow-2xl"
+              className="relative bg-white rounded-[3rem] p-10 max-w-md w-full shadow-2xl mx-auto"
             >
               <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-600 to-violet-600" />
 
@@ -272,7 +271,6 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
                 )
               )}
             </motion.div>
-            </div>
           </div>
         </>
       )}
