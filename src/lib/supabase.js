@@ -9,22 +9,18 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder',
-  {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true,
-      storageKey: 'mkd-slidea-auth',
-    },
-  }
+  supabaseAnonKey || 'placeholder'
 );
 
-// Immediate warm-up on app load + every 9 min interval
-// Pings both REST (PostgREST) and Auth (GoTrue) — separate services on free tier
+// Warm up both REST and Auth on load + every 9 min
+// Auth is pinged via HTTP directly to avoid Web Locks conflicts
 const warmUp = () => {
   supabase.from('events').select('id').limit(1).then(() => {});
-  supabase.auth.getSession().then(() => {});
+  if (supabaseUrl && supabaseAnonKey) {
+    fetch(`${supabaseUrl}/auth/v1/health`, {
+      headers: { apikey: supabaseAnonKey },
+    }).catch(() => {});
+  }
 };
 warmUp();
 setInterval(warmUp, 9 * 60 * 1000);
