@@ -44,14 +44,15 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
   };
 
   const withSlowWarning = (setMsg) => {
-    const t = setTimeout(() => setMsg('Серверот се буди, уште малку...'), 6000);
+    const t = setTimeout(() => setMsg('Серверот се буди, уште малку...'), 10000);
     return t;
   };
 
   const handleLogin = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setLoading(true);
     setError('');
+    setLoadingMsg('');
     const t = withSlowWarning(setLoadingMsg);
     try {
       await onLogin(email, password, 'password');
@@ -198,6 +199,13 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
                   >
                     {loading ? (loadingMsg || 'Се најавува...') : 'Најави се'}
                   </button>
+                  {loadingMsg && (
+                    <button type="button" onClick={handleLogin}
+                      className="w-full py-3 text-indigo-600 font-black text-sm hover:underline"
+                    >
+                      Обиди се повторно
+                    </button>
+                  )}
                 </form>
               )}
 
