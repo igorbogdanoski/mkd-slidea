@@ -27,14 +27,18 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load initial session with timeout fallback (handles Tracking Prevention blocking storage)
-    const timeout = setTimeout(() => setLoading(false), 3000);
+    // Load initial session — no aggressive timeout so auth service can warm up
+    // Edge Tracking Prevention case: promise may never resolve, so we use 25s max
+    const timeout = setTimeout(() => setLoading(false), 25000);
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       clearTimeout(timeout);
       if (session?.user) {
         const profile = await fetchProfile(session.user.id);
         setUser(buildUserProfile(session.user, profile));
       }
+      setLoading(false);
+    }).catch(() => {
+      clearTimeout(timeout);
       setLoading(false);
     });
 

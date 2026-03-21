@@ -1,7 +1,7 @@
 import React from 'react';
-import { Zap, QrCode, MonitorPlay } from 'lucide-react';
+import { Zap, QrCode, MonitorPlay, Smartphone } from 'lucide-react';
 
-const HostHeader = ({ event, setIsQRModalOpen, setView }) => {
+const HostHeader = ({ event, setIsQRModalOpen, setView, isRemoteMode, setIsRemoteMode }) => {
   if (!event) return null;
   
   return (
@@ -17,6 +17,12 @@ const HostHeader = ({ event, setIsQRModalOpen, setView }) => {
       </div>
       
       <div className="flex items-center gap-3 bg-white p-2 rounded-2xl border border-slate-100 shadow-sm">
+        <button 
+          onClick={() => setIsRemoteMode(!isRemoteMode)} 
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-all ${isRemoteMode ? 'bg-indigo-600 text-white' : 'bg-slate-50 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600'}`}
+        >
+          <Smartphone className="w-4 h-4" /> Remote
+        </button>
         <button onClick={() => setIsQRModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 rounded-xl font-mono font-bold text-slate-600 text-lg transition-all group">
           <QrCode className="w-5 h-5 group-hover:rotate-12 transition-transform" /> #{event.code}
         </button>
