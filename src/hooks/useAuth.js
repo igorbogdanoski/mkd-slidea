@@ -78,6 +78,28 @@ export const useAuth = () => {
     }
   };
 
+  const signUp = async (email, password, name = '') => {
+    let timeoutId;
+    const timeoutPromise = new Promise((_, reject) => {
+      timeoutId = setTimeout(() => reject(new Error('TIMEOUT')), 12000);
+    });
+    try {
+      const result = await Promise.race([
+        supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { name: name || email.split('@')[0] } },
+        }),
+        timeoutPromise,
+      ]);
+      clearTimeout(timeoutId);
+      if (result?.error) throw result.error;
+    } catch (err) {
+      clearTimeout(timeoutId);
+      throw err;
+    }
+  };
+
   const signInWithMagicLink = async (email) => {
     const { error } = await supabase.auth.signInWithOtp({
       email,
@@ -92,5 +114,5 @@ export const useAuth = () => {
     supabase.auth.signOut(); // fire and forget
   };
 
-  return { user, loading, signIn, signInWithMagicLink, signOut };
+  return { user, loading, signIn, signUp, signInWithMagicLink, signOut };
 };

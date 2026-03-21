@@ -17,17 +17,19 @@ const AppContent = () => {
   const [code, setCode] = useState('');
   const [username, setUsername] = useState(() => localStorage.getItem('mkd_slidea_user') || '');
 
-  const { user, loading, signIn, signInWithMagicLink, signOut } = useAuth();
+  const { user, loading, signIn, signUp, signInWithMagicLink, signOut } = useAuth();
 
   const updateUsername = (val) => {
     setUsername(val);
     localStorage.setItem('mkd_slidea_user', val);
   };
 
-  // Called by LoginModal — supports password and magic link
-  const handleLogin = async (email, password, mode = 'password') => {
+  const handleLogin = async (email, password, mode = 'password', name = '') => {
     if (mode === 'magic') {
       await signInWithMagicLink(email);
+    } else if (mode === 'register') {
+      await signUp(email, password, name);
+      navigate('/dashboard');
     } else {
       await signIn(email, password);
       navigate('/dashboard');
