@@ -28,10 +28,10 @@ export const useAuth = () => {
   const [loadingMessage, setLoadingMessage] = useState('Се поврзуваме...');
 
   useEffect(() => {
-    // Load initial session — no aggressive timeout so auth service can warm up
-    // Edge Tracking Prevention case: promise may never resolve, so we use 25s max
+    // Max 25s spinner then render anyway (Edge Tracking Prevention / cold start)
     const slowMsg = setTimeout(() => setLoadingMessage('Серверот се буди, момент...'), 5000);
-    const timeout = setTimeout(() => { setLoading(false); }, 25000);
+    const timeout = setTimeout(() => setLoading(false), 25000);
+
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       clearTimeout(slowMsg);
       clearTimeout(timeout);
@@ -46,7 +46,7 @@ export const useAuth = () => {
       setLoading(false);
     });
 
-    // Listen for auth state changes
+    // Auth state changes (SIGNED_IN fires after signInWithPassword resolves)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
         const profile = await fetchProfile(session.user.id);
@@ -68,44 +68,20 @@ export const useAuth = () => {
     return data;
   };
 
+  // No artificial timeout — let Supabase handle its own (~60s).
+  // onAuthStateChange will fire SIGNED_IN when it succeeds.
   const signIn = async (email, password) => {
-    let timeoutId;
-    const timeoutPromise = new Promise((_, reject) => {
-      timeoutId = setTimeout(() => reject(new Error('TIMEOUT')), 12000);
-    });
-    try {
-      const result = await Promise.race([
-        supabase.auth.signInWithPassword({ email, password }),
-        timeoutPromise,
-      ]);
-      clearTimeout(timeoutId);
-      if (result?.error) throw result.error;
-    } catch (err) {
-      clearTimeout(timeoutId);
-      throw err;
-    }
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
   };
 
   const signUp = async (email, password, name = '') => {
-    let timeoutId;
-    const timeoutPromise = new Promise((_, reject) => {
-      timeoutId = setTimeout(() => reject(new Error('TIMEOUT')), 12000);
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { name: name || email.split('@')[0] } },
     });
-    try {
-      const result = await Promise.race([
-        supabase.auth.signUp({
-          email,
-          password,
-          options: { data: { name: name || email.split('@')[0] } },
-        }),
-        timeoutPromise,
-      ]);
-      clearTimeout(timeoutId);
-      if (result?.error) throw result.error;
-    } catch (err) {
-      clearTimeout(timeoutId);
-      throw err;
-    }
+    if (error) throw error;
   };
 
   const signInWithMagicLink = async (email) => {

@@ -8,6 +8,7 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingMsg, setLoadingMsg] = useState('');
   const [error, setError] = useState('');
   const [magicSent, setMagicSent] = useState(false);
   const [registered, setRegistered] = useState(false);
@@ -24,6 +25,7 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
       setMagicSent(false);
       setRegistered(false);
       setLoading(false);
+      setLoadingMsg('');
       setEmail('');
       setPassword('');
       setName('');
@@ -31,26 +33,35 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
   }, [isOpen]);
 
   const translateError = (msg) => {
-    if (msg?.includes('TIMEOUT')) return 'Врската е бавна. Обидете се повторно.';
     if (msg?.includes('Invalid login credentials')) return 'Погрешна лозинка или е-маил адреса.';
     if (msg?.includes('Email not confirmed')) return 'Потврдете ја вашата е-маил адреса прво.';
     if (msg?.includes('Too many requests')) return 'Премногу обиди. Обидете се подоцна.';
     if (msg?.includes('User already registered')) return 'Корисникот веќе постои. Обидете се да се најавите.';
     if (msg?.includes('Password should be')) return 'Лозинката мора да биде минимум 6 знаци.';
+    if (msg?.includes('over_email_send_rate_limit')) return 'Премногу е-маил обиди. Почекај 60 секунди.';
     return msg || 'Настана грешка. Обидете се повторно.';
+  };
+
+  const withSlowWarning = (setMsg) => {
+    const t = setTimeout(() => setMsg('Серверот се буди, уште малку...'), 6000);
+    return t;
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    const t = withSlowWarning(setLoadingMsg);
     try {
       await onLogin(email, password, 'password');
+      clearTimeout(t);
       onClose();
     } catch (err) {
+      clearTimeout(t);
       setError(translateError(err.message));
     } finally {
       setLoading(false);
+      setLoadingMsg('');
     }
   };
 
@@ -62,13 +73,17 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
     }
     setLoading(true);
     setError('');
+    const t = withSlowWarning(setLoadingMsg);
     try {
       await onLogin(email, password, 'register', name);
+      clearTimeout(t);
       onClose();
     } catch (err) {
+      clearTimeout(t);
       setError(translateError(err.message));
     } finally {
       setLoading(false);
+      setLoadingMsg('');
     }
   };
 
@@ -179,7 +194,7 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
                     type="submit" disabled={loading}
                     className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black text-xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 mt-4 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    {loading ? 'Се најавува...' : 'Најави се'}
+                    {loading ? (loadingMsg || 'Се најавува...') : 'Најави се'}
                   </button>
                 </form>
               )}
@@ -215,7 +230,7 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
                     type="submit" disabled={loading}
                     className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black text-xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 mt-4 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    {loading ? 'Се регистрира...' : 'Креирај профил'}
+                    {loading ? (loadingMsg || 'Се регистрира...') : 'Креирај профил'}
                   </button>
                 </form>
               )}
