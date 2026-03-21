@@ -62,7 +62,7 @@ const Landing = ({ code, setCode, setView }) => {
                   maxLength={6}
                   placeholder="Внеси код..."
                   value={code}
-                  onChange={(e) => setCode(e.target.value.toUpperCase())}
+                  onChange={(e) => setCode(e.target.value.replace(/^#/, '').toUpperCase())}
                   className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-6 py-3 text-white font-black placeholder:text-white/40 focus:bg-white/20 outline-none w-full"
                 />
                 <button 

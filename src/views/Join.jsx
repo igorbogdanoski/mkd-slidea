@@ -26,7 +26,7 @@ const Join = ({ code, setCode, handleJoin, setView }) => {
               maxLength={6}
               placeholder="123456"
               value={code}
-              onChange={(e) => setCode(e.target.value.toUpperCase())}
+              onChange={(e) => setCode(e.target.value.replace(/^#/, '').toUpperCase())}
               className="w-full pl-14 pr-6 py-6 bg-slate-50 border-2 border-slate-100 rounded-3xl text-4xl font-black tracking-[0.4em] focus:border-indigo-600 focus:bg-white focus:outline-none transition-all text-center uppercase placeholder:text-slate-200"
             />
           </div>
