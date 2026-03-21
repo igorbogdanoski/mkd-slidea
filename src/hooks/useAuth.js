@@ -25,12 +25,15 @@ const buildUserProfile = (supabaseUser, profile = null) => {
 export const useAuth = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadingMessage, setLoadingMessage] = useState('Се поврзуваме...');
 
   useEffect(() => {
     // Load initial session — no aggressive timeout so auth service can warm up
     // Edge Tracking Prevention case: promise may never resolve, so we use 25s max
-    const timeout = setTimeout(() => setLoading(false), 25000);
+    const slowMsg = setTimeout(() => setLoadingMessage('Серверот се буди, момент...'), 5000);
+    const timeout = setTimeout(() => { setLoading(false); }, 25000);
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      clearTimeout(slowMsg);
       clearTimeout(timeout);
       if (session?.user) {
         const profile = await fetchProfile(session.user.id);
@@ -38,6 +41,7 @@ export const useAuth = () => {
       }
       setLoading(false);
     }).catch(() => {
+      clearTimeout(slowMsg);
       clearTimeout(timeout);
       setLoading(false);
     });
@@ -118,5 +122,5 @@ export const useAuth = () => {
     supabase.auth.signOut(); // fire and forget
   };
 
-  return { user, loading, signIn, signUp, signInWithMagicLink, signOut };
+  return { user, loading, loadingMessage, signIn, signUp, signInWithMagicLink, signOut };
 };
