@@ -83,7 +83,7 @@ const Dashboard = ({ setView, user, onLogout }) => {
       setView('host');
     } catch (err) {
       console.error("Error using template:", err);
-      alert("Грешка при креирање на настанот од шаблонот.");
+      alert("Грешка: " + (err?.message || JSON.stringify(err)));
     }
   };
 
