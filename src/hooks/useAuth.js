@@ -61,8 +61,21 @@ export const useAuth = () => {
   };
 
   const signIn = async (email, password) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
+    let timeoutId;
+    const timeoutPromise = new Promise((_, reject) => {
+      timeoutId = setTimeout(() => reject(new Error('TIMEOUT')), 12000);
+    });
+    try {
+      const result = await Promise.race([
+        supabase.auth.signInWithPassword({ email, password }),
+        timeoutPromise,
+      ]);
+      clearTimeout(timeoutId);
+      if (result?.error) throw result.error;
+    } catch (err) {
+      clearTimeout(timeoutId);
+      throw err;
+    }
   };
 
   const signInWithMagicLink = async (email) => {

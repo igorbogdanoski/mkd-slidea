@@ -13,7 +13,9 @@ export const supabase = createClient(
 );
 
 // Keep-alive ping every 9 minutes to prevent Supabase cold starts on free tier
+// Pings both the DB and auth service (they are separate services)
 // Remove this if you upgrade to Supabase Pro
 setInterval(() => {
   supabase.from('events').select('id').limit(1).then(() => {});
+  supabase.auth.getSession().then(() => {});
 }, 9 * 60 * 1000);
