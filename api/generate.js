@@ -33,7 +33,25 @@ export default async function handler(req) {
     );
   }
 
-  const { prompt, type, strategy = 'default' } = await req.json();
+  let body;
+  try { body = await req.json(); } catch {
+    return new Response(JSON.stringify({ error: 'Invalid JSON body' }), { status: 400 });
+  }
+
+  const { prompt, type, strategy = 'default' } = body;
+
+  const VALID_TYPES = ['poll', 'quiz', 'wordcloud', 'open', 'rating', 'ranking'];
+  const VALID_STRATEGIES = ['default', 'cot', 'tot'];
+
+  if (!prompt || typeof prompt !== 'string' || prompt.trim().length < 3 || prompt.length > 500) {
+    return new Response(JSON.stringify({ error: 'Промптот мора да биде меѓу 3 и 500 знаци.' }), { status: 400 });
+  }
+  if (!VALID_TYPES.includes(type)) {
+    return new Response(JSON.stringify({ error: 'Невалиден тип на активност.' }), { status: 400 });
+  }
+  if (!VALID_STRATEGIES.includes(strategy)) {
+    return new Response(JSON.stringify({ error: 'Невалидна стратегија.' }), { status: 400 });
+  }
 
   // Use GEMINI_API_KEY (no VITE_ prefix — VITE_ env vars are client-only, not available in Edge Functions)
   const apiKey = process.env.GEMINI_API_KEY;

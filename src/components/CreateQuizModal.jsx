@@ -57,17 +57,23 @@ const CreateQuizModal = ({ isOpen, onClose, onSave, initialData = null }) => {
     })));
   };
 
-  const handleSave = () => {
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSave = async () => {
     if (!question.trim() || options.some(opt => !opt.text.trim())) return;
-    onSave({
-      question,
-      options: options.map(opt => ({ text: opt.text, votes: 0, is_correct: opt.isCorrect })),
-      is_quiz: true,
-      active: true
-    });
-    setQuestion('');
-    setOptions([{ text: '', isCorrect: true }, { text: '', isCorrect: false }]);
-    onClose();
+    setIsSaving(true);
+    try {
+      await onSave({
+        question: question.slice(0, 300),
+        options: options.map(opt => ({ text: opt.text.slice(0, 150), votes: 0, is_correct: opt.isCorrect })),
+        is_quiz: true,
+        active: true
+      });
+    } finally {
+      setIsSaving(false);
+      setQuestion('');
+      setOptions([{ text: '', isCorrect: true }, { text: '', isCorrect: false }]);
+    }
   };
 
   return (
@@ -152,12 +158,12 @@ const CreateQuizModal = ({ isOpen, onClose, onSave, initialData = null }) => {
                 )}
               </div>
 
-              <button 
+              <button
                 onClick={handleSave}
-                disabled={!question.trim() || options.some(opt => !opt.text.trim())}
+                disabled={isSaving || !question.trim() || options.some(opt => !opt.text.trim())}
                 className="w-full py-5 bg-slate-900 text-white rounded-[1.5rem] font-black text-xl flex items-center justify-center gap-3 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl shadow-slate-200 active:scale-[0.98] mt-4"
               >
-                <Save className="w-6 h-6" /> {initialData ? 'Зачувај промени' : 'Зачувај квиз'}
+                <Save className="w-6 h-6" /> {isSaving ? 'Се зачувува...' : initialData ? 'Зачувај промени' : 'Зачувај квиз'}
               </button>
             </div>
           </motion.div>

@@ -50,20 +50,24 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
   };
 
   const hasOptions = ['poll', 'ranking'].includes(type);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!question.trim()) return;
     if (hasOptions && options.some(opt => !opt.trim())) return;
-
-    onSave({
-      question,
-      options: hasOptions ? options.map(text => ({ text, votes: 0 })) : [],
-      type,
-      active: true
-    });
-    setQuestion('');
-    setOptions(['', '']);
-    onClose();
+    setIsSaving(true);
+    try {
+      await onSave({
+        question: question.slice(0, 300),
+        options: hasOptions ? options.map(text => ({ text: text.slice(0, 150), votes: 0 })) : [],
+        type,
+        active: true
+      });
+    } finally {
+      setIsSaving(false);
+      setQuestion('');
+      setOptions(['', '']);
+    }
   };
 
   return (
@@ -100,6 +104,7 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
                   placeholder="Што сакате да прашате?"
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
+                  maxLength={300}
                   className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all"
                 />
               </div>
@@ -115,6 +120,7 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
                           placeholder={`Опција ${i + 1}`}
                           value={opt}
                           onChange={(e) => handleOptionChange(i, e.target.value)}
+                          maxLength={150}
                           className="flex-1 bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-3 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all"
                         />
                         {options.length > 2 && (
@@ -139,12 +145,12 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
                 </div>
               )}
 
-              <button 
+              <button
                 onClick={handleSave}
-                disabled={!question.trim() || (hasOptions && options.some(opt => !opt.trim()))}
+                disabled={isSaving || !question.trim() || (hasOptions && options.some(opt => !opt.trim()))}
                 className="w-full py-5 bg-indigo-600 text-white rounded-[1.5rem] font-black text-xl flex items-center justify-center gap-3 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl shadow-indigo-200 active:scale-[0.98] mt-4"
               >
-                <Save className="w-6 h-6" /> {initialData ? 'Зачувај промени' : 'Зачувај активност'}
+                <Save className="w-6 h-6" /> {isSaving ? 'Се зачувува...' : initialData ? 'Зачувај промени' : 'Зачувај активност'}
               </button>
             </div>
           </motion.div>
