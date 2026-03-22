@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect, useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Plus, Sparkles, Clock, ChevronRight,
-  Presentation, Bell, Zap, MoreVertical, LayoutGrid
+  Plus, Clock, ChevronRight,
+  Presentation, Bell, Zap, MoreVertical, LayoutGrid,
+  MessageSquare, CheckCheck, X
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { templates } from '../../data/templates';
@@ -31,21 +32,78 @@ const HomeTab = ({ setView, setActiveTab, user, useTemplate }) => {
 
   const [recentEvents, setRecentEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
+  const [pendingQuestions, setPendingQuestions] = useState([]);
+  const [bellOpen, setBellOpen] = useState(false);
+  const bellRef = useRef(null);
+  const featuredTemplates = templates.slice(0, 3);
 
   useEffect(() => {
-    const load = async () => {
-      const { data } = await supabase
-        .from('events')
-        .select('id, code, title, created_at')
-        .order('created_at', { ascending: false })
-        .limit(6);
-      setRecentEvents(data || []);
-      setLoadingEvents(false);
-    };
-    load();
+    if (!user?.id) return;
+    loadEvents();
+    loadPendingQuestions();
+
+    // Real-time: new Q&A questions
+    const channel = supabase
+      .channel('dashboard-notifications')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'questions' }, () => {
+        loadPendingQuestions();
+      })
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
+  }, [user]);
+
+  // Close bell on outside click
+  useEffect(() => {
+    const handler = (e) => { if (bellRef.current && !bellRef.current.contains(e.target)) setBellOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const featuredTemplates = templates.slice(0, 3);
+  const loadEvents = async () => {
+    const { data } = await supabase
+      .from('events')
+      .select('id, code, title, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(6);
+    setRecentEvents(data || []);
+    setLoadingEvents(false);
+  };
+
+  const loadPendingQuestions = async () => {
+    // Get user's event ids first
+    const { data: evts } = await supabase
+      .from('events')
+      .select('id, title, code')
+      .eq('user_id', user.id);
+    if (!evts?.length) return;
+
+    const { data: qs } = await supabase
+      .from('questions')
+      .select('id, text, author, created_at, event_id')
+      .in('event_id', evts.map(e => e.id))
+      .eq('is_approved', false)
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    const enriched = (qs || []).map(q => ({
+      ...q,
+      eventTitle: evts.find(e => e.id === q.event_id)?.title || '—',
+      eventCode: evts.find(e => e.id === q.event_id)?.code,
+    }));
+    setPendingQuestions(enriched);
+  };
+
+  const approveQuestion = async (q) => {
+    await supabase.from('questions').update({ is_approved: true }).eq('id', q.id);
+    setPendingQuestions(prev => prev.filter(x => x.id !== q.id));
+  };
+
+  const dismissQuestion = async (q) => {
+    await supabase.from('questions').delete().eq('id', q.id);
+    setPendingQuestions(prev => prev.filter(x => x.id !== q.id));
+  };
 
   return (
     <motion.div
@@ -62,9 +120,94 @@ const HomeTab = ({ setView, setActiveTab, user, useTemplate }) => {
           </p>
         </div>
         <div className="flex items-center gap-4">
-          <button className="p-4 bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-indigo-600 transition-all shadow-sm">
-            <Bell size={20} />
-          </button>
+
+          {/* Bell with notification dropdown */}
+          <div className="relative" ref={bellRef}>
+            <button
+              onClick={() => setBellOpen(o => !o)}
+              className="relative p-4 bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-indigo-600 transition-all shadow-sm"
+            >
+              <Bell size={20} />
+              {pendingQuestions.length > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center">
+                  {pendingQuestions.length > 9 ? '9+' : pendingQuestions.length}
+                </span>
+              )}
+            </button>
+
+            <AnimatePresence>
+              {bellOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                  className="absolute right-0 top-full mt-3 w-96 bg-white rounded-[2rem] shadow-2xl border border-slate-100 z-50 overflow-hidden"
+                >
+                  <div className="px-6 py-4 border-b border-slate-50 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare size={16} className="text-indigo-600" />
+                      <span className="font-black text-slate-900 text-sm">Прашања за одобрување</span>
+                      {pendingQuestions.length > 0 && (
+                        <span className="bg-red-100 text-red-600 text-[10px] font-black px-2 py-0.5 rounded-full">{pendingQuestions.length}</span>
+                      )}
+                    </div>
+                    <button onClick={() => setBellOpen(false)} className="text-slate-300 hover:text-slate-500 transition-colors">
+                      <X size={16} />
+                    </button>
+                  </div>
+
+                  <div className="max-h-80 overflow-y-auto">
+                    {pendingQuestions.length === 0 ? (
+                      <div className="py-10 text-center">
+                        <CheckCheck size={32} className="text-emerald-400 mx-auto mb-2" />
+                        <p className="font-black text-slate-400 text-sm">Сè е одобрено</p>
+                      </div>
+                    ) : (
+                      pendingQuestions.map(q => (
+                        <div key={q.id} className="px-6 py-4 border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                          <div className="flex items-start justify-between gap-3 mb-2">
+                            <p className="font-bold text-slate-800 text-sm leading-snug flex-1">{q.text}</p>
+                            <div className="flex gap-1 flex-shrink-0">
+                              <button
+                                onClick={() => approveQuestion(q)}
+                                className="p-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-all"
+                                title="Одобри"
+                              >
+                                <CheckCheck size={14} />
+                              </button>
+                              <button
+                                onClick={() => dismissQuestion(q)}
+                                className="p-1.5 bg-red-50 text-red-400 hover:bg-red-100 rounded-lg transition-all"
+                                title="Отфрли"
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{q.eventTitle}</span>
+                            <span className="text-[10px] text-slate-300 font-bold">{formatDate(q.created_at)}</span>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {pendingQuestions.length > 0 && (
+                    <div className="px-6 py-3 border-t border-slate-50">
+                      <button
+                        onClick={() => { setBellOpen(false); setView('host'); }}
+                        className="text-xs font-black text-indigo-600 hover:underline uppercase tracking-widest"
+                      >
+                        Отвори настан →
+                      </button>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
           <div className="flex items-center gap-4 bg-white p-2 pr-6 rounded-2xl border border-slate-100 shadow-sm">
             <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center font-black text-white shadow-lg shadow-indigo-100">
               {userInitials}
@@ -80,9 +223,9 @@ const HomeTab = ({ setView, setActiveTab, user, useTemplate }) => {
       {/* Quick stats */}
       <div className="grid grid-cols-3 gap-6 mb-12">
         {[
-          { label: 'Вкупно настани', value: recentEvents.length > 0 ? recentEvents.length + '+' : '—', icon: '📋' },
+          { label: 'Вкупно настани', value: loadingEvents ? '…' : recentEvents.length > 5 ? '6+' : recentEvents.length || '0', icon: '📋' },
           { label: 'Шаблони', value: templates.length, icon: '🎨' },
-          { label: 'Типови активности', value: '6', icon: '⚡' },
+          { label: 'Типови активности', value: '7', icon: '⚡' },
         ].map((stat, i) => (
           <div key={i} className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex items-center gap-5">
             <span className="text-4xl">{stat.icon}</span>
