@@ -11,8 +11,6 @@ import AIAssistantModal from '../components/AIAssistantModal';
 import { supabase } from '../lib/supabase';
 import HostHeader from '../components/Host/HostHeader';
 import PollCard from '../components/Host/PollCard';
-import RemoteController from '../components/Host/RemoteController';
-
 const Host = ({ setView, user }) => {
   const [event, setEvent] = useState(null);
   const [polls, setPolls] = useState([]);
@@ -21,13 +19,11 @@ const Host = ({ setView, user }) => {
   const [isCreatePollOpen, setIsCreatePollOpen] = useState(false);
   const [isCreateQuizOpen, setIsCreateQuizOpen] = useState(false);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
-  const [isRemoteMode, setIsRemoteMode] = useState(false);
   const [showInteractionGrid, setShowInteractionGrid] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [allowMultipleVotes, setAllowMultipleVotes] = useState(
     () => localStorage.getItem('setting_multiple_votes') !== 'false'
   );
-  const [timerDuration, setTimerDuration] = useState(60);
   const [timerRemaining, setTimerRemaining] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState('poll');
@@ -208,16 +204,32 @@ const Host = ({ setView, user }) => {
   const goNext = () => { if (activePollIndex < polls.length - 1) setActivePoll(activePollIndex + 1); };
   const goPrev = () => { if (activePollIndex > 0) setActivePoll(activePollIndex - 1); };
 
+  // Sync host timer display when switching polls
+  useEffect(() => {
+    const poll = polls[activePollIndex];
+    if (poll?.timer_ends_at) {
+      const remaining = Math.max(0, Math.round((new Date(poll.timer_ends_at) - Date.now()) / 1000));
+      setTimerRemaining(remaining > 0 ? remaining : null);
+    } else {
+      setTimerRemaining(null);
+    }
+  }, [activePollIndex, polls]);
+
   const startTimer = async (seconds) => {
     const endsAt = new Date(Date.now() + seconds * 1000).toISOString();
-    setTimerDuration(seconds);
     setTimerRemaining(seconds);
-    await supabase.from('events').update({ timer_ends_at: endsAt }).eq('id', event.id);
+    const activePoll = polls[activePollIndex];
+    if (activePoll) {
+      await supabase.from('polls').update({ timer_ends_at: endsAt }).eq('id', activePoll.id);
+    }
   };
 
   const stopTimer = async () => {
     setTimerRemaining(null);
-    await supabase.from('events').update({ timer_ends_at: null }).eq('id', event.id);
+    const activePoll = polls[activePollIndex];
+    if (activePoll) {
+      await supabase.from('polls').update({ timer_ends_at: null }).eq('id', activePoll.id);
+    }
   };
 
   useEffect(() => {

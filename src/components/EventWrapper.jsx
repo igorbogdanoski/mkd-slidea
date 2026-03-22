@@ -135,11 +135,12 @@ const EventWrapper = ({ type, username, setUsername }) => {
     );
   }
 
-  // Timer from event
-  const timerRemaining = event?.timer_ends_at
-    ? Math.max(0, Math.round((new Date(event.timer_ends_at) - Date.now()) / 1000))
+  // Timer per active poll
+  const activePollTimerEndsAt = polls[activePollIndex >= 0 ? activePollIndex : 0]?.timer_ends_at;
+  const timerRemaining = activePollTimerEndsAt
+    ? Math.max(0, Math.round((new Date(activePollTimerEndsAt) - Date.now()) / 1000))
     : null;
-  const timerExpired = event?.timer_ends_at && timerRemaining === 0;
+  const timerExpired = activePollTimerEndsAt && timerRemaining === 0;
   const currentPollForWrapper = polls[activePollIndex];
   const resultsVisible = currentPollForWrapper?.results_visible !== false;
 
