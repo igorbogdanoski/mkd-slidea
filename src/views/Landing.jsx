@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Zap, Plus, ArrowRight, Presentation, Globe,
   MonitorPlay, Users, Cloud, PieChart, MessageSquare,
-  Trophy, CheckCircle2, Star, Sparkles, ChevronRight, UserPlus, X
+  Trophy, CheckCircle2, Star, Sparkles, ChevronRight, UserPlus, X,
+  BookOpen, GraduationCap, School, BarChart2, MousePointerClick, Layout
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
@@ -33,10 +34,10 @@ const Landing = ({ code, setCode, setView }) => {
   };
 
   const solutions = [
-    { title: 'Бизнис состаноци', icon: <Presentation className="w-6 h-6" />, color: 'bg-indigo-50 text-indigo-600' },
-    { title: 'Предавања', icon: <Globe className="w-6 h-6" />, color: 'bg-emerald-50 text-emerald-600' },
-    { title: 'Обуки', icon: <Users className="w-6 h-6" />, color: 'bg-amber-50 text-amber-600' },
-    { title: 'Вебинари', icon: <MonitorPlay className="w-6 h-6" />, color: 'bg-rose-50 text-rose-600' },
+    { title: 'Бизнис состаноци', desc: 'Собери мислења од целиот тим во реално време.', icon: <Presentation className="w-6 h-6" />, color: 'bg-indigo-50 text-indigo-600' },
+    { title: 'Предавања', desc: 'Провери го знаењето и задржи ја вниманието.', icon: <GraduationCap className="w-6 h-6" />, color: 'bg-emerald-50 text-emerald-600' },
+    { title: 'Обуки', desc: 'Интерактивни сесии со мерливи резултати.', icon: <Users className="w-6 h-6" />, color: 'bg-amber-50 text-amber-600' },
+    { title: 'Вебинари', desc: 'Ангажирај ја онлајн публиката исто како во сала.', icon: <MonitorPlay className="w-6 h-6" />, color: 'bg-rose-50 text-rose-600' },
   ];
 
   return (
@@ -143,12 +144,12 @@ const Landing = ({ code, setCode, setView }) => {
             {/* Quick Stats */}
             <div className="flex items-center gap-12 pt-8 border-t border-slate-100">
               <div>
-                <div className="text-3xl font-black text-slate-900">50,000+</div>
-                <div className="text-sm font-bold text-slate-400">Корисници месечно</div>
+                <div className="text-3xl font-black text-slate-900">Бесплатно</div>
+                <div className="text-sm font-bold text-slate-400">За секогаш, без кредитна картичка</div>
               </div>
               <div>
                 <div className="text-3xl font-black text-slate-900">100%</div>
-                <div className="text-sm font-bold text-slate-400">На македонски</div>
+                <div className="text-sm font-bold text-slate-400">На македонски јазик</div>
               </div>
             </div>
           </div>
@@ -222,6 +223,176 @@ const Landing = ({ code, setCode, setView }) => {
         </div>
       </section>
 
+      {/* 3-Step Process */}
+      <section className="bg-white py-24 border-t border-slate-100">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center space-y-3 mb-16">
+            <h2 className="text-4xl font-black text-slate-900">Едноставно како 1 — 2 — 3</h2>
+            <p className="text-slate-500 font-bold max-w-xl mx-auto">Од идеја до интерактивна презентација за помалку од 2 минути.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+            {/* Connector line */}
+            <div className="hidden md:block absolute top-12 left-[calc(16.66%+1rem)] right-[calc(16.66%+1rem)] h-0.5 bg-gradient-to-r from-indigo-200 via-violet-200 to-indigo-200" />
+            {[
+              {
+                step: '01',
+                icon: <Layout className="w-7 h-7" />,
+                title: 'Креирај',
+                desc: 'Додај прашања — анкети, квизови, облак со зборови, Q&A. Без инсталација, директно во прелистувачот.',
+                color: 'bg-indigo-600',
+                light: 'bg-indigo-50',
+              },
+              {
+                step: '02',
+                icon: <MousePointerClick className="w-7 h-7" />,
+                title: 'Прикажи и собери одговори',
+                desc: 'Учесниците се приклучуваат со код. Одговорите пристигнуваат во реално време — без апликација.',
+                color: 'bg-violet-600',
+                light: 'bg-violet-50',
+              },
+              {
+                step: '03',
+                icon: <BarChart2 className="w-7 h-7" />,
+                title: 'Анализирај',
+                desc: 'Извези ги резултатите во Excel, PDF или погледни ги статистиките директно по настанот.',
+                color: 'bg-emerald-600',
+                light: 'bg-emerald-50',
+              },
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.15 }}
+                className="relative bg-slate-50 rounded-[2.5rem] p-10 border border-slate-100 flex flex-col gap-6"
+              >
+                <div className="flex items-center gap-4">
+                  <div className={`${item.color} text-white w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0`}>
+                    {item.icon}
+                  </div>
+                  <span className="text-5xl font-black text-slate-100">{item.step}</span>
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-slate-900 mb-2">{item.title}</h3>
+                  <p className="text-sm text-slate-500 font-medium leading-relaxed">{item.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Education Section */}
+      <section className="py-32 bg-gradient-to-b from-indigo-50 to-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center space-y-4 mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-100 text-indigo-700 font-black text-xs uppercase tracking-widest">
+              <GraduationCap size={14} /> За образование
+            </div>
+            <h2 className="text-5xl font-black text-slate-900 leading-tight">
+              Ангажирај ги твоите<br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">ученици и студенти</span>
+            </h2>
+            <p className="text-slate-500 font-bold max-w-2xl mx-auto text-lg">
+              Совршена за основни и средни училишта, факултети и обуки. Направи ја секоја лекција незаборавна.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+            {/* Left: big feature card */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="bg-white rounded-[3rem] p-12 border border-slate-100 shadow-sm flex flex-col gap-8"
+            >
+              <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-100">
+                <School className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-black text-slate-900 mb-4">Секој ученик добива глас</h3>
+                <p className="text-slate-500 font-medium leading-relaxed mb-6">
+                  Анонимното гласање ги охрабрува поплашливите ученици да учествуваат. Сите се чувствуваат безбедно да одговорат — без страв од грешка.
+                </p>
+                <ul className="space-y-3">
+                  {[
+                    'Анонимни одговори — без притисок',
+                    'Квизови со бодување и ранг листа',
+                    'Q&A: учениците поставуваат прашања анонимно',
+                    'Работи на секој уред — без апликација',
+                  ].map((f, i) => (
+                    <li key={i} className="flex items-center gap-3 text-sm font-bold text-slate-700">
+                      <div className="bg-emerald-100 p-1 rounded-full flex-shrink-0">
+                        <CheckCircle2 size={14} className="text-emerald-600" />
+                      </div>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </motion.div>
+
+            {/* Right: 2 smaller cards */}
+            <div className="flex flex-col gap-8">
+              {[
+                {
+                  icon: <BookOpen className="w-6 h-6 text-violet-600" />,
+                  bg: 'bg-violet-50',
+                  title: 'Провери го знаењето — веднаш',
+                  desc: 'Брза анкета или квиз по секоја лекција ти покажува кој концепт не е разбран — пред испитот, не после.',
+                },
+                {
+                  icon: <BarChart2 className="w-6 h-6 text-amber-600" />,
+                  bg: 'bg-amber-50',
+                  title: 'Резултати во реално време',
+                  desc: 'Графиконите се ажурираат пред очите на сите. Учениците го гледаат мислењето на целото одделение инстантно.',
+                },
+              ].map((card, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: 20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm flex gap-6 items-start"
+                >
+                  <div className={`${card.bg} w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0`}>
+                    {card.icon}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-slate-900 mb-2">{card.title}</h3>
+                    <p className="text-sm text-slate-500 font-medium leading-relaxed">{card.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Use case tabs */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { label: 'Основно училиште', icon: '🏫' },
+              { label: 'Средно училиште', icon: '📚' },
+              { label: 'Факултет', icon: '🎓' },
+              { label: 'Корпоративни обуки', icon: '💼' },
+            ].map((uc, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.07 }}
+                className="bg-white border border-slate-100 rounded-2xl p-6 text-center hover:border-indigo-300 hover:shadow-md transition-all cursor-default"
+              >
+                <div className="text-3xl mb-2">{uc.icon}</div>
+                <div className="text-sm font-black text-slate-700">{uc.label}</div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Solutions Grid */}
       <section className="bg-white py-32 border-t border-slate-100">
         <div className="max-w-7xl mx-auto px-6">
@@ -244,7 +415,7 @@ const Landing = ({ code, setCode, setView }) => {
                 </div>
                 <h3 className="text-xl font-black text-slate-900 mb-4">{sol.title}</h3>
                 <p className="text-sm text-slate-400 font-bold leading-relaxed mb-8 text-left">
-                  Интерактивни алатки специјално прилагодени за {sol.title.toLowerCase()}.
+                  {sol.desc}
                 </p>
                 <button className="flex items-center gap-2 text-indigo-600 font-black text-xs uppercase tracking-widest group-hover:translate-x-1 transition-transform">
                   Дознај повеќе <ChevronRight size={16} />
