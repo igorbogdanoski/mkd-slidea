@@ -10,21 +10,21 @@ const PollCard = ({ poll, index, activePollIndex, setActivePoll, onEdit, onDelet
 
   const toggleResultsVisible = async (e) => {
     e.stopPropagation();
-    await supabase.from('polls').update({ results_visible: !resultsVisible }).eq('id', poll.id);
-    if (onPollUpdated) onPollUpdated();
+    const { error } = await supabase.from('polls').update({ results_visible: !resultsVisible }).eq('id', poll.id);
+    if (!error && onPollUpdated) onPollUpdated();
   };
 
   const toggleModeration = async (e) => {
     e.stopPropagation();
-    await supabase.from('polls').update({ needs_moderation: !needsModeration }).eq('id', poll.id);
-    if (onPollUpdated) onPollUpdated();
+    const { error } = await supabase.from('polls').update({ needs_moderation: !needsModeration }).eq('id', poll.id);
+    if (!error && onPollUpdated) onPollUpdated();
   };
 
   const resetVotes = async (e) => {
     e.stopPropagation();
     if (!window.confirm('Ресетирај ги сите гласови за оваа активност?')) return;
-    await supabase.from('options').update({ votes: 0 }).eq('poll_id', poll.id);
-    if (onPollUpdated) onPollUpdated();
+    const { error } = await supabase.from('options').update({ votes: 0 }).eq('poll_id', poll.id);
+    if (!error && onPollUpdated) onPollUpdated();
   };
 
   return (

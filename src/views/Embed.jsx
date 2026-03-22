@@ -50,7 +50,7 @@ const Embed = () => {
     const el = rootRef.current;
     if (!el) return;
     const resize = () => {
-      window.parent.postMessage({ type: 'mkd-slidea-resize', height: el.scrollHeight }, '*');
+      window.parent.postMessage({ type: 'mkd-slidea-resize', height: el.scrollHeight }, document.referrer ? new URL(document.referrer).origin : '*');
     };
     resize();
     const observer = new ResizeObserver(resize);

@@ -11,7 +11,7 @@ const Participant = ({
   quizResult,
   voteError,
   resultsVisible = true,
-  tимеrRemaining,
+  timerRemaining,
   handleVote,
   handleUpvote,
   newQuestion,
@@ -145,11 +145,11 @@ const Participant = ({
             )}
 
             {/* Tимеr bar */}
-            {tимеrRemaining > 0 && (
-              <div className={`mb-6 rounded-2xl px-5 py-3 flex items-center justify-between ${tимеrRemaining <= 10 ? 'bg-red-50 border border-red-200' : 'bg-indigo-50 border border-indigo-100'}`}>
-                <span className={`font-black text-sm ${tимеrRemaining <= 10 ? 'text-red-600' : 'text-indigo-600'}`}>⏱ Преостанато</span>
-                <span className={`font-black text-2xl tabular-nums ${tимеrRemaining <= 10 ? 'text-red-600 animate-pulse' : 'text-indigo-700'}`}>
-                  {String(Math.floor(tимеrRemaining / 60)).padStart(2,'0')}:{String(tимеrRemaining % 60).padStart(2,'0')}
+            {timerRemaining > 0 && (
+              <div className={`mb-6 rounded-2xl px-5 py-3 flex items-center justify-between ${timerRemaining <= 10 ? 'bg-red-50 border border-red-200' : 'bg-indigo-50 border border-indigo-100'}`}>
+                <span className={`font-black text-sm ${timerRemaining <= 10 ? 'text-red-600' : 'text-indigo-600'}`}>⏱ Преостанато</span>
+                <span className={`font-black text-2xl tabular-nums ${timerRemaining <= 10 ? 'text-red-600 animate-pulse' : 'text-indigo-700'}`}>
+                  {String(Math.floor(timerRemaining / 60)).padStart(2,'0')}:{String(timerRemaining % 60).padStart(2,'0')}
                 </span>
               </div>
             )}
