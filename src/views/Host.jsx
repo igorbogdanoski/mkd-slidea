@@ -173,6 +173,19 @@ const Host = ({ setView, user }) => {
     }
   };
 
+  const onDuplicatePoll = async (poll) => {
+    const { data: newPoll, error } = await supabase
+      .from('polls')
+      .insert([{ event_id: event.id, question: `${poll.question} (копија)`, type: poll.type, is_quiz: poll.is_quiz, position: polls.length }])
+      .select().single();
+    if (error || !newPoll) return;
+    if (poll.options?.length > 0) {
+      await supabase.from('options').insert(
+        poll.options.map(o => ({ poll_id: newPoll.id, text: o.text, is_correct: o.is_correct || false }))
+      );
+    }
+  };
+
   const handleInteractionSelect = (type) => {
     setSelectedType(type);
     if (type === 'quiz') {
@@ -453,6 +466,7 @@ const Host = ({ setView, user }) => {
                                 setActivePoll={setActivePoll}
                                 onEdit={onEditPoll}
                                 onDelete={onDeletePoll}
+                                onDuplicate={onDuplicatePoll}
                                 onPollUpdated={() => {
                                   supabase.from('polls').select('*, options(*)').eq('event_id', event.id).order('position', { ascending: true }).order('created_at', { ascending: true }).then(({ data }) => { if (data) setPolls(data); });
                                 }}

@@ -1,8 +1,8 @@
 import React from 'react';
-import { GripVertical, Eye, EyeOff, RotateCcw, Pencil, Trash2 } from 'lucide-react';
+import { GripVertical, Eye, EyeOff, RotateCcw, Pencil, Trash2, Copy } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
-const PollCard = ({ poll, index, activePollIndex, setActivePoll, onEdit, onDelete, onPollUpdated }) => {
+const PollCard = ({ poll, index, activePollIndex, setActivePoll, onEdit, onDelete, onDuplicate, onPollUpdated }) => {
   const isActive = activePollIndex === index;
   const resultsVisible = poll.results_visible !== false; // default true
 
@@ -30,6 +30,13 @@ const PollCard = ({ poll, index, activePollIndex, setActivePoll, onEdit, onDelet
           className="p-2 hover:bg-white rounded-xl text-slate-400 hover:text-indigo-600 transition-all"
         >
           <Pencil size={18} />
+        </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); onDuplicate(poll); }}
+          title="Дупликат"
+          className="p-2 hover:bg-white rounded-xl text-slate-400 hover:text-indigo-600 transition-all"
+        >
+          <Copy size={18} />
         </button>
         <button
           onClick={(e) => { e.stopPropagation(); onDelete(poll.id); }}
