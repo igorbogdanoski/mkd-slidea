@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Plus, ArrowLeft, Sparkles, ChevronLeft, ChevronRight, Settings, X, Timer, Square, ShieldCheck, Check, Trash2, MessageSquare, FileDown, Eye, EyeOff, BarChart2, Copy, UserPlus, RotateCcw, Sheet, Lock, Unlock
+  Plus, ArrowLeft, Sparkles, ChevronLeft, ChevronRight, Settings, X, Timer, Square, ShieldCheck, Check, Trash2, MessageSquare, FileDown, Eye, EyeOff, BarChart2, Copy, UserPlus, RotateCcw, Sheet, Lock, Unlock, Upload
 } from 'lucide-react';
 import QRCodeModal from '../components/QRCodeModal';
 import CreatePollModal from '../components/CreatePollModal';
@@ -15,6 +15,7 @@ import { isPro } from '../lib/plans';
 import HostHeader from '../components/Host/HostHeader';
 import PollCard from '../components/Host/PollCard';
 import RemoteController from '../components/Host/RemoteController';
+import ImportPPTXModal from '../components/ImportPPTXModal';
 const Host = ({ setView, user }) => {
   const [event, setEvent] = useState(null);
   const [polls, setPolls] = useState([]);
@@ -39,6 +40,7 @@ const Host = ({ setView, user }) => {
   const [isStatsOpen, setIsStatsOpen] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
   const [isRemoteMode, setIsRemoteMode] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
 
   useEffect(() => {
     const initEvent = async () => {
@@ -204,6 +206,24 @@ const Host = ({ setView, user }) => {
       await supabase.from('options').insert(
         poll.options.map(o => ({ poll_id: newPoll.id, text: o.text, is_correct: o.is_correct || false }))
       );
+    }
+  };
+
+  const handlePPTXImport = async (slides, pollType) => {
+    for (const slide of slides) {
+      const { data: newPoll, error: pollError } = await supabase.from('polls').insert([{
+        event_id: event.id,
+        question: slide.title,
+        type: pollType,
+        is_quiz: false,
+      }]).select().single();
+      if (pollError) continue;
+      if (pollType === 'poll') {
+        const opts = slide.allText.filter(t => t !== slide.title).slice(0, 8);
+        if (opts.length > 0) {
+          await supabase.from('options').insert(opts.map(text => ({ poll_id: newPoll.id, text })));
+        }
+      }
     }
   };
 
@@ -651,6 +671,11 @@ const Host = ({ setView, user }) => {
         event={event}
         polls={polls}
       />
+      <ImportPPTXModal
+        isOpen={isImportOpen}
+        onClose={() => setIsImportOpen(false)}
+        onImport={handlePPTXImport}
+      />
 
       <HostHeader event={event} setIsQRModalOpen={setIsQRModalOpen} setView={setView} isRemoteMode={isRemoteMode} setIsRemoteMode={setIsRemoteMode} />
       {isRemoteMode && (
@@ -718,6 +743,12 @@ const Host = ({ setView, user }) => {
                         className="flex items-center justify-center gap-3 px-8 py-4 bg-white border-2 border-slate-100 text-slate-900 rounded-2xl font-black text-lg hover:border-indigo-600 hover:text-indigo-600 transition-all shadow-sm active:scale-95"
                       >
                         <Sparkles className="w-6 h-6 text-indigo-600" /> Креирај со AI
+                      </button>
+                      <button
+                        onClick={() => setIsImportOpen(true)}
+                        className="flex items-center justify-center gap-3 px-8 py-4 bg-white border-2 border-slate-100 text-slate-900 rounded-2xl font-black text-lg hover:border-violet-600 hover:text-violet-600 transition-all shadow-sm active:scale-95"
+                      >
+                        <Upload className="w-6 h-6 text-violet-600" /> Увези PPTX
                       </button>
                       {polls.length > 0 && (
                         <>
