@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Plus, ArrowLeft, Sparkles, ChevronLeft, ChevronRight, Settings, X, Timer, Square
+  Plus, ArrowLeft, Sparkles, ChevronLeft, ChevronRight, Settings, X, Timer, Square, ShieldCheck, Check, Trash2
 } from 'lucide-react';
 import QRCodeModal from '../components/QRCodeModal';
 import CreatePollModal from '../components/CreatePollModal';
@@ -460,6 +460,47 @@ const Host = ({ setView, user }) => {
                             Следна <ChevronRight className="w-5 h-5" />
                           </button>
                         </div>
+                        {/* Moderation queue */}
+                        {(() => {
+                          const activePoll = polls[activePollIndex];
+                          const pending = activePoll?.needs_moderation
+                            ? (activePoll.options || []).filter(o => o.is_approved === false)
+                            : [];
+                          if (!pending.length) return null;
+                          return (
+                            <div className="bg-violet-50 border-2 border-violet-200 rounded-[2rem] p-6 mb-2">
+                              <div className="flex items-center gap-2 mb-4">
+                                <ShieldCheck className="w-5 h-5 text-violet-600" />
+                                <span className="font-black text-violet-700 uppercase tracking-widest text-xs">Чекаат одобрување ({pending.length})</span>
+                              </div>
+                              <div className="space-y-2">
+                                {pending.map(opt => (
+                                  <div key={opt.id} className="flex items-center justify-between bg-white rounded-2xl px-5 py-3 border border-violet-100">
+                                    <span className="font-bold text-slate-700">{opt.text}</span>
+                                    <div className="flex gap-2">
+                                      <button
+                                        onClick={async () => {
+                                          await supabase.from('options').update({ is_approved: true }).eq('id', opt.id);
+                                        }}
+                                        className="flex items-center gap-1 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-black text-xs transition-all"
+                                      >
+                                        <Check size={14} /> Одобри
+                                      </button>
+                                      <button
+                                        onClick={async () => {
+                                          await supabase.from('options').delete().eq('id', opt.id);
+                                        }}
+                                        className="flex items-center gap-1 px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 rounded-xl font-black text-xs transition-all"
+                                      >
+                                        <Trash2 size={14} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })()}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {polls.map((poll, index) => (
                             <div

@@ -159,7 +159,7 @@ const EventWrapper = ({ type, username, setUsername }) => {
         
         try {
           if (typeof val === 'string') {
-            await vote(null, currentPoll.id, val);
+            await vote(null, currentPoll.id, val, !!currentPoll.needs_moderation);
           } else {
             const option = currentPoll.options[val];
             await vote(option.id);

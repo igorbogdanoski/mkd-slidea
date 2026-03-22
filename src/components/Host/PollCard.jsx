@@ -1,14 +1,22 @@
 import React from 'react';
-import { GripVertical, Eye, EyeOff, RotateCcw, Pencil, Trash2, Copy } from 'lucide-react';
+import { GripVertical, Eye, EyeOff, RotateCcw, Pencil, Trash2, Copy, ShieldCheck } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 const PollCard = ({ poll, index, activePollIndex, setActivePoll, onEdit, onDelete, onDuplicate, onPollUpdated }) => {
   const isActive = activePollIndex === index;
-  const resultsVisible = poll.results_visible !== false; // default true
+  const resultsVisible = poll.results_visible !== false;
+  const needsModeration = !!poll.needs_moderation;
+  const isTextPoll = ['wordcloud', 'open'].includes(poll.type);
 
   const toggleResultsVisible = async (e) => {
     e.stopPropagation();
     await supabase.from('polls').update({ results_visible: !resultsVisible }).eq('id', poll.id);
+    if (onPollUpdated) onPollUpdated();
+  };
+
+  const toggleModeration = async (e) => {
+    e.stopPropagation();
+    await supabase.from('polls').update({ needs_moderation: !needsModeration }).eq('id', poll.id);
     if (onPollUpdated) onPollUpdated();
   };
 
@@ -54,6 +62,15 @@ const PollCard = ({ poll, index, activePollIndex, setActivePoll, onEdit, onDelet
             >
               {resultsVisible ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
+            {isTextPoll && (
+              <button
+                onClick={toggleModeration}
+                title={needsModeration ? 'Модерација вклучена — клик за исклучување' : 'Вклучи модерација на одговори'}
+                className={`p-2 hover:bg-white rounded-xl transition-all ${needsModeration ? 'text-violet-600 bg-violet-50' : 'text-slate-400 hover:text-violet-600'}`}
+              >
+                <ShieldCheck size={18} />
+              </button>
+            )}
             <button
               onClick={resetVotes}
               title="Ресетирај гласови"

@@ -132,7 +132,7 @@ export const useEvent = (eventCode) => {
     return await supabase.from('reactions').insert([{ event_id: event.id, emoji }]);
   };
 
-  const vote = async (optionId, pollId, textValue) => {
+  const vote = async (optionId, pollId, textValue, isModerated = false) => {
     if (textValue) {
       const { data: existing } = await supabase
         .from('options')
@@ -144,7 +144,7 @@ export const useEvent = (eventCode) => {
       if (existing) {
         return await supabase.rpc('increment_vote', { option_id: existing.id });
       } else {
-        return await supabase.from('options').insert([{ poll_id: pollId, text: textValue, votes: 1 }]);
+        return await supabase.from('options').insert([{ poll_id: pollId, text: textValue, votes: 1, is_approved: !isModerated }]);
       }
     }
     return await supabase.rpc('increment_vote', { option_id: optionId });

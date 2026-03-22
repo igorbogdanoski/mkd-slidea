@@ -249,19 +249,24 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
   // Reset chart mode when switching polls
   useEffect(() => { setChartMode('bars'); }, [activePollIndex]);
 
-  // Timer countdown from event.timer_ends_at
+  // Timer countdown from per-poll timer_ends_at
   useEffect(() => {
-    if (!event?.timer_ends_at) { setTimerRemaining(null); return; }
+    if (!currentPoll?.timer_ends_at) { setTimerRemaining(null); return; }
     const calc = () => {
-      const rem = Math.max(0, Math.round((new Date(event.timer_ends_at) - Date.now()) / 1000));
+      const rem = Math.max(0, Math.round((new Date(currentPoll.timer_ends_at) - Date.now()) / 1000));
       setTimerRemaining(rem);
     };
     calc();
     const t = setInterval(calc, 1000);
     return () => clearInterval(t);
-  }, [event?.timer_ends_at]);
+  }, [currentPoll?.timer_ends_at]);
 
-  const totalVotes = currentPoll.options?.reduce((a, b) => a + (b.votes || 0), 0) || 0;
+  // Filter to approved options when moderation is on
+  const visibleOptions = currentPoll.needs_moderation
+    ? (currentPoll.options || []).filter(o => o.is_approved !== false)
+    : (currentPoll.options || []);
+
+  const totalVotes = visibleOptions.reduce((a, b) => a + (b.votes || 0), 0) || 0;
   const averageRating = totalVotes > 0
     ? (currentPoll.options.reduce((acc, opt) => acc + (parseInt(opt.text) * (opt.votes || 0)), 0) / totalVotes).toFixed(1)
     : 0;
@@ -270,7 +275,7 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
   const supportsChartSwitch = ['poll', 'ranking'].includes(currentPoll.type) || currentPoll.is_quiz;
 
   const renderResults = () => {
-    if (currentPoll.type === 'wordcloud') return <WordCloud words={currentPoll.options} />;
+    if (currentPoll.type === 'wordcloud') return <WordCloud words={visibleOptions} />;
 
     if (currentPoll.type === 'rating') {
       return (
@@ -290,7 +295,7 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
     }
 
     if (currentPoll.type === 'ranking') {
-      const sorted = [...currentPoll.options].sort((a, b) => (b.votes || 0) - (a.votes || 0));
+      const sorted = [...visibleOptions].sort((a, b) => (b.votes || 0) - (a.votes || 0));
       if (chartMode === 'donut') return <DonutView options={sorted} totalVotes={totalVotes} />;
       if (chartMode === 'podium') return <PodiumView options={sorted} totalVotes={totalVotes} />;
       if (chartMode === 'numbers') return <NumbersView options={sorted} totalVotes={totalVotes} />;
@@ -337,11 +342,11 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
       const colors = ['bg-amber-100', 'bg-emerald-100', 'bg-rose-100', 'bg-sky-100', 'bg-violet-100'];
       return (
         <div className="grid grid-cols-3 gap-8 max-h-[600px] overflow-y-auto pr-4 scrollbar-hide p-4">
-          {currentPoll.options.length === 0 ? (
+          {visibleOptions.length === 0 ? (
             <div className="col-span-3 py-20 text-center text-slate-500 font-bold text-2xl border-2 border-dashed border-slate-800 rounded-[3rem]">
               Сè уште нема одговори...
             </div>
-          ) : currentPoll.options.map((opt, i) => (
+          ) : visibleOptions.map((opt, i) => (
             <motion.div key={i}
               initial={{ opacity: 0, scale: 0.8, rotate: Math.random() * 10 - 5 }}
               animate={{ opacity: 1, scale: 1, rotate: Math.random() * 6 - 3 }}
@@ -357,10 +362,10 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
     }
 
     // poll / quiz — switchable
-    if (chartMode === 'donut') return <DonutView options={currentPoll.options} totalVotes={totalVotes} />;
-    if (chartMode === 'podium') return <PodiumView options={currentPoll.options} totalVotes={totalVotes} />;
-    if (chartMode === 'numbers') return <NumbersView options={currentPoll.options} totalVotes={totalVotes} />;
-    return <BarsView options={currentPoll.options} totalVotes={totalVotes} />;
+    if (chartMode === 'donut') return <DonutView options={visibleOptions} totalVotes={totalVotes} />;
+    if (chartMode === 'podium') return <PodiumView options={visibleOptions} totalVotes={totalVotes} />;
+    if (chartMode === 'numbers') return <NumbersView options={visibleOptions} totalVotes={totalVotes} />;
+    return <BarsView options={visibleOptions} totalVotes={totalVotes} />;
   };
 
   const getSubTitle = () => {
