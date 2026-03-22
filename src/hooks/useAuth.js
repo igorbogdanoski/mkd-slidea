@@ -17,8 +17,9 @@ const buildUserProfile = (supabaseUser, profile = null) => {
     id: supabaseUser.id,
     email: supabaseUser.email,
     name: profile?.name || supabaseUser.user_metadata?.name || (isAdmin ? 'Игор Богданоски' : 'Корисник'),
-    role: profile?.role || (isAdmin ? 'admin' : 'user'),
-    plan: profile?.plan || (isAdmin ? 'pro' : 'basic'),
+    // Admin emails always get admin role/plan regardless of DB value
+    role: isAdmin ? 'admin' : (profile?.role || 'user'),
+    plan: isAdmin ? 'admin' : (profile?.plan || 'free'),
   };
 };
 
