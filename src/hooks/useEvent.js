@@ -38,12 +38,18 @@ export const useEvent = (eventCode) => {
     const initializeEvent = async () => {
       try {
         setLoading(true);
-        
-        const { data: eventData, error: eventError } = await supabase
-          .from('events')
-          .select('*')
-          .eq('code', eventCode)
-          .single();
+
+        // Retry once on failure — handles transient auth state in new tabs
+        let eventData, eventError;
+        for (let attempt = 0; attempt < 2; attempt++) {
+          ({ data: eventData, error: eventError } = await supabase
+            .from('events')
+            .select('*')
+            .eq('code', eventCode)
+            .single());
+          if (!eventError) break;
+          if (attempt === 0) await new Promise(r => setTimeout(r, 1200));
+        }
 
         if (eventError) throw eventError;
         if (mounted) {

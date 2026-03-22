@@ -40,9 +40,9 @@ const Dashboard = ({ setView, user, onLogout }) => {
   }, [activeTab]);
 
   const useTemplate = async (template) => {
-    let eventCode = '';
+    // Generate code outside try so it's accessible in catch
+    const eventCode = Math.random().toString(36).substring(2, 8).toUpperCase();
     try {
-      eventCode = Math.random().toString(36).substring(2, 8).toUpperCase();
       const { data: event, error: eventError } = await supabase
         .from('events')
         .insert([{
@@ -66,7 +66,7 @@ const Dashboard = ({ setView, user, onLogout }) => {
           }])
           .select()
           .single();
-        
+
         if (pollError) throw pollError;
 
         if (poll.options && poll.options.length > 0) {
@@ -85,12 +85,19 @@ const Dashboard = ({ setView, user, onLogout }) => {
       localStorage.setItem('active_event_code', eventCode);
       setView('host');
     } catch (err) {
-      // Supabase auth lock race condition — cosmetic bug, operation succeeded
+      // Supabase auth lock race condition — verify event was actually saved before redirecting
       if (err?.message?.includes('stole it') || err?.message?.includes('lock')) {
-        if (eventCode) {
-          localStorage.setItem('active_event_code', eventCode);
-          setView('host');
-        }
+        try {
+          const { data: existing } = await supabase
+            .from('events').select('id').eq('code', eventCode).maybeSingle();
+          if (existing) {
+            localStorage.setItem('active_event_code', eventCode);
+            setView('host');
+            return;
+          }
+        } catch (_) {}
+        // Event was never saved — let the user retry cleanly
+        alert('Техничка грешка при создавање на шаблонот. Обидете се повторно.');
         return;
       }
       console.error("Error using template:", err);
