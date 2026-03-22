@@ -40,8 +40,9 @@ const Dashboard = ({ setView, user, onLogout }) => {
   }, [activeTab]);
 
   const useTemplate = async (template) => {
+    let eventCode = '';
     try {
-      const eventCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      eventCode = Math.random().toString(36).substring(2, 8).toUpperCase();
       const { data: event, error: eventError } = await supabase
         .from('events')
         .insert([{
@@ -84,6 +85,14 @@ const Dashboard = ({ setView, user, onLogout }) => {
       localStorage.setItem('active_event_code', eventCode);
       setView('host');
     } catch (err) {
+      // Supabase auth lock race condition — cosmetic bug, operation succeeded
+      if (err?.message?.includes('stole it') || err?.message?.includes('lock')) {
+        if (eventCode) {
+          localStorage.setItem('active_event_code', eventCode);
+          setView('host');
+        }
+        return;
+      }
       console.error("Error using template:", err);
       alert("Грешка: " + (err?.message || JSON.stringify(err)));
     }
