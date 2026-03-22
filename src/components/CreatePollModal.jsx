@@ -38,18 +38,32 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
     setOptions(newOptions);
   };
 
+  const [scaleMin, setScaleMin] = useState('');
+  const [scaleMax, setScaleMax] = useState('');
+
+  useEffect(() => {
+    if (!initialData) { setScaleMin(''); setScaleMax(''); }
+    else {
+      const opts = initialData.options || [];
+      setScaleMin(opts[0]?.label || '');
+      setScaleMax(opts[opts.length - 1]?.label || '');
+    }
+  }, [initialData, isOpen]);
+
   const getTitle = () => {
     if (initialData) return 'Измени активност';
     switch (type) {
       case 'wordcloud': return 'Нов облак со зборови';
-      case 'rating': return 'Ново оценување';
-      case 'open': return 'Нов отворен текст';
-      case 'ranking': return 'Ново рангирање';
-      default: return 'Нова анкета';
+      case 'rating':   return 'Ново оценување';
+      case 'open':     return 'Нов отворен текст';
+      case 'ranking':  return 'Ново рангирање';
+      case 'scale':    return 'Нова скала 1–10';
+      default:         return 'Нова анкета';
     }
   };
 
   const hasOptions = ['poll', 'ranking'].includes(type);
+  const isScale = type === 'scale';
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {
@@ -57,9 +71,16 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
     if (hasOptions && options.some(opt => !opt.trim())) return;
     setIsSaving(true);
     try {
+      const scaleOptions = isScale
+        ? Array.from({ length: 10 }, (_, i) => ({
+            text: String(i + 1),
+            votes: 0,
+            label: i === 0 ? scaleMin : i === 9 ? scaleMax : '',
+          }))
+        : [];
       await onSave({
         question: question.slice(0, 300),
-        options: hasOptions ? options.map(text => ({ text: text.slice(0, 150), votes: 0 })) : [],
+        options: hasOptions ? options.map(text => ({ text: text.slice(0, 150), votes: 0 })) : scaleOptions,
         type,
         active: true
       });
@@ -108,6 +129,33 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
                   className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all"
                 />
               </div>
+
+              {isScale && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 bg-teal-50 border border-teal-100 rounded-2xl px-5 py-3">
+                    <div className="flex gap-1">
+                      {Array.from({length:10},(_,i)=>(
+                        <div key={i} className="w-5 h-5 rounded-md text-[9px] font-black flex items-center justify-center text-white"
+                          style={{backgroundColor:`hsl(${i*12},80%,50%)`}}>{i+1}</div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-1 px-1">Ознака за 1 (необ.)</label>
+                      <input type="text" placeholder="пр. Воопшто не" value={scaleMin}
+                        onChange={e => setScaleMin(e.target.value)} maxLength={40}
+                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 font-bold text-sm focus:border-teal-500 focus:bg-white outline-none transition-all" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-1 px-1">Ознака за 10 (необ.)</label>
+                      <input type="text" placeholder="пр. Апсолутно да" value={scaleMax}
+                        onChange={e => setScaleMax(e.target.value)} maxLength={40}
+                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 font-bold text-sm focus:border-teal-500 focus:bg-white outline-none transition-all" />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {hasOptions && (
                 <div>

@@ -279,6 +279,52 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
   const renderResults = () => {
     if (currentPoll.type === 'wordcloud') return <WordCloud words={visibleOptions} />;
 
+    if (currentPoll.type === 'scale') {
+      const scaleOpts = visibleOptions;
+      const weightedSum = scaleOpts.reduce((s, o, i) => s + (o.votes || 0) * (i + 1), 0);
+      const avg = totalVotes > 0 ? (weightedSum / totalVotes).toFixed(1) : '—';
+      const minLabel = scaleOpts[0]?.label;
+      const maxLabel = scaleOpts[scaleOpts.length - 1]?.label;
+      return (
+        <div className="space-y-8 py-4">
+          <div className="flex items-center justify-center gap-12 py-8 bg-slate-800/20 rounded-[3rem] border border-slate-700/50">
+            <div className="text-center">
+              <p className="text-slate-500 font-black text-sm uppercase tracking-widest mb-2">Просек</p>
+              <h3 className="text-[9rem] font-black leading-none text-teal-400">{avg}</h3>
+              <p className="text-slate-400 font-bold text-xl mt-2">{totalVotes} гласови</p>
+            </div>
+          </div>
+          <div className="space-y-3">
+            {scaleOpts.map((opt, i) => {
+              const pct = totalVotes > 0 ? Math.round((opt.votes || 0) / totalVotes * 100) : 0;
+              const hue = Math.round(i * 12);
+              return (
+                <div key={i} className="flex items-center gap-4">
+                  <span className="w-8 text-center font-black text-slate-400 text-sm">{opt.text}</span>
+                  <div className="flex-1 h-6 bg-slate-800/40 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${pct}%` }}
+                      transition={{ duration: 0.6, delay: i * 0.04 }}
+                      className="h-full rounded-full"
+                      style={{ backgroundColor: `hsl(${hue},70%,55%)` }}
+                    />
+                  </div>
+                  <span className="w-12 text-right font-black text-slate-400 text-sm">{opt.votes || 0}</span>
+                </div>
+              );
+            })}
+          </div>
+          {(minLabel || maxLabel) && (
+            <div className="flex justify-between text-xs font-black text-slate-500 uppercase tracking-widest px-12">
+              <span>1 — {minLabel}</span>
+              <span>10 — {maxLabel}</span>
+            </div>
+          )}
+        </div>
+      );
+    }
+
     if (currentPoll.type === 'rating') {
       return (
         <div className="flex flex-col items-center justify-center space-y-12 py-16 bg-slate-800/20 rounded-[4rem] border border-slate-700/50">
@@ -375,6 +421,7 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
     if (currentPoll.type === 'open')      return '💬 Отворени одговори';
     if (currentPoll.type === 'rating')    return '⭐ Оценување во живо';
     if (currentPoll.type === 'ranking')   return '🏅 Рангирање во живо';
+    if (currentPoll.type === 'scale')     return '📊 Скала во живо';
     if (currentPoll.is_quiz)              return '🏆 Квиз во живо';
     return '📊 Анкета во живо';
   };

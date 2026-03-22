@@ -128,6 +128,7 @@ const Participant = ({
                 {currentPoll.type === 'wordcloud' ? 'Облак со зборови' : 
                  currentPoll.type === 'ranking' ? 'Рангирање' :
                  currentPoll.type === 'rating' ? 'Оценување' :
+                 currentPoll.type === 'scale' ? 'Скала' :
                  currentPoll.type === 'open' ? 'Отворен текст' :
                  currentPoll.is_quiz ? 'Натпревар во живо' : 'Анкета во живо'}
               </span>
@@ -226,7 +227,31 @@ const Participant = ({
               </div>
             ) : (
               <div className="space-y-4">
-                {currentPoll.type === 'rating' ? (
+                {currentPoll.type === 'scale' ? (
+                  <div className="space-y-4 py-4">
+                    <div className="grid grid-cols-5 gap-2 sm:grid-cols-10">
+                      {currentPoll.options.map((opt, i) => {
+                        const hue = Math.round(i * 12);
+                        return (
+                          <button
+                            key={i}
+                            onClick={() => handleVote(i)}
+                            className="aspect-square rounded-2xl font-black text-white text-lg transition-all active:scale-90 hover:scale-110 shadow-md"
+                            style={{ backgroundColor: `hsl(${hue},75%,50%)` }}
+                          >
+                            {opt.text}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {(currentPoll.options[0]?.label || currentPoll.options[9]?.label) && (
+                      <div className="flex justify-between text-xs font-black text-slate-400 uppercase tracking-widest px-1">
+                        <span>{currentPoll.options[0]?.label}</span>
+                        <span>{currentPoll.options[9]?.label}</span>
+                      </div>
+                    )}
+                  </div>
+                ) : currentPoll.type === 'rating' ? (
                   <div className="flex justify-center gap-4 py-8">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button

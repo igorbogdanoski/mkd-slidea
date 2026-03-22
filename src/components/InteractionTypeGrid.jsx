@@ -1,12 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { 
-  BarChart2, 
-  Trophy, 
-  Cloud, 
-  AlignLeft, 
-  Star, 
+import {
+  BarChart2,
+  Trophy,
+  Cloud,
+  AlignLeft,
+  Star,
   ListOrdered,
+  SlidersHorizontal,
   Lock
 } from 'lucide-react';
 
@@ -62,6 +63,14 @@ const InteractionTypeGrid = ({ onSelect, user }) => {
       icon: <ListOrdered className="w-8 h-8 text-violet-600" />,
       color: 'bg-violet-50',
       borderColor: 'border-violet-100',
+    },
+    {
+      id: 'scale',
+      titleMK: 'Скала 1–10',
+      description: 'NPS или Likert скала — колку се согласувате?',
+      icon: <SlidersHorizontal className="w-8 h-8 text-teal-600" />,
+      color: 'bg-teal-50',
+      borderColor: 'border-teal-100',
     },
   ];
 
