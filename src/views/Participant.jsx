@@ -13,6 +13,7 @@ const Participant = ({
   resultsVisible = true,
   timerRemaining,
   handleVote,
+  handleSurvey,
   handleUpvote,
   newQuestion,
   setNewQuestion,
@@ -26,6 +27,8 @@ const Participant = ({
   const currentPoll = polls[activePollIndex] || { question: 'Чекаме настан...', options: [], type: 'poll' };
   const [response, setResponse] = React.useState('');
   const [rating, setRating] = React.useState(0);
+  const [surveyAnswers, setSurveyAnswers] = React.useState({});
+  const [surveySubmitting, setSurveySubmitting] = React.useState(false);
 
   const submitResponse = async () => {
     if (!response.trim()) return;
@@ -84,6 +87,15 @@ const Participant = ({
 
   const isTextType = ['wordcloud', 'open'].includes(currentPoll.type);
 
+  const handleSurveySubmit = async () => {
+    const qs = currentPoll.survey_questions || [];
+    if (qs.some(q => surveyAnswers[q.id] === undefined || surveyAnswers[q.id] === '')) return;
+    setSurveySubmitting(true);
+    const answers = qs.map(q => ({ qId: q.id, value: surveyAnswers[q.id] }));
+    await handleSurvey(answers);
+    setSurveySubmitting(false);
+  };
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] relative">
       <motion.div
@@ -130,6 +142,7 @@ const Participant = ({
                  currentPoll.type === 'rating' ? 'Оценување' :
                  currentPoll.type === 'scale' ? 'Скала' :
                  currentPoll.type === 'open' ? 'Отворен текст' :
+                 currentPoll.type === 'survey' ? 'Формулар' :
                  currentPoll.is_quiz ? 'Натпревар во живо' : 'Анкета во живо'}
               </span>
             </div>
@@ -227,7 +240,69 @@ const Participant = ({
               </div>
             ) : (
               <div className="space-y-4">
-                {currentPoll.type === 'scale' ? (
+                {currentPoll.type === 'survey' ? (
+                  <div className="space-y-5">
+                    {(currentPoll.survey_questions || []).map((sq, idx) => (
+                      <div key={sq.id} className="space-y-2">
+                        <p className="font-black text-slate-800 text-sm">
+                          <span className="text-green-600 mr-1">{idx + 1}.</span> {sq.text}
+                        </p>
+                        {sq.type === 'scale' && (
+                          <div className="space-y-2">
+                            <div className="grid grid-cols-5 gap-1.5 sm:grid-cols-10">
+                              {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
+                                <button key={n}
+                                  onClick={() => setSurveyAnswers(a => ({ ...a, [sq.id]: n }))}
+                                  className="aspect-square rounded-xl font-black text-sm transition-all active:scale-90"
+                                  style={{
+                                    backgroundColor: surveyAnswers[sq.id] === n
+                                      ? `hsl(${(n-1)*12},75%,45%)`
+                                      : surveyAnswers[sq.id] > n ? `hsl(${(n-1)*12},75%,80%)` : '#f1f5f9',
+                                    color: surveyAnswers[sq.id] >= n ? '#fff' : '#94a3b8',
+                                  }}
+                                >{n}</button>
+                              ))}
+                            </div>
+                            {(sq.min || sq.max) && (
+                              <div className="flex justify-between text-[10px] font-black text-slate-400 uppercase tracking-widest px-0.5">
+                                <span>{sq.min}</span><span>{sq.max}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        {sq.type === 'open' && (
+                          <input type="text" placeholder="Вашиот одговор..."
+                            value={surveyAnswers[sq.id] || ''}
+                            onChange={e => setSurveyAnswers(a => ({ ...a, [sq.id]: e.target.value }))}
+                            maxLength={300}
+                            className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-3 font-bold text-sm focus:border-green-500 focus:bg-white outline-none transition-all"
+                          />
+                        )}
+                        {sq.type === 'choice' && (
+                          <div className="space-y-2">
+                            {(sq.options || []).map((opt, oi) => (
+                              <button key={oi}
+                                onClick={() => setSurveyAnswers(a => ({ ...a, [sq.id]: opt }))}
+                                className={`w-full text-left px-5 py-3 rounded-2xl border-2 font-bold text-sm transition-all ${
+                                  surveyAnswers[sq.id] === opt
+                                    ? 'border-green-500 bg-green-50 text-green-800'
+                                    : 'border-slate-100 hover:border-green-300'
+                                }`}
+                              >{opt}</button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      onClick={handleSurveySubmit}
+                      disabled={surveySubmitting || (currentPoll.survey_questions || []).some(q => !surveyAnswers[q.id] && surveyAnswers[q.id] !== 0)}
+                      className="w-full py-4 bg-green-600 text-white rounded-2xl font-black hover:bg-green-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 mt-2"
+                    >
+                      {surveySubmitting ? 'Се испраќа...' : 'Испрати одговори'}
+                    </button>
+                  </div>
+                ) : currentPoll.type === 'scale' ? (
                   <div className="space-y-4 py-4">
                     <div className="grid grid-cols-5 gap-2 sm:grid-cols-10">
                       {currentPoll.options.map((opt, i) => {

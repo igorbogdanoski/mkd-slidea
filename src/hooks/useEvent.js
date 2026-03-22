@@ -155,6 +155,14 @@ export const useEvent = (eventCode) => {
     return await supabase.rpc('increment_vote', { option_id: optionId });
   };
 
+  const submitSurvey = async (pollId, answers, sessionId) => {
+    return await supabase.from('survey_responses').insert([{
+      poll_id: pollId,
+      session_id: sessionId,
+      answers,
+    }]);
+  };
+
   const submitQuestion = async (text, author = "Гостин") => {
     if (!event) return;
     const isApproved = !event.questions_moderation;
@@ -172,9 +180,9 @@ export const useEvent = (eventCode) => {
       .eq('id', questionId);
   };
 
-  return { 
-    event, polls, questions, reactions, 
-    loading, error, vote, submitQuestion, 
-    upvoteQuestion, markQuestionAnswered, sendReaction 
+  return {
+    event, polls, questions, reactions,
+    loading, error, vote, submitSurvey, submitQuestion,
+    upvoteQuestion, markQuestionAnswered, sendReaction
   };
 };

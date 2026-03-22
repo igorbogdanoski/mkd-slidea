@@ -126,11 +126,12 @@ const Host = ({ setView, user }) => {
         setEditingPoll(null);
       } else {
         // Create new poll
-        const { data: newPoll, error: pollError } = await supabase.from('polls').insert([{ 
-          event_id: event.id, 
-          question: pollData.question, 
+        const { data: newPoll, error: pollError } = await supabase.from('polls').insert([{
+          event_id: event.id,
+          question: pollData.question,
           is_quiz: !!pollData.is_quiz,
-          type: pollData.type || 'poll' 
+          type: pollData.type || 'poll',
+          survey_questions: pollData.survey_questions || [],
         }]).select().single();
         
         if (pollError) throw pollError;
@@ -255,7 +256,7 @@ const Host = ({ setView, user }) => {
     for (const poll of polls) {
       const opts = (poll.options || []).filter(o => o.is_approved !== false);
       const total = opts.reduce((s, o) => s + (o.votes || 0), 0);
-      const typeLabel = poll.is_quiz ? 'Квиз' : { poll: 'Анкета', wordcloud: 'Облак', open: 'Отворен текст', rating: 'Оценување', ranking: 'Рангирање' }[poll.type] || 'Анкета';
+      const typeLabel = poll.is_quiz ? 'Квиз' : { poll: 'Анкета', wordcloud: 'Облак', open: 'Отворен текст', rating: 'Оценување', ranking: 'Рангирање', scale: 'Скала', survey: 'Формулар' }[poll.type] || 'Анкета';
       if (opts.length === 0) {
         rows.push([poll.question, typeLabel, '—', 0, '0%', '']);
       } else {

@@ -23,7 +23,7 @@ const EventWrapper = ({ type, username, setUsername }) => {
   const { id } = useParams();
   const {
     event, polls, questions, reactions,
-    loading, error, vote, submitQuestion,
+    loading, error, vote, submitSurvey, submitQuestion,
     upvoteQuestion, markQuestionAnswered, sendReaction
   } = useEvent(id);
 
@@ -235,6 +235,17 @@ const EventWrapper = ({ type, username, setUsername }) => {
       resultsVisible={resultsVisible}
       timerRemaining={timerRemaining}
       eventCode={event.code}
+      handleSurvey={async (answers) => {
+        const currentPoll = polls[activePollIndex];
+        if (!currentPoll || userVoted) return;
+        const sid = getSessionId();
+        try {
+          await submitSurvey(currentPoll.id, answers, sid);
+          markVoted(currentPoll.id);
+        } catch (err) {
+          console.error('Survey submit failed:', err);
+        }
+      }}
       handleVote={async (val) => {
         if (userVoted || isVoting || polls.length === 0) return;
         const currentPoll = polls[activePollIndex];

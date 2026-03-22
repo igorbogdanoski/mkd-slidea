@@ -8,6 +8,7 @@ import {
   Star,
   ListOrdered,
   SlidersHorizontal,
+  ClipboardList,
   Lock
 } from 'lucide-react';
 
@@ -71,6 +72,14 @@ const InteractionTypeGrid = ({ onSelect, user }) => {
       icon: <SlidersHorizontal className="w-8 h-8 text-teal-600" />,
       color: 'bg-teal-50',
       borderColor: 'border-teal-100',
+    },
+    {
+      id: 'survey',
+      titleMK: 'Анкетен формулар',
+      description: 'Повеќе прашања во еден формулар — учесниците одговараат сите одеднаш.',
+      icon: <ClipboardList className="w-8 h-8 text-green-600" />,
+      color: 'bg-green-50',
+      borderColor: 'border-green-100',
     },
   ];
 

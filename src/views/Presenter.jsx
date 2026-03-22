@@ -5,6 +5,7 @@ import { Hash, Zap, Star, Activity, BarChart2, PieChart, Award, Hash as HashIcon
 import { PieChart as RechartsPie, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import WordCloud from '../components/WordCloud';
 import { useEventStore } from '../lib/store';
+import { supabase } from '../lib/supabase';
 
 // ─── Color palette shared across all chart modes ─────────────────────────────
 const PALETTE = [
@@ -238,6 +239,7 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
   const { activeParticipants } = useEventStore();
   const [chartMode, setChartMode] = useState('bars');
   const [timerRemaining, setTimerRemaining] = useState(null);
+  const [surveyResponses, setSurveyResponses] = useState([]);
 
   const eventCode = event?.code || '982341';
   const joinUrl = `${window.location.origin}/event/${eventCode}`;
@@ -263,6 +265,20 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
     return () => clearInterval(t);
   }, [currentPoll?.timer_ends_at]);
 
+  // Fetch survey responses for current poll (type=survey only)
+  useEffect(() => {
+    if (currentPoll.type !== 'survey') { setSurveyResponses([]); return; }
+    const fetchResponses = async () => {
+      const { data } = await supabase.from('survey_responses').select('answers').eq('poll_id', currentPoll.id);
+      setSurveyResponses(data || []);
+    };
+    fetchResponses();
+    const ch = supabase.channel(`survey-${currentPoll.id}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'survey_responses', filter: `poll_id=eq.${currentPoll.id}` }, fetchResponses)
+      .subscribe();
+    return () => ch.unsubscribe();
+  }, [currentPoll.id, currentPoll.type]);
+
   // Filter to approved options when moderation is on
   const visibleOptions = currentPoll.needs_moderation
     ? (currentPoll.options || []).filter(o => o.is_approved !== false)
@@ -277,6 +293,73 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
   const supportsChartSwitch = ['poll', 'ranking'].includes(currentPoll.type) || currentPoll.is_quiz;
 
   const renderResults = () => {
+    if (currentPoll.type === 'survey') {
+      const qs = currentPoll.survey_questions || [];
+      const total = surveyResponses.length;
+      return (
+        <div className="space-y-6 py-2">
+          <p className="text-slate-500 font-black text-sm uppercase tracking-widest text-right">
+            {total} {total === 1 ? 'одговор' : 'одговори'}
+          </p>
+          {qs.map((sq) => {
+            const vals = surveyResponses.map(r => (r.answers || []).find(a => a.qId === sq.id)?.value).filter(v => v !== undefined);
+            return (
+              <div key={sq.id} className="bg-slate-800/30 rounded-[2rem] p-6 border border-slate-700/40">
+                <p className="font-black text-white mb-4 text-lg leading-tight">{sq.text}</p>
+                {sq.type === 'scale' && vals.length > 0 && (() => {
+                  const avg = (vals.reduce((s, v) => s + Number(v), 0) / vals.length).toFixed(1);
+                  const dist = Array.from({ length: 10 }, (_, i) => vals.filter(v => Number(v) === i + 1).length);
+                  const maxD = Math.max(...dist, 1);
+                  return (
+                    <div className="space-y-3">
+                      <p className="text-teal-400 font-black text-5xl text-center">{avg}<span className="text-2xl text-slate-500">/10</span></p>
+                      <div className="flex items-end gap-1 h-16">
+                        {dist.map((c, i) => (
+                          <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                            <div className="w-full rounded-t-md transition-all" style={{ height: `${Math.round((c / maxD) * 48) || 2}px`, backgroundColor: `hsl(${i * 12},70%,55%)` }} />
+                            <span className="text-[9px] font-black text-slate-500">{i + 1}</span>
+                          </div>
+                        ))}
+                      </div>
+                      {(sq.min || sq.max) && (
+                        <div className="flex justify-between text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                          <span>{sq.min}</span><span>{sq.max}</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+                {sq.type === 'open' && (
+                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                    {vals.length === 0
+                      ? <p className="text-slate-600 font-bold text-sm">Сé уште нема одговори</p>
+                      : vals.map((v, i) => (
+                        <div key={i} className="bg-slate-800/50 rounded-xl px-4 py-2 text-slate-300 font-bold text-sm">{v}</div>
+                      ))
+                    }
+                  </div>
+                )}
+                {sq.type === 'choice' && (sq.options || []).map((opt, oi) => {
+                  const count = vals.filter(v => v === opt).length;
+                  const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                  return (
+                    <div key={oi} className="space-y-1 mb-2">
+                      <div className="flex justify-between text-sm font-black text-slate-300">
+                        <span>{opt}</span><span>{count} ({pct}%)</span>
+                      </div>
+                      <div className="h-2.5 bg-slate-700 rounded-full overflow-hidden">
+                        <div className="h-full bg-green-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
     if (currentPoll.type === 'wordcloud') return <WordCloud words={visibleOptions} />;
 
     if (currentPoll.type === 'scale') {
@@ -422,6 +505,7 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
     if (currentPoll.type === 'rating')    return '⭐ Оценување во живо';
     if (currentPoll.type === 'ranking')   return '🏅 Рангирање во живо';
     if (currentPoll.type === 'scale')     return '📊 Скала во живо';
+    if (currentPoll.type === 'survey')    return '📋 Формулар во живо';
     if (currentPoll.is_quiz)              return '🏆 Квиз во живо';
     return '📊 Анкета во живо';
   };
