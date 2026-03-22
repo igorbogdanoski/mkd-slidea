@@ -21,7 +21,7 @@ const HostHeader = ({ event, setIsQRModalOpen, setView, isRemoteMode, setIsRemot
           onClick={() => setIsRemoteMode(!isRemoteMode)} 
           className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-all ${isRemoteMode ? 'bg-indigo-600 text-white' : 'bg-slate-50 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600'}`}
         >
-          <Smartphone className="w-4 h-4" /> Remote
+          <Smartphone className="w-4 h-4" /> Далечинска
         </button>
         <button onClick={() => setIsQRModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 rounded-xl font-mono font-bold text-slate-600 text-lg transition-all group">
           <QrCode className="w-5 h-5 group-hover:rotate-12 transition-transform" /> #{event.code}

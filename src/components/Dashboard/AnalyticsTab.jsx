@@ -25,8 +25,8 @@ const AnalyticsTab = () => {
   const pieData = [
     { name: 'Анкети', value: 400 },
     { name: 'Квизови', value: 300 },
-    { name: 'Q&A', value: 300 },
-    { name: 'Word Cloud', value: 200 },
+    { name: 'Прашања', value: 300 },
+    { name: 'Облак', value: 200 },
   ];
 
   const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ec4899'];
@@ -35,7 +35,7 @@ const AnalyticsTab = () => {
     { label: 'Вкупно учесници', value: '12,450', change: '+12%', icon: <Users size={24} />, positive: true },
     { label: 'Стапка на ангажман', value: '84%', change: '+5%', icon: <TrendingUp size={24} />, positive: true },
     { label: 'Просечно време', value: '42 мин', change: '-2%', icon: <Clock size={24} />, positive: false },
-    { label: 'Топ настан', value: 'IT Conf 26', change: 'New', icon: <Award size={24} />, positive: true },
+    { label: 'Топ настан', value: 'IT Conf 26', change: 'Ново', icon: <Award size={24} />, positive: true },
   ];
 
   return (

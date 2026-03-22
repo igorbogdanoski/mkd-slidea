@@ -11,7 +11,7 @@ const Participant = ({
   quizResult,
   voteError,
   resultsVisible = true,
-  timerRemaining,
+  tимеrRemaining,
   handleVote,
   handleUpvote,
   newQuestion,
@@ -52,11 +52,11 @@ const Participant = ({
       >
         <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl border border-slate-100">
           <div className="text-5xl mb-6">👋</div>
-          <h2 className="text-2xl font-black mb-2">Kako да те запишеме?</h2>
-          <p className="text-slate-400 font-bold mb-8">Твоето ime ќе се прикаже на лидерборд и во прашања</p>
+          <h2 className="text-2xl font-black mb-2">Како да те запишеме?</h2>
+          <p className="text-slate-400 font-bold mb-8">Твоето име ќе се прикаже на лидерборд и во прашања</p>
           <input
             type="text"
-            placeholder="Твоето ime..."
+            placeholder="Твоето име..."
             value={nameInput}
             onChange={(e) => setNameInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && confirmName()}
@@ -144,12 +144,12 @@ const Participant = ({
               </div>
             )}
 
-            {/* Timer bar */}
-            {timerRemaining > 0 && (
-              <div className={`mb-6 rounded-2xl px-5 py-3 flex items-center justify-between ${timerRemaining <= 10 ? 'bg-red-50 border border-red-200' : 'bg-indigo-50 border border-indigo-100'}`}>
-                <span className={`font-black text-sm ${timerRemaining <= 10 ? 'text-red-600' : 'text-indigo-600'}`}>⏱ Преостанато</span>
-                <span className={`font-black text-2xl tabular-nums ${timerRemaining <= 10 ? 'text-red-600 animate-pulse' : 'text-indigo-700'}`}>
-                  {String(Math.floor(timerRemaining / 60)).padStart(2,'0')}:{String(timerRemaining % 60).padStart(2,'0')}
+            {/* Tимеr bar */}
+            {tимеrRemaining > 0 && (
+              <div className={`mb-6 rounded-2xl px-5 py-3 flex items-center justify-between ${tимеrRemaining <= 10 ? 'bg-red-50 border border-red-200' : 'bg-indigo-50 border border-indigo-100'}`}>
+                <span className={`font-black text-sm ${tимеrRemaining <= 10 ? 'text-red-600' : 'text-indigo-600'}`}>⏱ Преостанато</span>
+                <span className={`font-black text-2xl tabular-nums ${tимеrRemaining <= 10 ? 'text-red-600 animate-pulse' : 'text-indigo-700'}`}>
+                  {String(Math.floor(tимеrRemaining / 60)).padStart(2,'0')}:{String(tимеrRemaining % 60).padStart(2,'0')}
                 </span>
               </div>
             )}

@@ -107,7 +107,7 @@ const WordCloud = ({ words }) => {
         <div className="text-center text-slate-500">
           <div className="text-6xl mb-4">☁️</div>
           <p className="font-black text-2xl">Чекаме одговори...</p>
-          <p className="text-slate-600 font-bold mt-2">Зборовите ќе се pojавaт овде во живо</p>
+          <p className="text-slate-600 font-bold mt-2">Зборовите ќе се појавуваат овде во живо</p>
         </div>
       )}
     </div>

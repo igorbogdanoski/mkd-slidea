@@ -69,7 +69,7 @@ const Landing = ({ code, setCode, setView }) => {
                   onClick={() => setView('join')}
                   className="bg-white text-indigo-600 px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-all active:scale-95"
                 >
-                  Join
+                  Влези
                 </button>
               </div>
             </motion.div>

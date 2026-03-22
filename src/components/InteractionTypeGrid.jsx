@@ -17,7 +17,6 @@ const InteractionTypeGrid = ({ onSelect, user }) => {
   const types = [
     {
       id: 'poll',
-      title: 'Multiple Choice',
       titleMK: 'Анкета (Повеќе избор)',
       description: 'Добијте мислење од публиката во реално време.',
       icon: <BarChart2 className="w-8 h-8 text-indigo-600" />,
@@ -26,7 +25,6 @@ const InteractionTypeGrid = ({ onSelect, user }) => {
     },
     {
       id: 'wordcloud',
-      title: 'Word Cloud',
       titleMK: 'Облак со зборови',
       description: 'Најпопуларните зборови стануваат поголеми.',
       icon: <Cloud className="w-8 h-8 text-cyan-600" />,
@@ -35,7 +33,6 @@ const InteractionTypeGrid = ({ onSelect, user }) => {
     },
     {
       id: 'quiz',
-      title: 'Quiz',
       titleMK: 'Квиз (Натпревар)',
       description: 'Тестирајте го знаењето и најдете победник.',
       icon: <Trophy className="w-8 h-8 text-amber-600" />,
@@ -44,7 +41,6 @@ const InteractionTypeGrid = ({ onSelect, user }) => {
     },
     {
       id: 'open',
-      title: 'Open Text',
       titleMK: 'Отворен текст',
       description: 'Добијте подетални одговори од учесниците.',
       icon: <AlignLeft className="w-8 h-8 text-emerald-600" />,
@@ -53,7 +49,6 @@ const InteractionTypeGrid = ({ onSelect, user }) => {
     },
     {
       id: 'rating',
-      title: 'Rating',
       titleMK: 'Оценување',
       description: 'Добијте повратна информација преку ѕвездички.',
       icon: <Star className="w-8 h-8 text-rose-600" />,
@@ -62,7 +57,6 @@ const InteractionTypeGrid = ({ onSelect, user }) => {
     },
     {
       id: 'ranking',
-      title: 'Ranking',
       titleMK: 'Рангирање',
       description: 'Побарајте од публиката да ги подреди опциите.',
       icon: <ListOrdered className="w-8 h-8 text-violet-600" />,

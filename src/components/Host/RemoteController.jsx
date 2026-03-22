@@ -30,8 +30,7 @@ const RemoteController = ({ polls, activePollIndex, setActivePoll, eventCode }) 
     }
   };
 
-  const handleAction = (action) => {
-    console.log("Action:", action);
+  const handleAction = (_action) => {
     if (window.navigator.vibrate) window.navigator.vibrate([30, 30, 30]);
   };
 
@@ -46,7 +45,7 @@ const RemoteController = ({ polls, activePollIndex, setActivePoll, eventCode }) 
             <Smartphone className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-black tracking-tight">Remote <span className="text-indigo-400">Control</span></h1>
+            <h1 className="text-lg font-black tracking-tight">Далечинска <span className="text-indigo-400">Контрола</span></h1>
             <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">#{eventCode}</p>
           </div>
         </div>
@@ -124,7 +123,7 @@ const RemoteController = ({ polls, activePollIndex, setActivePoll, eventCode }) 
       
       {/* Footer Info */}
       <div className="p-6 text-center bg-slate-900 text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] border-t border-white/5">
-        MKD Slidea • Remote Mode
+        MKD Slidea • Далечински режим
       </div>
     </div>
   );
