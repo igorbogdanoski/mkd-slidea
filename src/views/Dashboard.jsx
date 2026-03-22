@@ -93,7 +93,7 @@ const Dashboard = ({ setView, user, onLogout }) => {
       case 'home':
         return <HomeTab setView={setView} setActiveTab={setActiveTab} user={user} useTemplate={useTemplate} />;
       case 'analytics':
-        return <AnalyticsTab />;
+        return <AnalyticsTab user={user} />;
       case 'presentations':
         return (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="p-12">
