@@ -7,11 +7,12 @@ import Participant from '../views/Participant';
 import { useEventStore } from '../lib/store';
 import { supabase } from '../lib/supabase';
 
-// Get or create a persistent session ID for vote deduplication
+// Get or create a persistent session ID — crypto.randomUUID polyfill for older browsers
 const getSessionId = () => {
   let sid = localStorage.getItem('mkd_session_id');
   if (!sid) {
-    sid = crypto.randomUUID();
+    sid = crypto.randomUUID?.()
+      || 'uid-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
     localStorage.setItem('mkd_session_id', sid);
   }
   return sid;
@@ -28,31 +29,26 @@ const EventWrapper = ({ type, username, setUsername }) => {
   const { setEvent, setPresence } = useEventStore();
   const [quizResult, setQuizResult] = useState(null);
   const [dbVotedPolls, setDbVotedPolls] = useState([]);
+  const [isVoting, setIsVoting] = useState(false);
+  const [voteError, setVoteError] = useState(null);
 
   useEffect(() => {
     if (event) {
       setEvent(event);
       
-      // Setup Real-time Presence (Pulse)
+      // Setup Real-time Presence — unique key per browser session to avoid collisions
       const channel = supabase.channel(`presence:${event.id}`, {
-        config: { presence: { key: username || 'anonymous' } }
+        config: { presence: { key: getSessionId() } }
       });
 
       channel
         .on('presence', { event: 'sync' }, () => {
           const state = channel.presenceState();
-          const count = Object.keys(state).length;
-          setPresence(count);
-        })
-        .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-          console.log('Join:', key, newPresences);
-        })
-        .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-          console.log('Leave:', key, leftPresences);
+          setPresence(Object.keys(state).length);
         })
         .subscribe(async (status) => {
           if (status === 'SUBSCRIBED') {
-            await channel.track({ online_at: new Date().toISOString() });
+            await channel.track({ online_at: new Date().toISOString(), username: username || 'Анонимен' });
           }
         });
 
@@ -62,9 +58,11 @@ const EventWrapper = ({ type, username, setUsername }) => {
     }
   }, [event, username, setEvent, setPresence]);
 
-  const activePollIndex = event?.active_poll_id
+  const rawIndex = event?.active_poll_id
     ? polls.findIndex(p => p.id === event.active_poll_id)
     : 0;
+  // Guard: findIndex returns -1 if poll was deleted after being set active
+  const activePollIndex = rawIndex >= 0 ? rawIndex : 0;
 
   // Fetch which polls this session already voted on from DB
   useEffect(() => {
@@ -149,14 +147,20 @@ const EventWrapper = ({ type, username, setUsername }) => {
       polls={polls.length > 0 ? polls : [{ question: "Чекаме домаќинот да активира анкета...", options: [], is_quiz: false }]}
       questions={questions}
       activePollIndex={activePollIndex}
-      userVoted={userVoted || timerExpired}
+      userVoted={userVoted || isVoting || timerExpired}
       quizResult={quizResult}
+      voteError={voteError}
       resultsVisible={resultsVisible}
       timerRemaining={timerRemaining}
+      eventCode={event.code}
       handleVote={async (val) => {
-        if (userVoted || polls.length === 0) return;
+        if (userVoted || isVoting || polls.length === 0) return;
         const currentPoll = polls[activePollIndex];
-        
+        if (!currentPoll) return;
+
+        setIsVoting(true);
+        setVoteError(null);
+
         try {
           if (typeof val === 'string') {
             await vote(null, currentPoll.id, val, !!currentPoll.needs_moderation);
@@ -171,12 +175,17 @@ const EventWrapper = ({ type, username, setUsername }) => {
               }
             }
           }
-          // Insert into DB votes table for server-side deduplication
           const sid = getSessionId();
-          await supabase.from('votes').upsert({ poll_id: currentPoll.id, session_id: sid }, { onConflict: 'poll_id,session_id', ignoreDuplicates: true });
+          await supabase.from('votes').upsert(
+            { poll_id: currentPoll.id, session_id: sid },
+            { onConflict: 'poll_id,session_id', ignoreDuplicates: true }
+          );
           markVoted(currentPoll.id);
         } catch (err) {
-          console.error("Vote failed:", err);
+          console.error('Vote failed:', err);
+          setVoteError('Гласањето не успеа. Обидете се повторно.');
+        } finally {
+          setIsVoting(false);
         }
       }}
       handleUpvote={(qid) => upvoteQuestion(qid)}

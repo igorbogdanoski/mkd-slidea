@@ -9,6 +9,7 @@ const Participant = ({
   activePollIndex,
   userVoted,
   quizResult,
+  voteError,
   resultsVisible = true,
   timerRemaining,
   handleVote,
@@ -18,7 +19,8 @@ const Participant = ({
   submitQuestion,
   username,
   setUsername,
-  sendReaction
+  sendReaction,
+  eventCode,
 }) => {
   const { activeParticipants } = useEventStore();
   const currentPoll = polls[activePollIndex] || { question: 'Чекаме настан...', options: [], type: 'poll' };
@@ -69,7 +71,7 @@ const Participant = ({
             Започни →
           </button>
           <button
-            onClick={() => setUsername('Анонимен')}
+            onClick={() => setUsername('Анонимен-' + Math.random().toString(36).slice(2, 6).toUpperCase())}
             className="w-full py-3 text-slate-400 font-bold text-sm hover:text-slate-600 transition-colors"
           >
             Продолжи анонимно
@@ -95,7 +97,7 @@ const Participant = ({
             <div className="bg-indigo-600 p-2 rounded-xl">
               <Hash className="text-white w-5 h-5" />
             </div>
-            <span className="font-black text-slate-900">#{polls[0]?.event_id?.substring(0,6) || '982341'}</span>
+            <span className="font-black text-slate-900">{eventCode || ''}</span>
           </div>
           <div className="flex items-center gap-3">
             <div className="bg-slate-100 px-3 py-1.5 rounded-2xl flex items-center gap-2 border border-slate-200">
@@ -130,6 +132,13 @@ const Participant = ({
             <h2 className="text-2xl font-black text-slate-900 mb-8 leading-tight">
               {currentPoll.question}
             </h2>
+
+            {/* Vote error */}
+            {voteError && (
+              <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-2xl text-red-600 font-bold text-sm text-center">
+                {voteError}
+              </div>
+            )}
 
             {/* Timer bar */}
             {timerRemaining > 0 && (

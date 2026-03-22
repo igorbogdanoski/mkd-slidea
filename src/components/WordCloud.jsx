@@ -48,8 +48,9 @@ const WordCloud = ({ words }) => {
 
     if (data.length === 0) return;
 
-    const width = 900;
-    const height = 520;
+    const container = svgRef.current?.parentElement;
+    const width = container ? Math.min(container.clientWidth || 900, 900) : 900;
+    const height = Math.round(width * 0.58);
 
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();

@@ -61,7 +61,11 @@ const Host = ({ setView, user }) => {
       if (data) setPolls(data);
     };
     fetchPolls();
-    const sub = supabase.channel(`host_polls_${event.id}`).on('postgres_changes', { event: '*', schema: 'public', table: 'polls', filter: `event_id=eq.${event.id}` }, fetchPolls).subscribe();
+    const sub = supabase
+      .channel(`host_polls_${event.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'polls', filter: `event_id=eq.${event.id}` }, fetchPolls)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'options' }, fetchPolls)
+      .subscribe();
     return () => { sub.unsubscribe(); };
   }, [event]);
 
@@ -242,8 +246,8 @@ const Host = ({ setView, user }) => {
   useEffect(() => {
     const handleKey = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-      if (e.key === 'ArrowRight') goNext();
-      if (e.key === 'ArrowLeft') goPrev();
+      if (e.key === 'ArrowRight') { e.preventDefault(); goNext(); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); goPrev(); }
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
