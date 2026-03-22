@@ -400,7 +400,7 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
           </div>
           <div className="bg-slate-800 px-8 py-5 rounded-[2rem] border border-slate-700">
             <p className="text-slate-500 font-black text-xs uppercase tracking-widest mb-1 text-center">Код за влезот</p>
-            <p className="text-5xl font-black tracking-widest text-white">#{eventCode}</p>
+            <p className="text-5xl font-black tracking-widest text-white">{eventCode}</p>
           </div>
         </div>
       </div>

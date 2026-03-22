@@ -52,7 +52,7 @@ const QRCodeModal = ({ isOpen, onClose, eventCode }) => {
 
             <div className="space-y-4">
               <div className="bg-slate-50 p-4 rounded-2xl flex items-center justify-between border border-slate-100">
-                <span className="font-mono font-bold text-indigo-600 text-lg">#{eventCode}</span>
+                <span className="font-mono font-bold text-indigo-600 text-lg">{eventCode}</span>
                 <button 
                   onClick={copyToClipboard}
                   className="flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-indigo-600 transition-colors"

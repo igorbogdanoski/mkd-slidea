@@ -59,7 +59,7 @@ const Landing = ({ code, setCode, setView }) => {
               <div className="flex-1 flex gap-2">
                 <input 
                   type="text" 
-                  maxLength={6}
+                  maxLength={7}
                   placeholder="Внеси код..."
                   value={code}
                   onChange={(e) => setCode(e.target.value.replace(/^#/, '').toUpperCase())}

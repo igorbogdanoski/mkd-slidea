@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Zap, Plus, ArrowLeft, Sparkles, ChevronLeft, ChevronRight
+  Zap, Plus, ArrowLeft, Sparkles, ChevronLeft, ChevronRight, Settings, X
 } from 'lucide-react';
 import QRCodeModal from '../components/QRCodeModal';
 import CreatePollModal from '../components/CreatePollModal';
@@ -23,6 +23,10 @@ const Host = ({ setView, user }) => {
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [isRemoteMode, setIsRemoteMode] = useState(false);
   const [showInteractionGrid, setShowInteractionGrid] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [allowMultipleVotes, setAllowMultipleVotes] = useState(
+    () => localStorage.getItem('setting_multiple_votes') !== 'false'
+  );
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState('poll');
   const [editingPoll, setEditingPoll] = useState(null);
@@ -183,6 +187,65 @@ const Host = ({ setView, user }) => {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-7xl mx-auto px-6 pt-12 pb-24">
       <QRCodeModal isOpen={isQRModalOpen} onClose={() => setIsQRModalOpen(false)} eventCode={event.code} />
+
+      {/* Settings Modal */}
+      {isSettingsOpen && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4" onClick={() => setIsSettingsOpen(false)}>
+          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" />
+          <div className="relative bg-white rounded-[2rem] p-8 max-w-md w-full shadow-2xl z-10" onClick={e => e.stopPropagation()}>
+            <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-600 to-violet-600 rounded-t-[2rem]" />
+            <div className="flex items-center justify-between mb-8">
+              <h3 className="text-2xl font-black">Поставки на настанот</h3>
+              <button onClick={() => setIsSettingsOpen(false)} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-5">
+              {/* Multiple votes */}
+              <div className="flex items-center justify-between p-5 bg-slate-50 rounded-2xl">
+                <div>
+                  <p className="font-black text-slate-900">Повеќекратно гласање</p>
+                  <p className="text-sm text-slate-400 font-bold mt-0.5">Учесниците можат да гласаат повеќепати по Refresh</p>
+                </div>
+                <button
+                  onClick={() => {
+                    const next = !allowMultipleVotes;
+                    setAllowMultipleVotes(next);
+                    localStorage.setItem('setting_multiple_votes', String(next));
+                  }}
+                  className={`relative w-14 h-7 rounded-full transition-colors ${allowMultipleVotes ? 'bg-indigo-600' : 'bg-slate-200'}`}
+                >
+                  <span className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${allowMultipleVotes ? 'translate-x-7' : 'translate-x-0.5'}`} />
+                </button>
+              </div>
+
+              {/* Event title */}
+              <div className="p-5 bg-slate-50 rounded-2xl">
+                <p className="font-black text-slate-900 mb-3">Наслов на настанот</p>
+                <input
+                  type="text"
+                  defaultValue={event.title || ''}
+                  onBlur={async (e) => {
+                    if (e.target.value.trim()) {
+                      await supabase.from('events').update({ title: e.target.value.trim() }).eq('id', event.id);
+                    }
+                  }}
+                  className="w-full bg-white border-2 border-slate-100 rounded-xl px-4 py-3 font-bold focus:border-indigo-600 outline-none transition-all"
+                  placeholder="Мојот настан"
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={() => setIsSettingsOpen(false)}
+              className="w-full mt-6 py-4 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-700 transition-all"
+            >
+              Зачувај и затвори
+            </button>
+          </div>
+        </div>
+      )}
       <CreatePollModal 
         isOpen={isCreatePollOpen} 
         onClose={() => { setIsCreatePollOpen(false); setEditingPoll(null); }} 
@@ -243,17 +306,24 @@ const Host = ({ setView, user }) => {
                       <p className="text-slate-400 font-bold">Управувај со прашањата за твојата публика.</p>
                     </div>
                     <div className="flex gap-4">
-                      <button 
-                        onClick={() => setShowInteractionGrid(true)} 
+                      <button
+                        onClick={() => setShowInteractionGrid(true)}
                         className="flex items-center justify-center gap-3 px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black text-lg hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 active:scale-95"
                       >
                         <Plus className="w-6 h-6" /> Додај активност
                       </button>
-                      <button 
-                        onClick={() => setIsAIModalOpen(true)} 
+                      <button
+                        onClick={() => setIsAIModalOpen(true)}
                         className="flex items-center justify-center gap-3 px-8 py-4 bg-white border-2 border-slate-100 text-slate-900 rounded-2xl font-black text-lg hover:border-indigo-600 hover:text-indigo-600 transition-all shadow-sm active:scale-95"
                       >
                         <Sparkles className="w-6 h-6 text-indigo-600" /> Креирај со AI
+                      </button>
+                      <button
+                        onClick={() => setIsSettingsOpen(true)}
+                        className="flex items-center justify-center gap-2 px-5 py-4 bg-white border-2 border-slate-100 text-slate-500 rounded-2xl font-black hover:border-slate-300 hover:text-slate-700 transition-all shadow-sm active:scale-95"
+                        title="Поставки"
+                      >
+                        <Settings className="w-5 h-5" />
                       </button>
                     </div>
                   </div>
