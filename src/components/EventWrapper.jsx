@@ -7,16 +7,27 @@ import Participant from '../views/Participant';
 import { useEventStore } from '../lib/store';
 import { supabase } from '../lib/supabase';
 
+// Get or create a persistent session ID for vote deduplication
+const getSessionId = () => {
+  let sid = localStorage.getItem('mkd_session_id');
+  if (!sid) {
+    sid = crypto.randomUUID();
+    localStorage.setItem('mkd_session_id', sid);
+  }
+  return sid;
+};
+
 const EventWrapper = ({ type, username, setUsername }) => {
   const { id } = useParams();
-  const { 
-    event, polls, questions, reactions, 
-    loading, error, vote, submitQuestion, 
-    upvoteQuestion, markQuestionAnswered, sendReaction 
+  const {
+    event, polls, questions, reactions,
+    loading, error, vote, submitQuestion,
+    upvoteQuestion, markQuestionAnswered, sendReaction
   } = useEvent(id);
-  
+
   const { setEvent, setPresence } = useEventStore();
   const [quizResult, setQuizResult] = useState(null);
+  const [dbVotedPolls, setDbVotedPolls] = useState([]);
 
   useEffect(() => {
     if (event) {
@@ -51,20 +62,36 @@ const EventWrapper = ({ type, username, setUsername }) => {
     }
   }, [event, username, setEvent, setPresence]);
 
-  const activePollIndex = event?.active_poll_id 
-    ? polls.findIndex(p => p.id === event.active_poll_id) 
+  const activePollIndex = event?.active_poll_id
+    ? polls.findIndex(p => p.id === event.active_poll_id)
     : 0;
+
+  // Fetch which polls this session already voted on from DB
+  useEffect(() => {
+    if (!event?.id) return;
+    const sid = getSessionId();
+    supabase
+      .from('votes')
+      .select('poll_id')
+      .eq('session_id', sid)
+      .then(({ data }) => {
+        if (data) setDbVotedPolls(data.map(r => r.poll_id));
+      });
+  }, [event?.id]);
 
   // Reset quiz result when active poll changes
   const currentPollId = polls[activePollIndex >= 0 ? activePollIndex : 0]?.id;
   useEffect(() => { setQuizResult(null); }, [currentPollId]);
 
-  // Persist voted polls in localStorage so refresh doesn't reset vote state
+  // userVoted = DB vote (primary) OR localStorage (fallback/cache)
   const votedKey = `voted_${event?.id || id}`;
-  const getVoted = () => { try { return JSON.parse(localStorage.getItem(votedKey) || '[]'); } catch { return []; } };
-  const userVoted = currentPollId ? getVoted().includes(currentPollId) : false;
+  const getLocalVoted = () => { try { return JSON.parse(localStorage.getItem(votedKey) || '[]'); } catch { return []; } };
+  const userVoted = currentPollId
+    ? dbVotedPolls.includes(currentPollId) || getLocalVoted().includes(currentPollId)
+    : false;
   const markVoted = (pollId) => {
-    const v = getVoted();
+    setDbVotedPolls(prev => prev.includes(pollId) ? prev : [...prev, pollId]);
+    const v = getLocalVoted();
     if (!v.includes(pollId)) localStorage.setItem(votedKey, JSON.stringify([...v, pollId]));
   };
 
@@ -143,6 +170,9 @@ const EventWrapper = ({ type, username, setUsername }) => {
               }
             }
           }
+          // Insert into DB votes table for server-side deduplication
+          const sid = getSessionId();
+          await supabase.from('votes').upsert({ poll_id: currentPoll.id, session_id: sid }, { onConflict: 'poll_id,session_id', ignoreDuplicates: true });
           markVoted(currentPoll.id);
         } catch (err) {
           console.error("Vote failed:", err);
