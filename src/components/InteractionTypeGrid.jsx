@@ -12,8 +12,8 @@ import {
 } from 'lucide-react';
 
 const InteractionTypeGrid = ({ onSelect, user }) => {
-  const userPlan = user?.plan || 'basic';
-  const isPro = userPlan === 'pro' || userPlan === 'semester' || user?.isAdmin;
+  const userPlan = user?.plan || 'free';
+  const isPro = userPlan === 'pro' || userPlan === 'admin' || user?.role === 'admin';
 
   const types = [
     {

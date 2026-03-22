@@ -44,9 +44,10 @@ const Dashboard = ({ setView, user, onLogout }) => {
       const eventCode = Math.random().toString(36).substring(2, 8).toUpperCase();
       const { data: event, error: eventError } = await supabase
         .from('events')
-        .insert([{ 
-          code: eventCode, 
-          title: template.title
+        .insert([{
+          code: eventCode,
+          title: template.title,
+          user_id: user?.id
         }])
         .select()
         .single();

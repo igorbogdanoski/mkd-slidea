@@ -270,7 +270,7 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
 
   const totalVotes = visibleOptions.reduce((a, b) => a + (b.votes || 0), 0) || 0;
   const averageRating = totalVotes > 0
-    ? (currentPoll.options.reduce((acc, opt) => acc + (parseInt(opt.text) * (opt.votes || 0)), 0) / totalVotes).toFixed(1)
+    ? (visibleOptions.reduce((acc, opt) => acc + (parseInt(opt.text) * (opt.votes || 0)), 0) / totalVotes).toFixed(1)
     : 0;
 
   // Types that support chart mode switching
