@@ -104,12 +104,22 @@ const EventWrapper = ({ type, username, setUsername }) => {
     );
   }
 
+  // Timer from event
+  const timerRemaining = event?.timer_ends_at
+    ? Math.max(0, Math.round((new Date(event.timer_ends_at) - Date.now()) / 1000))
+    : null;
+  const timerExpired = event?.timer_ends_at && timerRemaining === 0;
+  const currentPollForWrapper = polls[activePollIndex];
+  const resultsVisible = currentPollForWrapper?.results_visible !== false;
+
   return (
-    <Participant 
-      polls={polls.length > 0 ? polls : [{ question: "Чекаме домаќинот да активира анкета...", options: [], is_quiz: false }]} 
-      questions={questions} 
+    <Participant
+      polls={polls.length > 0 ? polls : [{ question: "Чекаме домаќинот да активира анкета...", options: [], is_quiz: false }]}
+      questions={questions}
       activePollIndex={activePollIndex}
-      userVoted={userVoted}
+      userVoted={userVoted || timerExpired}
+      resultsVisible={resultsVisible}
+      timerRemaining={timerRemaining}
       handleVote={async (val) => {
         if (userVoted || polls.length === 0) return;
         const currentPoll = polls[activePollIndex];

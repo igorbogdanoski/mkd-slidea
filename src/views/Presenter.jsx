@@ -237,6 +237,7 @@ const NumbersView = ({ options, totalVotes }) => {
 const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reactions = [], markQuestionAnswered }) => {
   const { activeParticipants } = useEventStore();
   const [chartMode, setChartMode] = useState('bars');
+  const [timerRemaining, setTimerRemaining] = useState(null);
 
   const eventCode = event?.code || '982341';
   const joinUrl = `${window.location.origin}/event/${eventCode}`;
@@ -247,6 +248,18 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
 
   // Reset chart mode when switching polls
   useEffect(() => { setChartMode('bars'); }, [activePollIndex]);
+
+  // Timer countdown from event.timer_ends_at
+  useEffect(() => {
+    if (!event?.timer_ends_at) { setTimerRemaining(null); return; }
+    const calc = () => {
+      const rem = Math.max(0, Math.round((new Date(event.timer_ends_at) - Date.now()) / 1000));
+      setTimerRemaining(rem);
+    };
+    calc();
+    const t = setInterval(calc, 1000);
+    return () => clearInterval(t);
+  }, [event?.timer_ends_at]);
 
   const totalVotes = currentPoll.options?.reduce((a, b) => a + (b.votes || 0), 0) || 0;
   const averageRating = totalVotes > 0
@@ -402,6 +415,14 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
             <p className="text-slate-500 font-black text-xs uppercase tracking-widest mb-1 text-center">Код за влезот</p>
             <p className="text-5xl font-black tracking-widest text-white">{eventCode}</p>
           </div>
+          {timerRemaining > 0 && (
+            <div className={`px-8 py-5 rounded-[2rem] border flex flex-col items-center min-w-[120px] ${timerRemaining <= 10 ? 'bg-red-600 border-red-500 animate-pulse' : 'bg-indigo-700 border-indigo-600'}`}>
+              <p className="text-indigo-300 font-black text-xs uppercase tracking-widest mb-1">Тајмер</p>
+              <p className="text-5xl font-black tabular-nums text-white">
+                {String(Math.floor(timerRemaining / 60)).padStart(2,'0')}:{String(timerRemaining % 60).padStart(2,'0')}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 

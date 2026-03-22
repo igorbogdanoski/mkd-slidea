@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Zap, Plus, ArrowLeft, Sparkles, ChevronLeft, ChevronRight, Settings, X
+  Zap, Plus, ArrowLeft, Sparkles, ChevronLeft, ChevronRight, Settings, X, Timer, Square
 } from 'lucide-react';
 import QRCodeModal from '../components/QRCodeModal';
 import CreatePollModal from '../components/CreatePollModal';
@@ -27,6 +27,8 @@ const Host = ({ setView, user }) => {
   const [allowMultipleVotes, setAllowMultipleVotes] = useState(
     () => localStorage.getItem('setting_multiple_votes') !== 'false'
   );
+  const [timerDuration, setTimerDuration] = useState(60);
+  const [timerRemaining, setTimerRemaining] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState('poll');
   const [editingPoll, setEditingPoll] = useState(null);
@@ -170,6 +172,25 @@ const Host = ({ setView, user }) => {
 
   const goNext = () => { if (activePollIndex < polls.length - 1) setActivePoll(activePollIndex + 1); };
   const goPrev = () => { if (activePollIndex > 0) setActivePoll(activePollIndex - 1); };
+
+  const startTimer = async (seconds) => {
+    const endsAt = new Date(Date.now() + seconds * 1000).toISOString();
+    setTimerDuration(seconds);
+    setTimerRemaining(seconds);
+    await supabase.from('events').update({ timer_ends_at: endsAt }).eq('id', event.id);
+  };
+
+  const stopTimer = async () => {
+    setTimerRemaining(null);
+    await supabase.from('events').update({ timer_ends_at: null }).eq('id', event.id);
+  };
+
+  useEffect(() => {
+    if (!timerRemaining) return;
+    if (timerRemaining <= 0) { setTimerRemaining(null); return; }
+    const t = setTimeout(() => setTimerRemaining(r => r - 1), 1000);
+    return () => clearTimeout(t);
+  }, [timerRemaining]);
 
   useEffect(() => {
     const handleKey = (e) => {
@@ -354,16 +375,38 @@ const Host = ({ setView, user }) => {
                     ) : (
                       <div className="space-y-4">
                         {/* Navigation bar */}
-                        <div className="flex items-center justify-between bg-slate-900 text-white rounded-2xl px-6 py-3">
+                        <div className="flex items-center justify-between bg-slate-900 text-white rounded-2xl px-6 py-3 gap-4 flex-wrap">
                           <button onClick={goPrev} disabled={activePollIndex === 0}
                             className="flex items-center gap-2 font-black text-sm disabled:opacity-30 hover:text-indigo-400 transition-colors disabled:cursor-not-allowed"
                           >
                             <ChevronLeft className="w-5 h-5" /> Претходна
                           </button>
-                          <span className="font-black text-sm text-slate-300">
-                            Активност <span className="text-white">{activePollIndex + 1}</span> од <span className="text-white">{polls.length}</span>
-                            <span className="ml-3 text-xs text-slate-500">← → тастатура</span>
-                          </span>
+
+                          {/* Timer controls */}
+                          <div className="flex items-center gap-2">
+                            {timerRemaining > 0 ? (
+                              <>
+                                <span className={`font-black text-2xl tabular-nums ${timerRemaining <= 10 ? 'text-red-400 animate-pulse' : 'text-white'}`}>
+                                  {String(Math.floor(timerRemaining / 60)).padStart(2,'0')}:{String(timerRemaining % 60).padStart(2,'0')}
+                                </span>
+                                <button onClick={stopTimer} className="flex items-center gap-1 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-black text-xs transition-all">
+                                  <Square className="w-3 h-3" /> Стоп
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <Timer className="w-4 h-4 text-slate-400" />
+                                {[15, 30, 60, 90].map(s => (
+                                  <button key={s} onClick={() => startTimer(s)}
+                                    className="px-3 py-1.5 bg-slate-700 hover:bg-indigo-600 text-slate-300 hover:text-white rounded-xl font-black text-xs transition-all"
+                                  >
+                                    {s}s
+                                  </button>
+                                ))}
+                              </>
+                            )}
+                          </div>
+
                           <button onClick={goNext} disabled={activePollIndex === polls.length - 1}
                             className="flex items-center gap-2 font-black text-sm disabled:opacity-30 hover:text-indigo-400 transition-colors disabled:cursor-not-allowed"
                           >
@@ -380,6 +423,9 @@ const Host = ({ setView, user }) => {
                               setActivePoll={setActivePoll}
                               onEdit={onEditPoll}
                               onDelete={onDeletePoll}
+                              onPollUpdated={() => {
+                                supabase.from('polls').select('*, options(*)').eq('event_id', event.id).order('created_at', { ascending: true }).then(({ data }) => { if (data) setPolls(data); });
+                              }}
                             />
                           ))}
                         </div>

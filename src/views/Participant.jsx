@@ -3,15 +3,17 @@ import { motion } from 'framer-motion';
 import { Hash, PieChart, MessageSquare, Send, ThumbsUp, Trophy, CheckCircle2, Star, Activity } from 'lucide-react';
 import { useEventStore } from '../lib/store';
 
-const Participant = ({ 
-  polls, 
-  questions, 
-  activePollIndex, 
-  userVoted, 
-  handleVote, 
-  handleUpvote, 
-  newQuestion, 
-  setNewQuestion, 
+const Participant = ({
+  polls,
+  questions,
+  activePollIndex,
+  userVoted,
+  resultsVisible = true,
+  timerRemaining,
+  handleVote,
+  handleUpvote,
+  newQuestion,
+  setNewQuestion,
   submitQuestion,
   username,
   setUsername,
@@ -122,13 +124,30 @@ const Participant = ({
               {currentPoll.question}
             </h2>
 
+            {/* Timer bar */}
+            {timerRemaining > 0 && (
+              <div className={`mb-6 rounded-2xl px-5 py-3 flex items-center justify-between ${timerRemaining <= 10 ? 'bg-red-50 border border-red-200' : 'bg-indigo-50 border border-indigo-100'}`}>
+                <span className={`font-black text-sm ${timerRemaining <= 10 ? 'text-red-600' : 'text-indigo-600'}`}>⏱ Преостанато</span>
+                <span className={`font-black text-2xl tabular-nums ${timerRemaining <= 10 ? 'text-red-600 animate-pulse' : 'text-indigo-700'}`}>
+                  {String(Math.floor(timerRemaining / 60)).padStart(2,'0')}:{String(timerRemaining % 60).padStart(2,'0')}
+                </span>
+              </div>
+            )}
+
             {userVoted ? (
               <div className="py-12 text-center space-y-4">
                 <div className="bg-emerald-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto">
                   <CheckCircle2 className="w-10 h-10 text-emerald-500" />
                 </div>
                 <p className="text-xl font-black text-slate-800">Ви благодариме!</p>
-                <p className="text-slate-500 font-bold">Вашиот одговор е успешно испратен.</p>
+                {!resultsVisible ? (
+                  <div className="mt-4 bg-amber-50 border border-amber-200 rounded-2xl px-6 py-4">
+                    <p className="text-amber-700 font-black">⏳ Чекај ги резултатите...</p>
+                    <p className="text-amber-600 text-sm font-bold mt-1">Наставникот ќе ги открие наскоро.</p>
+                  </div>
+                ) : (
+                  <p className="text-slate-500 font-bold">Вашиот одговор е успешно испратен.</p>
+                )}
               </div>
             ) : (
               <div className="space-y-4">
