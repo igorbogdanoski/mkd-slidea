@@ -1,5 +1,5 @@
 import React from 'react';
-import { Lock, Eye, EyeOff, RotateCcw, Pencil, Trash2 } from 'lucide-react';
+import { GripVertical, Eye, EyeOff, RotateCcw, Pencil, Trash2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 const PollCard = ({ poll, index, activePollIndex, setActivePoll, onEdit, onDelete, onPollUpdated }) => {
@@ -58,7 +58,10 @@ const PollCard = ({ poll, index, activePollIndex, setActivePoll, onEdit, onDelet
         )}
       </div>
 
-      <div onClick={() => setActivePoll(index)} className="cursor-pointer">
+      <div className="absolute top-1/2 -translate-y-1/2 left-3 text-slate-200 cursor-grab active:cursor-grabbing">
+        <GripVertical className="w-5 h-5" />
+      </div>
+      <div onClick={() => setActivePoll(index)} className="cursor-pointer pl-4">
         <div className="flex justify-between items-center mb-4 pr-24">
           <span className={`text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest ${poll.is_quiz ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-500'}`}>
             {poll.is_quiz ? 'КВИЗ' : poll.type || 'АНКЕТА'}

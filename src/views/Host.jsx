@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Zap, Plus, ArrowLeft, Sparkles, ChevronLeft, ChevronRight, Settings, X, Timer, Square
+  Plus, ArrowLeft, Sparkles, ChevronLeft, ChevronRight, Settings, X, Timer, Square
 } from 'lucide-react';
 import QRCodeModal from '../components/QRCodeModal';
 import CreatePollModal from '../components/CreatePollModal';
@@ -32,6 +32,8 @@ const Host = ({ setView, user }) => {
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState('poll');
   const [editingPoll, setEditingPoll] = useState(null);
+  const [draggedIndex, setDraggedIndex] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
 
   useEffect(() => {
     const initEvent = async () => {
@@ -59,7 +61,7 @@ const Host = ({ setView, user }) => {
   useEffect(() => {
     if (!event) return;
     const fetchPolls = async () => {
-      const { data } = await supabase.from('polls').select('*, options(*)').eq('event_id', event.id).order('created_at', { ascending: true });
+      const { data } = await supabase.from('polls').select('*, options(*)').eq('event_id', event.id).order('position', { ascending: true }).order('created_at', { ascending: true });
       if (data) setPolls(data);
     };
     fetchPolls();
@@ -133,6 +135,26 @@ const Host = ({ setView, user }) => {
       console.error("Error saving poll:", err);
       alert("Настана грешка при зачувување на активноста. Ве молиме обидете се повторно.");
     }
+  };
+
+  const handleDrop = async (toIndex) => {
+    if (draggedIndex === null || draggedIndex === toIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+    const reordered = [...polls];
+    const [moved] = reordered.splice(draggedIndex, 1);
+    reordered.splice(toIndex, 0, moved);
+    setPolls(reordered);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+    // Update active poll index if needed
+    if (activePollIndex === draggedIndex) setActivePollIndex(toIndex);
+    // Persist positions to DB
+    await Promise.all(reordered.map((p, i) =>
+      supabase.from('polls').update({ position: i }).eq('id', p.id)
+    ));
   };
 
   const onEditPoll = (poll) => {
@@ -415,18 +437,27 @@ const Host = ({ setView, user }) => {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {polls.map((poll, index) => (
-                            <PollCard
+                            <div
                               key={poll.id}
-                              poll={poll}
-                              index={index}
-                              activePollIndex={activePollIndex}
-                              setActivePoll={setActivePoll}
-                              onEdit={onEditPoll}
-                              onDelete={onDeletePoll}
-                              onPollUpdated={() => {
-                                supabase.from('polls').select('*, options(*)').eq('event_id', event.id).order('created_at', { ascending: true }).then(({ data }) => { if (data) setPolls(data); });
-                              }}
-                            />
+                              draggable
+                              onDragStart={() => setDraggedIndex(index)}
+                              onDragOver={(e) => { e.preventDefault(); setDragOverIndex(index); }}
+                              onDragEnd={() => { setDraggedIndex(null); setDragOverIndex(null); }}
+                              onDrop={() => handleDrop(index)}
+                              className={`transition-all ${dragOverIndex === index && draggedIndex !== index ? 'scale-[1.02] ring-2 ring-indigo-400 ring-offset-2 rounded-[2rem]' : ''} ${draggedIndex === index ? 'opacity-40' : ''}`}
+                            >
+                              <PollCard
+                                poll={poll}
+                                index={index}
+                                activePollIndex={activePollIndex}
+                                setActivePoll={setActivePoll}
+                                onEdit={onEditPoll}
+                                onDelete={onDeletePoll}
+                                onPollUpdated={() => {
+                                  supabase.from('polls').select('*, options(*)').eq('event_id', event.id).order('position', { ascending: true }).order('created_at', { ascending: true }).then(({ data }) => { if (data) setPolls(data); });
+                                }}
+                              />
+                            </div>
                           ))}
                         </div>
                       </div>
