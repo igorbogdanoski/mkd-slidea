@@ -60,6 +60,7 @@ const Participant = ({
             value={nameInput}
             onChange={(e) => setNameInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && confirmName()}
+            maxLength={50}
             autoFocus
             className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all mb-6 text-center text-xl"
           />
@@ -97,7 +98,10 @@ const Participant = ({
             <div className="bg-indigo-600 p-2 rounded-xl">
               <Hash className="text-white w-5 h-5" />
             </div>
-            <span className="font-black text-slate-900">{eventCode || ''}</span>
+            <div>
+              <span className="font-black text-slate-900">{eventCode || ''}</span>
+              {username && <span className="block text-[10px] font-bold text-slate-400 -mt-0.5">{username}</span>}
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="bg-slate-100 px-3 py-1.5 rounded-2xl flex items-center gap-2 border border-slate-200">
@@ -247,10 +251,11 @@ const Participant = ({
                 ) : isTextType ? (
                   <div className="space-y-4">
                     <input 
-                      type="text" 
+                      type="text"
                       placeholder={currentPoll.type === 'wordcloud' ? "Внесете збор..." : "Вашиот одговор..."}
                       value={response}
                       onChange={(e) => setResponse(e.target.value)}
+                      maxLength={currentPoll.type === 'wordcloud' ? 40 : 300}
                       className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all"
                       onKeyDown={(e) => e.key === 'Enter' && submitResponse()}
                     />
