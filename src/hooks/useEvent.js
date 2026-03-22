@@ -136,17 +136,20 @@ export const useEvent = (eventCode) => {
 
   const vote = async (optionId, pollId, textValue, isModerated = false) => {
     if (textValue) {
+      // Strip HTML tags and limit length before storing
+      const clean = textValue.replace(/<[^>]+>/g, '').trim().slice(0, 300);
+      if (!clean) return;
       const { data: existing } = await supabase
         .from('options')
         .select('id')
         .eq('poll_id', pollId)
-        .ilike('text', textValue)
+        .ilike('text', clean)
         .single();
 
       if (existing) {
         return await supabase.rpc('increment_vote', { option_id: existing.id });
       } else {
-        return await supabase.from('options').insert([{ poll_id: pollId, text: textValue, votes: 1, is_approved: !isModerated }]);
+        return await supabase.from('options').insert([{ poll_id: pollId, text: clean, votes: 1, is_approved: !isModerated }]);
       }
     }
     return await supabase.rpc('increment_vote', { option_id: optionId });
