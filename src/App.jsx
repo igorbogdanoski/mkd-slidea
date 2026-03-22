@@ -18,7 +18,7 @@ const AppContent = () => {
   const [code, setCode] = useState('');
   const [username, setUsername] = useState(() => localStorage.getItem('mkd_slidea_user') || '');
 
-  const { user, loading, loadingMessage, signIn, signUp, signInWithMagicLink, signOut } = useAuth();
+  const { user, loading, loadingMessage, signIn, signUp, signInWithGoogle, signInWithMagicLink, signOut } = useAuth();
 
   const updateUsername = (val) => {
     setUsername(val);
@@ -78,7 +78,7 @@ const AppContent = () => {
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-700">
       {isPublicRoute && (
-        <Nav setView={setView} onLogin={handleLogin} user={user} onLogout={handleLogout} />
+        <Nav setView={setView} onLogin={handleLogin} onGoogleLogin={signInWithGoogle} user={user} onLogout={handleLogout} />
       )}
 
       <main className={isPublicRoute ? 'pt-16' : ''}>

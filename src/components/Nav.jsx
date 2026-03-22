@@ -54,7 +54,7 @@ const MegaMenu = ({ isOpen, items, setView, setActiveMenu }) => (
   </AnimatePresence>
 );
 
-const Nav = ({ setView, onLogin, user, onLogout }) => {
+const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout }) => {
   const [activeMenu, setActiveMenu] = useState(null);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
 
@@ -216,10 +216,11 @@ const Nav = ({ setView, onLogin, user, onLogout }) => {
           )}
         </div>
       </div>
-      <LoginModal 
-        isOpen={isLoginOpen} 
-        onClose={() => setIsLoginOpen(false)} 
-        onLogin={onLogin} 
+      <LoginModal
+        isOpen={isLoginOpen}
+        onClose={() => setIsLoginOpen(false)}
+        onLogin={onLogin}
+        onGoogleLogin={onGoogleLogin}
       />
     </nav>
   );

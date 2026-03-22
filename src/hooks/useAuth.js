@@ -85,6 +85,14 @@ export const useAuth = () => {
     if (error) throw error;
   };
 
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin + '/dashboard' },
+    });
+    if (error) throw error;
+  };
+
   const signInWithMagicLink = async (email) => {
     const { error } = await supabase.auth.signInWithOtp({
       email,
@@ -99,5 +107,5 @@ export const useAuth = () => {
     supabase.auth.signOut(); // fire and forget
   };
 
-  return { user, loading, loadingMessage, signIn, signUp, signInWithMagicLink, signOut };
+  return { user, loading, loadingMessage, signIn, signUp, signInWithGoogle, signInWithMagicLink, signOut };
 };
