@@ -11,6 +11,7 @@ import AIAssistantModal from '../components/AIAssistantModal';
 import ExportPDFModal from '../components/ExportPDFModal';
 import ParticipantStatsModal from '../components/ParticipantStatsModal';
 import { supabase } from '../lib/supabase';
+import { isPro } from '../lib/plans';
 import HostHeader from '../components/Host/HostHeader';
 import PollCard from '../components/Host/PollCard';
 import RemoteController from '../components/Host/RemoteController';
@@ -46,7 +47,7 @@ const Host = ({ setView, user }) => {
         eventCode = Math.random().toString(36).substring(2, 8).toUpperCase();
         const { data, error } = await supabase
           .from('events')
-          .insert([{ code: eventCode, title: 'Мојот настан' }])
+          .insert([{ code: eventCode, title: 'Мојот настан', user_id: user?.id || null }])
           .select()
           .single();
         if (!error) {
@@ -727,20 +728,26 @@ const Host = ({ setView, user }) => {
                           >
                             <BarChart2 className="w-5 h-5" />
                           </button>
-                          <button
-                            onClick={exportToCSV}
-                            className="flex items-center justify-center gap-2 px-5 py-4 bg-white border-2 border-slate-100 text-slate-500 rounded-2xl font-black hover:border-emerald-200 hover:text-emerald-600 transition-all shadow-sm active:scale-95"
-                            title="Извоз CSV/Excel"
-                          >
-                            <Sheet className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={() => setIsExportOpen(true)}
-                            className="flex items-center justify-center gap-2 px-5 py-4 bg-white border-2 border-slate-100 text-slate-500 rounded-2xl font-black hover:border-indigo-200 hover:text-indigo-600 transition-all shadow-sm active:scale-95"
-                            title="Извоз PDF"
-                          >
-                            <FileDown className="w-5 h-5" />
-                          </button>
+                          <div className="relative">
+                            <button
+                              onClick={exportToCSV}
+                              className="flex items-center justify-center gap-2 px-5 py-4 bg-white border-2 border-slate-100 text-slate-500 rounded-2xl font-black hover:border-emerald-200 hover:text-emerald-600 transition-all shadow-sm active:scale-95"
+                              title="Извоз CSV/Excel"
+                            >
+                              <Sheet className="w-5 h-5" />
+                            </button>
+                            {!isPro(user) && <span className="absolute -top-2 -right-2 bg-amber-400 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wide pointer-events-none">Pro</span>}
+                          </div>
+                          <div className="relative">
+                            <button
+                              onClick={() => setIsExportOpen(true)}
+                              className="flex items-center justify-center gap-2 px-5 py-4 bg-white border-2 border-slate-100 text-slate-500 rounded-2xl font-black hover:border-indigo-200 hover:text-indigo-600 transition-all shadow-sm active:scale-95"
+                              title="Извоз PDF"
+                            >
+                              <FileDown className="w-5 h-5" />
+                            </button>
+                            {!isPro(user) && <span className="absolute -top-2 -right-2 bg-amber-400 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wide pointer-events-none">Pro</span>}
+                          </div>
                         </>
                       )}
                       <button

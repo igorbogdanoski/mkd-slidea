@@ -33,6 +33,7 @@ const Dashboard = ({ setView, user, onLogout }) => {
     supabase
       .from('events')
       .select('id, code, title, created_at')
+      .eq('user_id', user?.id)
       .order('created_at', { ascending: false })
       .limit(50)
       .then(({ data }) => { setAllEvents(data || []); setEventsLoading(false); });

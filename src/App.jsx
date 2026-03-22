@@ -62,6 +62,12 @@ const AppContent = () => {
 
   const isPublicRoute = ['/', '/join', '/pricing'].includes(location.pathname);
 
+  // Protected route — redirects to / with login modal open if not authenticated
+  const ProtectedRoute = ({ children }) => {
+    if (!user) return <Navigate to="/" replace />;
+    return children;
+  };
+
   if (loading) return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center gap-4">
       <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
@@ -81,8 +87,8 @@ const AppContent = () => {
             <Routes>
               <Route path="/" element={<Landing code={code} setCode={setCode} setView={setView} />} />
               <Route path="/join" element={<Join code={code} setCode={setCode} handleJoin={handleJoin} setView={setView} />} />
-              <Route path="/host" element={<Host setView={setView} user={user} />} />
-              <Route path="/dashboard" element={<Dashboard setView={setView} user={user} onLogout={handleLogout} />} />
+              <Route path="/host" element={<ProtectedRoute><Host setView={setView} user={user} /></ProtectedRoute>} />
+              <Route path="/dashboard" element={<ProtectedRoute><Dashboard setView={setView} user={user} onLogout={handleLogout} /></ProtectedRoute>} />
               <Route path="/pricing" element={<Pricing setView={setView} />} />
               <Route path="/event/:id/present" element={<EventWrapper type="present" />} />
               <Route path="/event/:id/embed" element={<Embed />} />
