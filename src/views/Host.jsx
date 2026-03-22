@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Plus, ArrowLeft, Sparkles, ChevronLeft, ChevronRight, Settings, X, Timer, Square, ShieldCheck, Check, Trash2, MessageSquare, FileDown, Eye, EyeOff, BarChart2, Copy, UserPlus
+  Plus, ArrowLeft, Sparkles, ChevronLeft, ChevronRight, Settings, X, Timer, Square, ShieldCheck, Check, Trash2, MessageSquare, FileDown, Eye, EyeOff, BarChart2, Copy, UserPlus, RotateCcw, Sheet, Lock, Unlock
 } from 'lucide-react';
 import QRCodeModal from '../components/QRCodeModal';
 import CreatePollModal from '../components/CreatePollModal';
@@ -13,6 +13,7 @@ import ParticipantStatsModal from '../components/ParticipantStatsModal';
 import { supabase } from '../lib/supabase';
 import HostHeader from '../components/Host/HostHeader';
 import PollCard from '../components/Host/PollCard';
+import RemoteController from '../components/Host/RemoteController';
 const Host = ({ setView, user }) => {
   const [event, setEvent] = useState(null);
   const [polls, setPolls] = useState([]);
@@ -36,6 +37,7 @@ const Host = ({ setView, user }) => {
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [isStatsOpen, setIsStatsOpen] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
+  const [isRemoteMode, setIsRemoteMode] = useState(false);
 
   useEffect(() => {
     const initEvent = async () => {
@@ -211,6 +213,53 @@ const Host = ({ setView, user }) => {
     } else {
       setIsCreatePollOpen(true);
     }
+  };
+
+  const resetAllResults = async () => {
+    if (!window.confirm('Дали сте сигурни? Сите резултати ќе бидат избришани и учесниците ќе можат да гласаат повторно.')) return;
+    const pollIds = polls.map(p => p.id);
+    if (pollIds.length === 0) return;
+    await supabase.from('options').update({ votes: 0 }).in('poll_id', pollIds);
+    await supabase.from('votes').delete().in('poll_id', pollIds);
+  };
+
+  const exportToCSV = async () => {
+    const today = new Date().toLocaleDateString('mk-MK');
+    const rows = [
+      ['MKD Slidea — Извештај за резултати'],
+      [`Настан: ${event.title || ''}`, `Код: ${event.code}`, `Датум: ${today}`],
+      [],
+      ['Прашање', 'Тип', 'Одговор', 'Гласови', '%', 'Точен'],
+    ];
+    for (const poll of polls) {
+      const opts = (poll.options || []).filter(o => o.is_approved !== false);
+      const total = opts.reduce((s, o) => s + (o.votes || 0), 0);
+      const typeLabel = poll.is_quiz ? 'Квиз' : { poll: 'Анкета', wordcloud: 'Облак', open: 'Отворен текст', rating: 'Оценување', ranking: 'Рангирање' }[poll.type] || 'Анкета';
+      if (opts.length === 0) {
+        rows.push([poll.question, typeLabel, '—', 0, '0%', '']);
+      } else {
+        opts.sort((a, b) => (b.votes || 0) - (a.votes || 0)).forEach((opt, i) => {
+          const pct = total > 0 ? Math.round((opt.votes / total) * 100) : 0;
+          rows.push([
+            i === 0 ? poll.question : '',
+            i === 0 ? typeLabel : '',
+            opt.text,
+            opt.votes || 0,
+            `${pct}%`,
+            poll.is_quiz ? (opt.is_correct ? 'Да' : 'Не') : '',
+          ]);
+        });
+      }
+      rows.push([]);
+    }
+    const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `slidea-${event.code}-${today.replace(/\./g, '-')}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const setActivePoll = async (index) => {
@@ -525,6 +574,42 @@ const Host = ({ setView, user }) => {
               </div>
             </div>
 
+            {/* Lock audience */}
+            <div className="mt-5 p-5 bg-slate-50 rounded-2xl flex items-center justify-between">
+              <div>
+                <p className="font-black text-slate-900">Заклучи публиката</p>
+                <p className="text-sm text-slate-400 font-bold mt-0.5">
+                  {event.is_locked ? 'Учесниците не можат да гласаат' : 'Учесниците можат да гласаат'}
+                </p>
+              </div>
+              <button
+                onClick={async () => {
+                  const next = !event.is_locked;
+                  await supabase.from('events').update({ is_locked: next }).eq('id', event.id);
+                  setEvent(prev => ({ ...prev, is_locked: next }));
+                }}
+                className={`relative w-14 h-7 rounded-full transition-colors ${event.is_locked ? 'bg-red-500' : 'bg-slate-200'}`}
+              >
+                <span className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${event.is_locked ? 'translate-x-7' : 'translate-x-0.5'}`} />
+              </button>
+            </div>
+
+            {/* Danger zone */}
+            {polls.length > 0 && (
+              <div className="mt-5 p-5 bg-red-50 border border-red-100 rounded-2xl">
+                <p className="font-black text-red-700 text-sm mb-3 uppercase tracking-widest">Danger zone</p>
+                <button
+                  onClick={async () => {
+                    await resetAllResults();
+                    setIsSettingsOpen(false);
+                  }}
+                  className="w-full flex items-center justify-center gap-2 py-3 bg-white border-2 border-red-200 text-red-500 rounded-xl font-black text-sm hover:bg-red-500 hover:text-white hover:border-red-500 transition-all"
+                >
+                  <RotateCcw className="w-4 h-4" /> Ресетирај ги сите резултати
+                </button>
+              </div>
+            )}
+
             <button
               onClick={() => setIsSettingsOpen(false)}
               className="w-full mt-6 py-4 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-700 transition-all"
@@ -566,7 +651,22 @@ const Host = ({ setView, user }) => {
         polls={polls}
       />
 
-      <HostHeader event={event} setIsQRModalOpen={setIsQRModalOpen} setView={setView} />
+      <HostHeader event={event} setIsQRModalOpen={setIsQRModalOpen} setView={setView} isRemoteMode={isRemoteMode} setIsRemoteMode={setIsRemoteMode} />
+      {isRemoteMode && (
+        <RemoteController
+          polls={polls}
+          activePollIndex={activePollIndex}
+          setActivePoll={setActivePoll}
+          eventCode={event.code}
+          event={event}
+          onToggleLock={async () => {
+            const next = !event.is_locked;
+            await supabase.from('events').update({ is_locked: next }).eq('id', event.id);
+            setEvent(prev => ({ ...prev, is_locked: next }));
+          }}
+          onReset={resetAllResults}
+        />
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-12">
@@ -626,6 +726,13 @@ const Host = ({ setView, user }) => {
                             title="Статистики по учесник"
                           >
                             <BarChart2 className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={exportToCSV}
+                            className="flex items-center justify-center gap-2 px-5 py-4 bg-white border-2 border-slate-100 text-slate-500 rounded-2xl font-black hover:border-emerald-200 hover:text-emerald-600 transition-all shadow-sm active:scale-95"
+                            title="Извоз CSV/Excel"
+                          >
+                            <Sheet className="w-5 h-5" />
                           </button>
                           <button
                             onClick={() => setIsExportOpen(true)}
@@ -704,11 +811,31 @@ const Host = ({ setView, user }) => {
                             )}
                           </div>
 
-                          <button onClick={goNext} disabled={activePollIndex === polls.length - 1}
-                            className="flex items-center gap-2 font-black text-sm disabled:opacity-30 hover:text-indigo-400 transition-colors disabled:cursor-not-allowed"
-                          >
-                            Следна <ChevronRight className="w-5 h-5" />
-                          </button>
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={async () => {
+                                const next = !event.is_locked;
+                                await supabase.from('events').update({ is_locked: next }).eq('id', event.id);
+                                setEvent(prev => ({ ...prev, is_locked: next }));
+                              }}
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-black text-xs transition-all ${
+                                event.is_locked
+                                  ? 'bg-red-500 text-white'
+                                  : 'bg-slate-700 hover:bg-red-500/20 text-slate-300 hover:text-red-400'
+                              }`}
+                              title={event.is_locked ? 'Отклучи публика' : 'Заклучи публика'}
+                            >
+                              {event.is_locked
+                                ? <><Unlock className="w-3.5 h-3.5" /> Отклучи</>
+                                : <><Lock className="w-3.5 h-3.5" /> Заклучи</>
+                              }
+                            </button>
+                            <button onClick={goNext} disabled={activePollIndex === polls.length - 1}
+                              className="flex items-center gap-2 font-black text-sm disabled:opacity-30 hover:text-indigo-400 transition-colors disabled:cursor-not-allowed"
+                            >
+                              Следна <ChevronRight className="w-5 h-5" />
+                            </button>
+                          </div>
                         </div>
                         {/* Moderation queue */}
                         {(() => {

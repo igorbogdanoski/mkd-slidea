@@ -140,6 +140,22 @@ const EventWrapper = ({ type, username, setUsername }) => {
     );
   }
 
+  // Lock screen — host has locked voting
+  if (event.is_locked) {
+    return (
+      <div className="flex items-center justify-center min-h-[80vh] px-4">
+        <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl p-10 max-w-sm w-full text-center">
+          <div className="w-20 h-20 bg-red-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+            <Lock className="w-10 h-10 text-red-500" />
+          </div>
+          <h2 className="text-2xl font-black text-slate-900 mb-2">Гласањето е заклучено</h2>
+          <p className="text-slate-400 font-bold text-sm">Домаќинот привремено го оневозможи гласањето. Почекајте малку.</p>
+          <p className="mt-6 text-[10px] font-black text-slate-300 uppercase tracking-widest">#{event.code} · MKD Slidea</p>
+        </div>
+      </div>
+    );
+  }
+
   // Password gate — participant only
   if (event.password && !pwdAuth) {
     const handlePwdSubmit = (e) => {

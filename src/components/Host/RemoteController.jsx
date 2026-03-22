@@ -1,20 +1,12 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  Zap, 
-  Users, 
-  Lock, 
-  EyeOff, 
-  RotateCcw,
-  Smartphone
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, Users, Lock, RotateCcw, Smartphone } from 'lucide-react';
 import { useEventStore } from '../../lib/store';
 
-const RemoteController = ({ polls, activePollIndex, setActivePoll, eventCode }) => {
+const RemoteController = ({ polls, activePollIndex, setActivePoll, eventCode, event, onToggleLock, onReset }) => {
   const { activeParticipants } = useEventStore();
   const currentPoll = polls[activePollIndex];
+  const isLocked = !!event?.is_locked;
 
   const handleNext = () => {
     if (activePollIndex < polls.length - 1) {
@@ -28,10 +20,6 @@ const RemoteController = ({ polls, activePollIndex, setActivePoll, eventCode }) 
       setActivePoll(activePollIndex - 1);
       if (window.navigator.vibrate) window.navigator.vibrate(50);
     }
-  };
-
-  const handleAction = (_action) => {
-    if (window.navigator.vibrate) window.navigator.vibrate([30, 30, 30]);
   };
 
   if (!currentPoll) return null;
@@ -79,23 +67,28 @@ const RemoteController = ({ polls, activePollIndex, setActivePoll, eventCode }) 
       </div>
 
       {/* Quick Actions Grid */}
-      <div className="grid grid-cols-3 gap-4 p-8 bg-slate-900/30">
-        <button 
-          onClick={() => handleAction('lock')}
-          className="flex flex-col items-center gap-3 p-6 bg-slate-900 border border-white/5 rounded-[2rem] active:bg-red-600/20 active:border-red-600/50 transition-all group"
+      <div className="grid grid-cols-2 gap-4 p-8 bg-slate-900/30">
+        <button
+          onClick={() => {
+            onToggleLock?.();
+            if (window.navigator.vibrate) window.navigator.vibrate([30, 30, 30]);
+          }}
+          className={`flex flex-col items-center gap-3 p-6 rounded-[2rem] border transition-all ${
+            isLocked
+              ? 'bg-red-600/20 border-red-600/50'
+              : 'bg-slate-900 border-white/5 active:bg-red-600/20 active:border-red-600/50'
+          }`}
         >
-          <Lock className="w-6 h-6 text-slate-400 group-active:text-red-500" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 group-active:text-red-500">Заклучи</span>
+          <Lock className={`w-6 h-6 ${isLocked ? 'text-red-400' : 'text-slate-400'}`} />
+          <span className={`text-[10px] font-black uppercase tracking-widest ${isLocked ? 'text-red-400' : 'text-slate-500'}`}>
+            {isLocked ? 'Заклучено' : 'Заклучи'}
+          </span>
         </button>
-        <button 
-          onClick={() => handleAction('hide')}
-          className="flex flex-col items-center gap-3 p-6 bg-slate-900 border border-white/5 rounded-[2rem] active:bg-amber-600/20 active:border-amber-600/50 transition-all group"
-        >
-          <EyeOff className="w-6 h-6 text-slate-400 group-active:text-amber-500" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 group-active:text-amber-500">Скриј</span>
-        </button>
-        <button 
-          onClick={() => handleAction('reset')}
+        <button
+          onClick={() => {
+            onReset?.();
+            if (window.navigator.vibrate) window.navigator.vibrate([30, 30, 30]);
+          }}
           className="flex flex-col items-center gap-3 p-6 bg-slate-900 border border-white/5 rounded-[2rem] active:bg-indigo-600/20 active:border-indigo-600/50 transition-all group"
         >
           <RotateCcw className="w-6 h-6 text-slate-400 group-active:text-indigo-400" />
