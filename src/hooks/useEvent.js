@@ -14,6 +14,7 @@ export const useEvent = (eventCode) => {
       .from('polls')
       .select('*, options(*)')
       .eq('event_id', eventId)
+      .order('position', { ascending: true })
       .order('created_at', { ascending: true });
     setPolls(data || []);
   }, []);
@@ -24,6 +25,7 @@ export const useEvent = (eventCode) => {
       .select('*')
       .eq('event_id', eventId)
       .eq('is_answered', false)
+      .eq('is_approved', true)
       .order('votes', { ascending: false });
     setQuestions(data || []);
   }, []);
@@ -152,7 +154,8 @@ export const useEvent = (eventCode) => {
 
   const submitQuestion = async (text, author = "Гостин") => {
     if (!event) return;
-    return await supabase.from('questions').insert([{ event_id: event.id, text, author, votes: 0 }]);
+    const isApproved = !event.questions_moderation;
+    return await supabase.from('questions').insert([{ event_id: event.id, text, author, votes: 0, is_approved: isApproved }]);
   };
 
   const upvoteQuestion = async (questionId) => {

@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Plus, ArrowLeft, Sparkles, ChevronLeft, ChevronRight, Settings, X, Timer, Square, ShieldCheck, Check, Trash2
+  Plus, ArrowLeft, Sparkles, ChevronLeft, ChevronRight, Settings, X, Timer, Square, ShieldCheck, Check, Trash2, MessageSquare, FileDown, Eye, EyeOff, BarChart2, Copy, UserPlus
 } from 'lucide-react';
 import QRCodeModal from '../components/QRCodeModal';
 import CreatePollModal from '../components/CreatePollModal';
 import CreateQuizModal from '../components/CreateQuizModal';
 import InteractionTypeGrid from '../components/InteractionTypeGrid';
 import AIAssistantModal from '../components/AIAssistantModal';
+import ExportPDFModal from '../components/ExportPDFModal';
+import ParticipantStatsModal from '../components/ParticipantStatsModal';
 import { supabase } from '../lib/supabase';
 import HostHeader from '../components/Host/HostHeader';
 import PollCard from '../components/Host/PollCard';
@@ -30,6 +32,10 @@ const Host = ({ setView, user }) => {
   const [editingPoll, setEditingPoll] = useState(null);
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
+  const [pendingQuestions, setPendingQuestions] = useState([]);
+  const [isExportOpen, setIsExportOpen] = useState(false);
+  const [isStatsOpen, setIsStatsOpen] = useState(false);
+  const [showPwd, setShowPwd] = useState(false);
 
   useEffect(() => {
     const initEvent = async () => {
@@ -60,11 +66,23 @@ const Host = ({ setView, user }) => {
       const { data } = await supabase.from('polls').select('*, options(*)').eq('event_id', event.id).order('position', { ascending: true }).order('created_at', { ascending: true });
       if (data) setPolls(data);
     };
+    const fetchPendingQuestions = async () => {
+      const { data } = await supabase
+        .from('questions')
+        .select('*')
+        .eq('event_id', event.id)
+        .eq('is_answered', false)
+        .eq('is_approved', false)
+        .order('created_at', { ascending: true });
+      setPendingQuestions(data || []);
+    };
     fetchPolls();
+    fetchPendingQuestions();
     const sub = supabase
       .channel(`host_polls_${event.id}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'polls', filter: `event_id=eq.${event.id}` }, fetchPolls)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'options' }, fetchPolls)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'questions', filter: `event_id=eq.${event.id}` }, fetchPendingQuestions)
       .subscribe();
     return () => { sub.unsubscribe(); };
   }, [event]);
@@ -264,7 +282,7 @@ const Host = ({ setView, user }) => {
       {isSettingsOpen && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center p-4" onClick={() => setIsSettingsOpen(false)}>
           <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" />
-          <div className="relative bg-white rounded-[2rem] p-8 max-w-md w-full shadow-2xl z-10" onClick={e => e.stopPropagation()}>
+          <div className="relative bg-white rounded-[2rem] p-8 max-w-md w-full shadow-2xl z-10 overflow-y-auto max-h-[90vh]" onClick={e => e.stopPropagation()}>
             <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-600 to-violet-600 rounded-t-[2rem]" />
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-2xl font-black">Поставки на настанот</h3>
@@ -292,6 +310,24 @@ const Host = ({ setView, user }) => {
                 </button>
               </div>
 
+              {/* Q&A moderation */}
+              <div className="flex items-center justify-between p-5 bg-slate-50 rounded-2xl">
+                <div>
+                  <p className="font-black text-slate-900">Модерација на прашања</p>
+                  <p className="text-sm text-slate-400 font-bold mt-0.5">Прашањата од публиката чекаат одобрување</p>
+                </div>
+                <button
+                  onClick={async () => {
+                    const next = !event.questions_moderation;
+                    await supabase.from('events').update({ questions_moderation: next }).eq('id', event.id);
+                    setEvent(prev => ({ ...prev, questions_moderation: next }));
+                  }}
+                  className={`relative w-14 h-7 rounded-full transition-colors ${event.questions_moderation ? 'bg-indigo-600' : 'bg-slate-200'}`}
+                >
+                  <span className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${event.questions_moderation ? 'translate-x-7' : 'translate-x-0.5'}`} />
+                </button>
+              </div>
+
               {/* Event title */}
               <div className="p-5 bg-slate-50 rounded-2xl">
                 <p className="font-black text-slate-900 mb-3">Наслов на настанот</p>
@@ -306,6 +342,186 @@ const Host = ({ setView, user }) => {
                   className="w-full bg-white border-2 border-slate-100 rounded-xl px-4 py-3 font-bold focus:border-indigo-600 outline-none transition-all"
                   placeholder="Мојот настан"
                 />
+              </div>
+
+              {/* Co-host */}
+              <div className="p-5 bg-slate-50 rounded-2xl">
+                <div className="flex items-center gap-2 mb-1">
+                  <UserPlus className="w-4 h-4 text-slate-600" />
+                  <p className="font-black text-slate-900">Ко-домаќин</p>
+                </div>
+                <p className="text-sm text-slate-400 font-bold mb-4">Сподели пристап до овој настан со колега</p>
+                {event.cohost_code ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 bg-white border-2 border-indigo-100 rounded-xl px-4 py-3">
+                      <span className="flex-1 font-black text-indigo-700 tracking-widest text-lg">{event.cohost_code}</span>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(event.cohost_code);
+                        }}
+                        className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                        title="Копирај"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                      Ко-домаќинот го внесува овој код на почетната страница
+                    </p>
+                    <button
+                      onClick={async () => {
+                        await supabase.from('events').update({ cohost_code: null }).eq('id', event.id);
+                        setEvent(prev => ({ ...prev, cohost_code: null }));
+                      }}
+                      className="text-xs font-black text-red-400 hover:text-red-600 transition-colors uppercase tracking-widest"
+                    >
+                      Откажи ко-домаќин пристап
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={async () => {
+                      const code = Math.random().toString(36).slice(2, 10).toUpperCase();
+                      await supabase.from('events').update({ cohost_code: code }).eq('id', event.id);
+                      setEvent(prev => ({ ...prev, cohost_code: code }));
+                    }}
+                    className="w-full py-3 bg-white border-2 border-dashed border-slate-200 text-slate-500 rounded-xl font-black text-sm hover:border-indigo-400 hover:text-indigo-600 transition-all flex items-center justify-center gap-2"
+                  >
+                    <UserPlus className="w-4 h-4" /> Генерирај ко-домаќин код
+                  </button>
+                )}
+              </div>
+
+              {/* Event password */}
+              <div className="p-5 bg-slate-50 rounded-2xl">
+                <p className="font-black text-slate-900 mb-1">Лозинка за настанот</p>
+                <p className="text-sm text-slate-400 font-bold mb-3">Учесниците мора да ја внесат пред да влезат</p>
+                <div className="relative">
+                  <input
+                    type={showPwd ? 'text' : 'password'}
+                    defaultValue={event.password || ''}
+                    onBlur={async (e) => {
+                      const val = e.target.value.trim() || null;
+                      await supabase.from('events').update({ password: val }).eq('id', event.id);
+                      setEvent(prev => ({ ...prev, password: val }));
+                    }}
+                    placeholder="Без лозинка"
+                    className="w-full bg-white border-2 border-slate-100 rounded-xl px-4 py-3 font-bold focus:border-indigo-600 outline-none transition-all pr-12"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPwd(v => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                  >
+                    {showPwd ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+                {event.password && (
+                  <p className="mt-2 text-[10px] font-black text-emerald-600 uppercase tracking-widest">
+                    🔒 Настанот е заштитен со лозинка
+                  </p>
+                )}
+              </div>
+
+              {/* Brand color */}
+              <div className="p-5 bg-slate-50 rounded-2xl">
+                <p className="font-black text-slate-900 mb-1">Брендирачка боја</p>
+                <p className="text-sm text-slate-400 font-bold mb-4">Акцентна боја во Презентерот</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {['#6366f1','#8b5cf6','#10b981','#f59e0b','#ef4444','#06b6d4','#ec4899','#0ea5e9'].map(c => (
+                    <button
+                      key={c}
+                      onClick={async () => {
+                        await supabase.from('events').update({ brand_color: c }).eq('id', event.id);
+                        setEvent(prev => ({ ...prev, brand_color: c }));
+                      }}
+                      className="w-9 h-9 rounded-full border-4 transition-all hover:scale-110 active:scale-95"
+                      style={{
+                        backgroundColor: c,
+                        borderColor: (event.brand_color || '#6366f1') === c ? c : 'transparent',
+                        boxShadow: (event.brand_color || '#6366f1') === c ? `0 0 0 2px white, 0 0 0 4px ${c}` : 'none',
+                      }}
+                    />
+                  ))}
+                  <label className="w-9 h-9 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer hover:border-slate-400 transition-all overflow-hidden relative" title="Прилагодена боја">
+                    <span className="text-slate-400 text-xs font-black">+</span>
+                    <input
+                      type="color"
+                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                      value={event.brand_color || '#6366f1'}
+                      onChange={async (e) => {
+                        await supabase.from('events').update({ brand_color: e.target.value }).eq('id', event.id);
+                        setEvent(prev => ({ ...prev, brand_color: e.target.value }));
+                      }}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* Embed code */}
+              <div className="p-5 bg-slate-50 rounded-2xl">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="font-black text-slate-900">Embed / iFrame</p>
+                </div>
+                <p className="text-sm text-slate-400 font-bold mb-3">Вградете ги анкетите на вашата веб-страница</p>
+                <div className="relative">
+                  <textarea
+                    readOnly
+                    rows={3}
+                    value={`<iframe src="${window.location.origin}/event/${event.code}/embed" width="100%" height="480" frameborder="0" style="border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.08)"></iframe>`}
+                    className="w-full bg-white border-2 border-slate-100 rounded-xl px-4 py-3 font-mono text-xs text-slate-600 resize-none focus:outline-none"
+                  />
+                </div>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(`<iframe src="${window.location.origin}/event/${event.code}/embed" width="100%" height="480" frameborder="0" style="border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.08)"></iframe>`);
+                  }}
+                  className="mt-2 flex items-center gap-2 px-4 py-2 bg-white border-2 border-slate-100 text-slate-500 rounded-xl font-black text-xs hover:border-indigo-300 hover:text-indigo-600 transition-all"
+                >
+                  <Copy className="w-3.5 h-3.5" /> Копирај iFrame код
+                </button>
+              </div>
+
+              {/* Logo upload */}
+              <div className="p-5 bg-slate-50 rounded-2xl">
+                <p className="font-black text-slate-900 mb-1">Лого</p>
+                <p className="text-sm text-slate-400 font-bold mb-4">Се прикажува во Презентерот наместо MKD Slidea</p>
+                <div className="flex items-center gap-4">
+                  {event.logo_url ? (
+                    <div className="relative group">
+                      <img src={event.logo_url} alt="Лого" className="h-14 w-auto max-w-[120px] object-contain rounded-xl bg-white border border-slate-200 p-1" />
+                      <button
+                        onClick={async () => {
+                          await supabase.from('events').update({ logo_url: null }).eq('id', event.id);
+                          setEvent(prev => ({ ...prev, logo_url: null }));
+                        }}
+                        className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-[10px] font-black flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >✕</button>
+                    </div>
+                  ) : (
+                    <div className="w-14 h-14 rounded-xl bg-slate-200 flex items-center justify-center text-slate-400 font-black text-xl">?</div>
+                  )}
+                  <label className="flex-1 flex flex-col items-center justify-center px-4 py-4 bg-white border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 transition-all">
+                    <span className="text-sm font-black text-slate-500">Прикачи слика</span>
+                    <span className="text-[10px] font-bold text-slate-400 mt-0.5">PNG, JPG, SVG до 2MB</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file || file.size > 2 * 1024 * 1024) return;
+                        const ext = file.name.split('.').pop();
+                        const path = `${event.id}.${ext}`;
+                        const { error } = await supabase.storage.from('event-logos').upload(path, file, { upsert: true });
+                        if (error) { alert('Грешка при прикачување. Проверете дали bucket-от постои.'); return; }
+                        const { data: urlData } = supabase.storage.from('event-logos').getPublicUrl(path);
+                        await supabase.from('events').update({ logo_url: urlData.publicUrl }).eq('id', event.id);
+                        setEvent(prev => ({ ...prev, logo_url: urlData.publicUrl }));
+                      }}
+                    />
+                  </label>
+                </div>
               </div>
             </div>
 
@@ -331,11 +547,23 @@ const Host = ({ setView, user }) => {
         onSave={onSavePoll} 
         initialData={editingPoll}
       />
-      <AIAssistantModal 
-        isOpen={isAIModalOpen} 
-        onClose={() => setIsAIModalOpen(false)} 
-        onGenerate={onSavePoll} 
+      <AIAssistantModal
+        isOpen={isAIModalOpen}
+        onClose={() => setIsAIModalOpen(false)}
+        onGenerate={onSavePoll}
         user={user}
+      />
+      <ExportPDFModal
+        isOpen={isExportOpen}
+        onClose={() => setIsExportOpen(false)}
+        event={event}
+        polls={polls}
+      />
+      <ParticipantStatsModal
+        isOpen={isStatsOpen}
+        onClose={() => setIsStatsOpen(false)}
+        event={event}
+        polls={polls}
       />
 
       <HostHeader event={event} setIsQRModalOpen={setIsQRModalOpen} setView={setView} />
@@ -390,6 +618,24 @@ const Host = ({ setView, user }) => {
                       >
                         <Sparkles className="w-6 h-6 text-indigo-600" /> Креирај со AI
                       </button>
+                      {polls.length > 0 && (
+                        <>
+                          <button
+                            onClick={() => setIsStatsOpen(true)}
+                            className="flex items-center justify-center gap-2 px-5 py-4 bg-white border-2 border-slate-100 text-slate-500 rounded-2xl font-black hover:border-indigo-200 hover:text-indigo-600 transition-all shadow-sm active:scale-95"
+                            title="Статистики по учесник"
+                          >
+                            <BarChart2 className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => setIsExportOpen(true)}
+                            className="flex items-center justify-center gap-2 px-5 py-4 bg-white border-2 border-slate-100 text-slate-500 rounded-2xl font-black hover:border-indigo-200 hover:text-indigo-600 transition-all shadow-sm active:scale-95"
+                            title="Извоз PDF"
+                          >
+                            <FileDown className="w-5 h-5" />
+                          </button>
+                        </>
+                      )}
                       <button
                         onClick={() => setIsSettingsOpen(true)}
                         className="flex items-center justify-center gap-2 px-5 py-4 bg-white border-2 border-slate-100 text-slate-500 rounded-2xl font-black hover:border-slate-300 hover:text-slate-700 transition-all shadow-sm active:scale-95"
@@ -505,6 +751,44 @@ const Host = ({ setView, user }) => {
                             </div>
                           );
                         })()}
+                        {/* Q&A moderation queue */}
+                        {pendingQuestions.length > 0 && (
+                          <div className="bg-sky-50 border-2 border-sky-200 rounded-[2rem] p-6 mb-2">
+                            <div className="flex items-center gap-2 mb-4">
+                              <MessageSquare className="w-5 h-5 text-sky-600" />
+                              <span className="font-black text-sky-700 uppercase tracking-widest text-xs">Прашања — чекаат одобрување ({pendingQuestions.length})</span>
+                            </div>
+                            <div className="space-y-2">
+                              {pendingQuestions.map(q => (
+                                <div key={q.id} className="flex items-start justify-between bg-white rounded-2xl px-5 py-3 border border-sky-100 gap-4">
+                                  <div>
+                                    <p className="font-bold text-slate-700">{q.text}</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{q.author}</p>
+                                  </div>
+                                  <div className="flex gap-2 flex-shrink-0">
+                                    <button
+                                      onClick={async () => {
+                                        await supabase.from('questions').update({ is_approved: true }).eq('id', q.id);
+                                      }}
+                                      className="flex items-center gap-1 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-black text-xs transition-all"
+                                    >
+                                      <Check size={14} /> Одобри
+                                    </button>
+                                    <button
+                                      onClick={async () => {
+                                        await supabase.from('questions').delete().eq('id', q.id);
+                                      }}
+                                      className="flex items-center gap-1 px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 rounded-xl font-black text-xs transition-all"
+                                    >
+                                      <Trash2 size={14} />
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {polls.map((poll, index) => (
                             <div

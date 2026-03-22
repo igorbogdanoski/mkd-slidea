@@ -241,6 +241,8 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
 
   const eventCode = event?.code || '982341';
   const joinUrl = `${window.location.origin}/event/${eventCode}`;
+  const brandColor = event?.brand_color || '#6366f1';
+  const logoUrl = event?.logo_url || null;
   const currentPoll = polls[activePollIndex] || {
     question: 'Чекаме да започне првата анкета...',
     options: [], is_quiz: false, type: 'poll',
@@ -399,11 +401,23 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
       {/* Top Header */}
       <div className="flex items-center justify-between mb-16">
         <div className="flex items-center gap-6">
-          <div className="bg-indigo-600 p-4 rounded-3xl shadow-2xl shadow-indigo-500/20">
-            <Zap className="w-10 h-10 text-white fill-white" />
-          </div>
+          {logoUrl ? (
+            <img src={logoUrl} alt="Лого" className="h-16 w-auto max-w-[180px] object-contain" />
+          ) : (
+            <div className="p-4 rounded-3xl shadow-2xl" style={{ backgroundColor: brandColor }}>
+              <Zap className="w-10 h-10 text-white fill-white" />
+            </div>
+          )}
           <div>
-            <h1 className="text-4xl font-black tracking-tight">MKD <span className="text-indigo-400">Slidea</span></h1>
+            {logoUrl ? (
+              <h1 className="text-4xl font-black tracking-tight text-white">
+                {event?.title || 'MKD Slidea'}
+              </h1>
+            ) : (
+              <h1 className="text-4xl font-black tracking-tight">
+                MKD <span style={{ color: brandColor }}>Slidea</span>
+              </h1>
+            )}
             <p className="text-slate-500 font-bold uppercase tracking-widest text-sm">{getSubTitle()}</p>
           </div>
         </div>
@@ -411,18 +425,21 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
         <div className="flex items-center gap-10">
           <div className="text-right">
             <p className="text-slate-500 font-black text-sm uppercase tracking-widest mb-1">Приклучи се на</p>
-            <p className="text-3xl font-black text-indigo-400">{window.location.host}</p>
+            <p className="text-3xl font-black" style={{ color: brandColor }}>{window.location.host}</p>
           </div>
           <div className="bg-white p-3 rounded-3xl shadow-2xl border-4 border-slate-800">
-            <QRCodeSVG value={joinUrl} size={100} />
+            <QRCodeSVG value={joinUrl} size={100} fgColor={brandColor} />
           </div>
           <div className="bg-slate-800 px-8 py-5 rounded-[2rem] border border-slate-700">
             <p className="text-slate-500 font-black text-xs uppercase tracking-widest mb-1 text-center">Код за влезот</p>
             <p className="text-5xl font-black tracking-widest text-white">{eventCode}</p>
           </div>
           {timerRemaining > 0 && (
-            <div className={`px-8 py-5 rounded-[2rem] border flex flex-col items-center min-w-[120px] ${timerRemaining <= 10 ? 'bg-red-600 border-red-500 animate-pulse' : 'bg-indigo-700 border-indigo-600'}`}>
-              <p className="text-indigo-300 font-black text-xs uppercase tracking-widest mb-1">Тајмер</p>
+            <div
+              className={`px-8 py-5 rounded-[2rem] border flex flex-col items-center min-w-[120px] ${timerRemaining <= 10 ? 'bg-red-600 border-red-500 animate-pulse' : ''}`}
+              style={timerRemaining > 10 ? { backgroundColor: brandColor + '33', borderColor: brandColor + '66' } : {}}
+            >
+              <p className="font-black text-xs uppercase tracking-widest mb-1 text-white/60">Тајмер</p>
               <p className="text-5xl font-black tabular-nums text-white">
                 {String(Math.floor(timerRemaining / 60)).padStart(2,'0')}:{String(timerRemaining % 60).padStart(2,'0')}
               </p>
@@ -462,9 +479,10 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
                   onClick={() => setChartMode(m.id)}
                   className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl font-black text-sm transition-all ${
                     chartMode === m.id
-                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
+                      ? 'text-white shadow-lg'
                       : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white border border-slate-700'
                   }`}
+                  style={chartMode === m.id ? { backgroundColor: brandColor } : {}}
                 >
                   {m.icon} {m.label}
                 </button>
@@ -478,7 +496,7 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
           <div className="bg-slate-800/50 backdrop-blur-xl p-10 rounded-[4rem] border border-slate-700/50 h-full flex flex-col">
             <div className="flex items-center justify-between mb-10">
               <h3 className="text-2xl font-black flex items-center gap-3">
-                <div className="w-1.5 h-10 bg-indigo-500 rounded-full" />
+                <div className="w-1.5 h-10 rounded-full" style={{ backgroundColor: brandColor }} />
                 {currentPoll.is_quiz ? 'Табела на лидери' : 'Топ прашања'}
               </h3>
               <div className="bg-slate-700/50 px-5 py-3 rounded-[1.5rem] border border-slate-600/50 flex items-center gap-3 text-indigo-400 font-black">

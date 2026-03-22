@@ -7,3 +7,16 @@
     @apply bg-slate-50 text-slate-900;
   }
 }
+
+@media print {
+  body > * {
+    display: none !important;
+  }
+  #pdf-export-root {
+    display: block !important;
+  }
+  @page {
+    margin: 20mm 15mm;
+    size: A4;
+  }
+}

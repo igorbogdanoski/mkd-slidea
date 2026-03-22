@@ -6,6 +6,7 @@ import Presenter from '../views/Presenter';
 import Participant from '../views/Participant';
 import { useEventStore } from '../lib/store';
 import { supabase } from '../lib/supabase';
+import { Lock, Eye, EyeOff } from 'lucide-react';
 
 // Get or create a persistent session ID — crypto.randomUUID polyfill for older browsers
 const getSessionId = () => {
@@ -31,6 +32,12 @@ const EventWrapper = ({ type, username, setUsername }) => {
   const [dbVotedPolls, setDbVotedPolls] = useState([]);
   const [isVoting, setIsVoting] = useState(false);
   const [voteError, setVoteError] = useState(null);
+  const [pwdInput, setPwdInput] = useState('');
+  const [pwdError, setPwdError] = useState(false);
+  const [pwdVisible, setPwdVisible] = useState(false);
+  const [pwdAuth, setPwdAuth] = useState(() =>
+    !!sessionStorage.getItem(`pwd_auth_${window.location.pathname}`)
+  );
 
   useEffect(() => {
     if (event) {
@@ -121,15 +128,74 @@ const EventWrapper = ({ type, username, setUsername }) => {
 
   if (type === 'present') {
     return (
-      <Presenter 
-        event={event} 
-        polls={polls} 
-        questions={questions} 
+      <Presenter
+        event={event}
+        polls={polls}
+        questions={questions}
         reactions={reactions}
-        activePollIndex={activePollIndex} 
-        leaderboard={[]} 
+        activePollIndex={activePollIndex}
+        leaderboard={[]}
         markQuestionAnswered={markQuestionAnswered}
       />
+    );
+  }
+
+  // Password gate — participant only
+  if (event.password && !pwdAuth) {
+    const handlePwdSubmit = (e) => {
+      e.preventDefault();
+      if (pwdInput.trim() === event.password) {
+        sessionStorage.setItem(`pwd_auth_${window.location.pathname}`, '1');
+        setPwdAuth(true);
+        setPwdError(false);
+      } else {
+        setPwdError(true);
+        setPwdInput('');
+      }
+    };
+    return (
+      <div className="flex items-center justify-center min-h-[80vh] px-4">
+        <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl shadow-slate-100 p-10 max-w-sm w-full text-center">
+          <div className="w-20 h-20 bg-indigo-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+            <Lock className="w-10 h-10 text-indigo-600" />
+          </div>
+          <h2 className="text-2xl font-black text-slate-900 mb-1">Заштитен настан</h2>
+          <p className="text-slate-400 font-bold text-sm mb-8">Внесете ја лозинката за да влезете</p>
+
+          <form onSubmit={handlePwdSubmit} className="space-y-4">
+            <div className="relative">
+              <input
+                autoFocus
+                type={pwdVisible ? 'text' : 'password'}
+                value={pwdInput}
+                onChange={e => { setPwdInput(e.target.value); setPwdError(false); }}
+                placeholder="Лозинка..."
+                className={`w-full border-2 rounded-2xl px-5 py-4 font-bold text-slate-900 outline-none transition-all pr-12 ${pwdError ? 'border-red-400 bg-red-50' : 'border-slate-100 focus:border-indigo-500'}`}
+              />
+              <button
+                type="button"
+                onClick={() => setPwdVisible(v => !v)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              >
+                {pwdVisible ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
+            {pwdError && (
+              <p className="text-red-500 font-black text-sm">Погрешна лозинка. Обидете се повторно.</p>
+            )}
+            <button
+              type="submit"
+              className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-lg transition-all active:scale-95 shadow-lg shadow-indigo-100"
+            >
+              Влези
+            </button>
+          </form>
+
+          <p className="mt-6 text-[10px] font-black text-slate-300 uppercase tracking-widest">
+            #{event.code} · MKD Slidea
+          </p>
+        </div>
+      </div>
     );
   }
 
@@ -162,10 +228,16 @@ const EventWrapper = ({ type, username, setUsername }) => {
         setVoteError(null);
 
         try {
+          let answerText = null;
+          let isCorrect = null;
+
           if (typeof val === 'string') {
+            answerText = val;
             await vote(null, currentPoll.id, val, !!currentPoll.needs_moderation);
           } else {
             const option = currentPoll.options[val];
+            answerText = option.text;
+            isCorrect = option.is_correct ?? null;
             await vote(option.id);
             if (currentPoll.is_quiz) {
               const correctIndex = currentPoll.options.findIndex(o => o.is_correct);
@@ -177,8 +249,14 @@ const EventWrapper = ({ type, username, setUsername }) => {
           }
           const sid = getSessionId();
           await supabase.from('votes').upsert(
-            { poll_id: currentPoll.id, session_id: sid },
-            { onConflict: 'poll_id,session_id', ignoreDuplicates: true }
+            {
+              poll_id: currentPoll.id,
+              session_id: sid,
+              username: username || 'Анонимен',
+              answer_text: answerText,
+              is_correct: isCorrect,
+            },
+            { onConflict: 'poll_id,session_id', ignoreDuplicates: false }
           );
           markVoted(currentPoll.id);
         } catch (err) {

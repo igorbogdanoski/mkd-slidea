@@ -8,6 +8,7 @@ import Host from './views/Host';
 import Dashboard from './views/Dashboard';
 import Pricing from './views/Pricing';
 import EventWrapper from './components/EventWrapper';
+import Embed from './views/Embed';
 import ErrorBoundary from './components/ErrorBoundary';
 import { useAuth } from './hooks/useAuth';
 
@@ -84,6 +85,7 @@ const AppContent = () => {
               <Route path="/dashboard" element={<Dashboard setView={setView} user={user} onLogout={handleLogout} />} />
               <Route path="/pricing" element={<Pricing setView={setView} />} />
               <Route path="/event/:id/present" element={<EventWrapper type="present" />} />
+              <Route path="/event/:id/embed" element={<Embed />} />
               <Route
                 path="/event/:id"
                 element={<EventWrapper type="participant" username={username} setUsername={updateUsername} />}
