@@ -138,7 +138,7 @@ export const useEvent = (eventCode) => {
         .from('options')
         .select('id')
         .eq('poll_id', pollId)
-        .eq('text', textValue)
+        .ilike('text', textValue)
         .single();
 
       if (existing) {
