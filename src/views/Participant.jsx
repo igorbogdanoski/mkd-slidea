@@ -68,6 +68,12 @@ const Participant = ({
           >
             Започни →
           </button>
+          <button
+            onClick={() => setUsername('Анонимен')}
+            className="w-full py-3 text-slate-400 font-bold text-sm hover:text-slate-600 transition-colors"
+          >
+            Продолжи анонимно
+          </button>
         </div>
       </motion.div>
     );
