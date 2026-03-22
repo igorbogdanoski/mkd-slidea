@@ -202,15 +202,17 @@ const Dashboard = ({ setView, user, onLogout }) => {
         );
       case 'plan':
         const planInfo = {
-          basic:     { name: 'Бесплатен', price: '€0', period: 'Засекогаш', participants: '50', polls: '3', events: '5' },
-          monthly:   { name: 'Месечен',   price: '€5', period: '/месец',    participants: '∞', polls: '∞', events: '∞' },
-          quarterly: { name: 'Квартален', price: '€10', period: '/квартал', participants: '∞', polls: '∞', events: '∞' },
-          semester:  { name: 'Семестар',  price: '€15', period: '/семестар',participants: '∞', polls: '∞', events: '∞' },
-          yearly:    { name: 'Годишен',   price: '€20', period: '/година',  participants: '∞', polls: '∞', events: '∞' },
-          pro:       { name: 'PRO',        price: '€20', period: '/година',  participants: '∞', polls: '∞', events: '∞' },
+          free:      { name: 'Бесплатен',    price: '€0',  period: 'Засекогаш',  participants: '50', polls: '3', events: '5' },
+          basic:     { name: 'Бесплатен',    price: '€0',  period: 'Засекогаш',  participants: '50', polls: '3', events: '5' },
+          monthly:   { name: 'Месечен',      price: '€5',  period: '/месец',     participants: '∞',  polls: '∞', events: '∞' },
+          quarterly: { name: 'Квартален',    price: '€10', period: '/квартал',   participants: '∞',  polls: '∞', events: '∞' },
+          semester:  { name: 'Семестар',     price: '€15', period: '/семестар',  participants: '∞',  polls: '∞', events: '∞' },
+          yearly:    { name: 'Годишен',      price: '€20', period: '/година',    participants: '∞',  polls: '∞', events: '∞' },
+          pro:       { name: 'PRO',          price: '€20', period: '/година',    participants: '∞',  polls: '∞', events: '∞' },
+          admin:     { name: 'Администратор',price: '—',   period: 'Интерен',    participants: '∞',  polls: '∞', events: '∞' },
         };
-        const currentPlan = planInfo[user?.plan] || planInfo.basic;
-        const isPro = user?.plan !== 'basic' && user?.plan;
+        const currentPlan = planInfo[user?.plan] || planInfo.free;
+        const isPro = !['basic', 'free', undefined, null].includes(user?.plan);
         return (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
