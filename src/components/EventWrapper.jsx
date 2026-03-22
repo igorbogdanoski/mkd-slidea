@@ -15,7 +15,8 @@ const EventWrapper = ({ type, username, setUsername }) => {
     upvoteQuestion, markQuestionAnswered, sendReaction 
   } = useEvent(id);
   
-  const { setEvent, setPresence, activeParticipants } = useEventStore();
+  const { setEvent, setPresence } = useEventStore();
+  const [quizResult, setQuizResult] = useState(null);
 
   useEffect(() => {
     if (event) {
@@ -54,10 +55,13 @@ const EventWrapper = ({ type, username, setUsername }) => {
     ? polls.findIndex(p => p.id === event.active_poll_id) 
     : 0;
 
+  // Reset quiz result when active poll changes
+  const currentPollId = polls[activePollIndex >= 0 ? activePollIndex : 0]?.id;
+  useEffect(() => { setQuizResult(null); }, [currentPollId]);
+
   // Persist voted polls in localStorage so refresh doesn't reset vote state
   const votedKey = `voted_${event?.id || id}`;
   const getVoted = () => { try { return JSON.parse(localStorage.getItem(votedKey) || '[]'); } catch { return []; } };
-  const currentPollId = polls[activePollIndex]?.id;
   const userVoted = currentPollId ? getVoted().includes(currentPollId) : false;
   const markVoted = (pollId) => {
     const v = getVoted();
@@ -118,6 +122,7 @@ const EventWrapper = ({ type, username, setUsername }) => {
       questions={questions}
       activePollIndex={activePollIndex}
       userVoted={userVoted || timerExpired}
+      quizResult={quizResult}
       resultsVisible={resultsVisible}
       timerRemaining={timerRemaining}
       handleVote={async (val) => {
@@ -130,13 +135,12 @@ const EventWrapper = ({ type, username, setUsername }) => {
           } else {
             const option = currentPoll.options[val];
             await vote(option.id);
-            if (option.is_correct) {
-              confetti({ 
-                particleCount: 150, 
-                spread: 70, 
-                origin: { y: 0.6 }, 
-                colors: ['#F59E0B', '#FCD34D', '#Indigo-600'] 
-              });
+            if (currentPoll.is_quiz) {
+              const correctIndex = currentPoll.options.findIndex(o => o.is_correct);
+              setQuizResult({ isCorrect: !!option.is_correct, selectedIndex: val, correctIndex });
+              if (option.is_correct) {
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#10B981', '#34D399', '#6EE7B7'] });
+              }
             }
           }
           markVoted(currentPoll.id);

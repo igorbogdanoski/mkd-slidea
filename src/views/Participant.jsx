@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Hash, PieChart, MessageSquare, Send, ThumbsUp, Trophy, CheckCircle2, Star, Activity } from 'lucide-react';
+import { Hash, PieChart, MessageSquare, Send, ThumbsUp, Trophy, CheckCircle2, XCircle, Star } from 'lucide-react';
 import { useEventStore } from '../lib/store';
 
 const Participant = ({
@@ -8,6 +8,7 @@ const Participant = ({
   questions,
   activePollIndex,
   userVoted,
+  quizResult,
   resultsVisible = true,
   timerRemaining,
   handleVote,
@@ -135,18 +136,73 @@ const Participant = ({
             )}
 
             {userVoted ? (
-              <div className="py-12 text-center space-y-4">
-                <div className="bg-emerald-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto">
-                  <CheckCircle2 className="w-10 h-10 text-emerald-500" />
-                </div>
-                <p className="text-xl font-black text-slate-800">Ви благодариме!</p>
-                {!resultsVisible ? (
-                  <div className="mt-4 bg-amber-50 border border-amber-200 rounded-2xl px-6 py-4">
-                    <p className="text-amber-700 font-black">⏳ Чекај ги резултатите...</p>
-                    <p className="text-amber-600 text-sm font-bold mt-1">Наставникот ќе ги открие наскоро.</p>
-                  </div>
+              <div className="py-6 space-y-4">
+                {quizResult ? (
+                  <>
+                    <motion.div
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                      className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto ${quizResult.isCorrect ? 'bg-emerald-100' : 'bg-red-100'}`}
+                    >
+                      {quizResult.isCorrect
+                        ? <CheckCircle2 className="w-14 h-14 text-emerald-500" />
+                        : <XCircle className="w-14 h-14 text-red-500" />
+                      }
+                    </motion.div>
+                    <p className={`text-2xl font-black text-center ${quizResult.isCorrect ? 'text-emerald-600' : 'text-red-600'}`}>
+                      {quizResult.isCorrect ? 'Точно! 🎉' : 'Не точно'}
+                    </p>
+                    <div className="space-y-3 mt-2">
+                      {currentPoll.options.map((option, i) => {
+                        const isCorrect = option.is_correct;
+                        const isSelected = i === quizResult.selectedIndex;
+                        return (
+                          <motion.div
+                            key={i}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: i * 0.08 }}
+                            className={`p-4 rounded-2xl border-2 font-bold flex items-center gap-3 ${
+                              isCorrect
+                                ? 'border-emerald-400 bg-emerald-50 text-emerald-700'
+                                : isSelected
+                                ? 'border-red-300 bg-red-50 text-red-600'
+                                : 'border-slate-100 bg-slate-50 text-slate-400'
+                            }`}
+                          >
+                            {isCorrect
+                              ? <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                              : isSelected
+                              ? <XCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+                              : <div className="w-5 h-5 flex-shrink-0" />
+                            }
+                            {option.text}
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                    {!resultsVisible && (
+                      <div className="mt-2 bg-amber-50 border border-amber-200 rounded-2xl px-6 py-4 text-center">
+                        <p className="text-amber-700 font-black">⏳ Чекај ги резултатите...</p>
+                      </div>
+                    )}
+                  </>
                 ) : (
-                  <p className="text-slate-500 font-bold">Вашиот одговор е успешно испратен.</p>
+                  <div className="py-12 text-center space-y-4">
+                    <div className="bg-emerald-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto">
+                      <CheckCircle2 className="w-10 h-10 text-emerald-500" />
+                    </div>
+                    <p className="text-xl font-black text-slate-800">Ви благодариме!</p>
+                    {!resultsVisible ? (
+                      <div className="mt-4 bg-amber-50 border border-amber-200 rounded-2xl px-6 py-4">
+                        <p className="text-amber-700 font-black">⏳ Чекај ги резултатите...</p>
+                        <p className="text-amber-600 text-sm font-bold mt-1">Наставникот ќе ги открие наскоро.</p>
+                      </div>
+                    ) : (
+                      <p className="text-slate-500 font-bold">Вашиот одговор е успешно испратен.</p>
+                    )}
+                  </div>
                 )}
               </div>
             ) : (
