@@ -12,15 +12,26 @@ export const supabase = createClient(
   supabaseAnonKey || 'placeholder'
 );
 
-// Warm up both REST and Auth on load + every 9 min
+// Warm up both REST and Auth on load + every 4 min to avoid cold starts
 // Auth is pinged via HTTP directly to avoid Web Locks conflicts
-const warmUp = () => {
-  supabase.from('events').select('id').limit(1).then(() => {});
+export const warmUp = async () => {
+  const jobs = [
+    supabase.from('events').select('id').limit(1),
+  ];
+
   if (supabaseUrl && supabaseAnonKey) {
-    fetch(`${supabaseUrl}/auth/v1/health`, {
-      headers: { apikey: supabaseAnonKey },
-    }).catch(() => {});
+    jobs.push(
+      fetch(`${supabaseUrl}/auth/v1/health`, {
+        headers: { apikey: supabaseAnonKey },
+      })
+    );
   }
+
+  if (typeof window !== 'undefined') {
+    jobs.push(fetch('/api/keepalive'));
+  }
+
+  await Promise.allSettled(jobs);
 };
 warmUp();
-setInterval(warmUp, 9 * 60 * 1000);
+setInterval(warmUp, 4 * 60 * 1000);

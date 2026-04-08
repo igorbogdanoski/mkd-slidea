@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Mail, CheckCircle, UserPlus, LogIn } from 'lucide-react';
+import { X, Mail, CheckCircle, UserPlus, LogIn, Loader2 } from 'lucide-react';
+import { warmUp } from '../lib/supabase';
 
 const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin }) => {
   const [mode, setMode] = useState('login'); // 'login' | 'register' | 'magic'
@@ -22,6 +23,8 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin }) => {
 
   useEffect(() => {
     if (isOpen) {
+      // Pre-warm Supabase the moment modal opens — by the time user types, server is ready
+      warmUp();
       setError('');
       setMagicSent(false);
       setRegistered(false);
@@ -44,8 +47,13 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin }) => {
   };
 
   const withSlowWarning = (setMsg) => {
-    const t = setTimeout(() => setMsg('Серверот се буди, уште малку...'), 10000);
+    const t = setTimeout(() => setMsg('Серверот се буди, уште малку...'), 4000);
     return t;
+  };
+
+  const primeAuth = async () => {
+    warmUp().catch(() => {});
+    await new Promise((resolve) => setTimeout(resolve, 700));
   };
 
   const handleLogin = async (e) => {
@@ -55,12 +63,33 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin }) => {
     setLoadingMsg('');
     const t = withSlowWarning(setLoadingMsg);
     try {
+      await primeAuth();
       await onLogin(email, password, 'password');
       clearTimeout(t);
       onClose();
     } catch (err) {
       clearTimeout(t);
-      setError(translateError(err.message));
+      // Auto-retry once if it looks like a cold-start timeout
+      const isTimeout = err.message?.toLowerCase().includes('timeout') ||
+        err.message?.toLowerCase().includes('fetch') ||
+        err.message?.toLowerCase().includes('network');
+      if (isTimeout) {
+        setLoadingMsg('Повторно се обидуваме...');
+        warmUp();
+        try {
+          await new Promise(r => setTimeout(r, 2000));
+          await onLogin(email, password, 'password');
+          clearTimeout(t);
+          setLoading(false);
+          setLoadingMsg('');
+          onClose();
+          return;
+        } catch (retryErr) {
+          setError(translateError(retryErr.message));
+        }
+      } else {
+        setError(translateError(err.message));
+      }
     } finally {
       setLoading(false);
       setLoadingMsg('');
@@ -77,6 +106,7 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin }) => {
     setError('');
     const t = withSlowWarning(setLoadingMsg);
     try {
+      await primeAuth();
       await onLogin(email, password, 'register', name);
       clearTimeout(t);
       onClose();
@@ -94,6 +124,7 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin }) => {
     setLoading(true);
     setError('');
     try {
+      await primeAuth();
       await onLogin(email, null, 'magic');
       setMagicSent(true);
     } catch (err) {
@@ -144,7 +175,13 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin }) => {
               {onGoogleLogin && (
                 <button
                   type="button"
-                  onClick={async () => { try { await onGoogleLogin(); onClose(); } catch {} }}
+                  onClick={async () => {
+                    try {
+                      await primeAuth();
+                      await onGoogleLogin();
+                      onClose();
+                    } catch {}
+                  }}
                   className="w-full flex items-center justify-center gap-3 py-4 bg-white border-2 border-slate-100 rounded-2xl font-black text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition-all active:scale-95 mb-4 shadow-sm"
                 >
                   <svg width="20" height="20" viewBox="0 0 48 48">
@@ -218,11 +255,16 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin }) => {
                   </div>
                   <button
                     type="submit" disabled={loading}
-                    className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black text-xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 mt-4 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black text-xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 mt-4 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3"
                   >
-                    {loading ? (loadingMsg || 'Се најавува...') : 'Најави се'}
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <span className="text-base">{loadingMsg || 'Се најавува...'}</span>
+                      </>
+                    ) : 'Најави се'}
                   </button>
-                  {loadingMsg && (
+                  {loadingMsg && !loading && (
                     <button type="button" onClick={handleLogin}
                       className="w-full py-3 text-indigo-600 font-black text-sm hover:underline"
                     >

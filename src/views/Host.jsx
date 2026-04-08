@@ -46,7 +46,8 @@ const Host = ({ setView, user }) => {
     const initEvent = async () => {
       let eventCode = localStorage.getItem('active_event_code');
       if (!eventCode) {
-        eventCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+        eventCode = Array.from(crypto.getRandomValues(new Uint8Array(4)))
+          .map(b => b.toString(36)).join('').toUpperCase().slice(0, 6);
         const { data, error } = await supabase
           .from('events')
           .insert([{ code: eventCode, title: 'Мојот настан', user_id: user?.id || null }])
@@ -452,7 +453,8 @@ const Host = ({ setView, user }) => {
                 ) : (
                   <button
                     onClick={async () => {
-                      const code = Math.random().toString(36).slice(2, 10).toUpperCase();
+                      const code = Array.from(crypto.getRandomValues(new Uint8Array(5)))
+                        .map(b => b.toString(36)).join('').toUpperCase().slice(0, 8);
                       await supabase.from('events').update({ cohost_code: code }).eq('id', event.id);
                       setEvent(prev => ({ ...prev, cohost_code: code }));
                     }}

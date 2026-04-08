@@ -60,11 +60,12 @@ export default async function handler(req) {
     return new Response(JSON.stringify({ error: 'AI API key not configured' }), { status: 500 });
   }
 
-  // Quota Saving Logic: Use FLASH for simple tasks, PRO for complex (Quiz or Advanced Strategies)
+  // Quota Saving Logic: Use Flash for simple tasks, Flash for complex too (2.0 is fast+capable)
+  // Upgrade to gemini-2.5-pro for CoT/ToT when quota allows
   const isAdvanced = strategy === 'cot' || strategy === 'tot';
-  const modelToUse = (type === 'wordcloud' || type === 'poll' || type === 'open') && !isAdvanced
-    ? 'gemini-1.5-flash'
-    : 'gemini-1.5-pro';
+  const modelToUse = isAdvanced
+    ? 'gemini-2.5-pro-preview-03-25'
+    : 'gemini-2.0-flash';
 
   let strategyInstructions = '';
   if (strategy === 'cot') {

@@ -61,6 +61,7 @@ const AppContent = () => {
   };
 
   const isPublicRoute = ['/', '/join', '/pricing'].includes(location.pathname);
+  const showPublicShellWhileLoading = loading && isPublicRoute && !user;
 
   // Protected route — redirects to / with login modal open if not authenticated
   const ProtectedRoute = ({ children }) => {
@@ -68,7 +69,7 @@ const AppContent = () => {
     return children;
   };
 
-  if (loading) return (
+  if (loading && !showPublicShellWhileLoading) return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center gap-4">
       <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
       <p className="text-slate-400 font-bold text-sm animate-pulse">{loadingMessage}</p>

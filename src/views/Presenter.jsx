@@ -1,11 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
-import { Hash, Zap, Star, Activity, BarChart2, PieChart, Award, Hash as HashIcon } from 'lucide-react';
+import { Hash, Zap, Star, Activity, BarChart2, PieChart, Award, Hash as HashIcon, PartyPopper, Users } from 'lucide-react';
 import { PieChart as RechartsPie, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import WordCloud from '../components/WordCloud';
 import { useEventStore } from '../lib/store';
 import { supabase } from '../lib/supabase';
+
+// Confetti — loaded via CDN in index.html as window.confetti
+const fireConfetti = () => {
+  if (typeof window.confetti !== 'function') return;
+  window.confetti({ particleCount: 180, spread: 100, origin: { y: 0.6 }, colors: ['#6366f1','#8b5cf6','#10b981','#f59e0b','#ef4444','#ffffff'] });
+  setTimeout(() => window.confetti({ particleCount: 80, angle: 60, spread: 55, origin: { x: 0 } }), 300);
+  setTimeout(() => window.confetti({ particleCount: 80, angle: 120, spread: 55, origin: { x: 1 } }), 500);
+};
 
 // ─── Color palette shared across all chart modes ─────────────────────────────
 const PALETTE = [
@@ -240,6 +248,7 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
   const [chartMode, setChartMode] = useState('bars');
   const [timerRemaining, setTimerRemaining] = useState(null);
   const [surveyResponses, setSurveyResponses] = useState([]);
+  const [confettiFired, setConfettiFired] = useState(false);
 
   const eventCode = event?.code || '982341';
   const joinUrl = `${window.location.origin}/event/${eventCode}`;
@@ -251,7 +260,16 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
   };
 
   // Reset chart mode when switching polls
-  useEffect(() => { setChartMode('bars'); }, [activePollIndex]);
+  useEffect(() => { setChartMode('bars'); setConfettiFired(false); }, [activePollIndex]);
+
+  // Auto-confetti: when a quiz has responses from all (or most) participants
+  useEffect(() => {
+    if (!currentPoll.is_quiz || confettiFired) return;
+    if (activeParticipants > 0 && totalVotes >= activeParticipants) {
+      setConfettiFired(true);
+      fireConfetti();
+    }
+  }, [totalVotes, activeParticipants, currentPoll.is_quiz, confettiFired]);
 
   // Timer countdown from per-poll timer_ends_at
   useEffect(() => {
@@ -630,21 +648,25 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
                 <div className="w-1.5 h-10 rounded-full" style={{ backgroundColor: brandColor }} />
                 {currentPoll.is_quiz ? 'Табела на лидери' : 'Топ прашања'}
               </h3>
-              <div className="bg-slate-700/50 px-5 py-3 rounded-[1.5rem] border border-slate-600/50 flex items-center gap-3 text-indigo-400 font-black">
-                <div className="relative">
-                  <Activity className="w-5 h-5 text-indigo-400" />
-                  <motion.div animate={{ scale: [1, 1.5, 1], opacity: [1, 0, 1] }}
-                    transition={{ repeat: Infinity, duration: 2 }}
-                    className="absolute inset-0 bg-indigo-400 rounded-full scale-150 blur-sm opacity-20"
-                  />
+              <div className="flex flex-col items-end gap-2">
+                <div className="bg-slate-700/50 px-5 py-3 rounded-[1.5rem] border border-slate-600/50 flex items-center gap-3 text-indigo-400 font-black">
+                  <div className="relative">
+                    <Activity className="w-5 h-5 text-indigo-400" />
+                    <motion.div animate={{ scale: [1, 1.5, 1], opacity: [1, 0, 1] }}
+                      transition={{ repeat: Infinity, duration: 2 }}
+                      className="absolute inset-0 bg-indigo-400 rounded-full scale-150 blur-sm opacity-20"
+                    />
+                  </div>
+                  <span className="text-xl">{activeParticipants} во живо</span>
                 </div>
-                <span className="text-xl">{activeParticipants} во живо</span>
-              </div>
-            </div>
-
-            <div className="space-y-5 flex-1 overflow-y-auto pr-4 scrollbar-hide">
-              {currentPoll.is_quiz ? (
-                [...leaderboard].sort((a, b) => b.points - a.points).map((user, i) => {
+                {activeParticipants > 0 && ['poll','quiz','rating','ranking','scale'].includes(currentPoll.type) && (
+                  <div className="flex items-center gap-2 px-4 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                    <Users className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-emerald-400 font-black text-sm">
+                      {Math.min(totalVotes, activeParticipants)}/{activeParticipants} одговориле
+                    </span>
+                  </div>
+                )}
                   const medals = ['🥇', '🥈', '🥉'];
                   const topColors = [
                     'bg-amber-500/20 border-amber-500/40 text-amber-300',
@@ -700,7 +722,13 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
       <div className="mt-auto pt-8 flex items-center justify-between border-t border-slate-800/50 text-slate-600 font-black text-xs uppercase tracking-[0.2em]">
         <p>© 2026 MKD Slidea • Автор: Игор Богданоски • Направено во 🇲🇰</p>
         <p>Најдобрата платформа за интеракција во живо</p>
-        <p>100% приватно и безбедно</p>
+        <button
+          onClick={fireConfetti}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-indigo-600 border border-slate-700/50 hover:border-indigo-500 transition-all text-slate-400 hover:text-white"
+          title="Преслави со конфети!"
+        >
+          <PartyPopper className="w-4 h-4" /> Конфети 🎉
+        </button>
       </div>
     </div>
   );

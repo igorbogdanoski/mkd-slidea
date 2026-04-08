@@ -1,6 +1,134 @@
-# MKD Slidea — План за развој
-**Цел:** Македонски Mentimeter → Slido → Nearpod/Pear Deck
-**Средина:** React + Vite + Supabase Free + Vercel Hobby
+# MKD Slidea — Акционен план за светско ниво
+**Цел:** Macedonia-first Mentimeter — подобро, поевтино, педагошки супериорно  
+**Средина:** React + Vite + Supabase + Vercel Edge  
+**Ревизија:** Април 2026 · Expert review интегриран
+
+---
+
+## ✅ SPRINT 0 — Завршено (9 Апр 2026)
+
+| | Промена | Фајл |
+|---|---------|------|
+| ✅ | Free план: **200 учесници** (беше 50) | `src/lib/plans.js` |
+| ✅ | Нови планови: monthly/quarterly/semester/yearly | `src/lib/plans.js` |
+| ✅ | `isPro()` ги препознава сите платени планови | `src/lib/plans.js` |
+| ✅ | Pricing страница: 200 учесници на Free | `src/views/Pricing.jsx` |
+| ✅ | Gemini моделите: 1.5 → **2.0-flash / 2.5-pro** | `api/generate.js` |
+| ✅ | `crypto.getRandomValues()` наместо `Math.random()` за event кодови | `Host.jsx`, `Dashboard.jsx` |
+
+---
+
+## 🔴 ФАЗА А — Безбедност (КРИТИЧНО пред промовирање)
+
+### А.1 — Admin detection → server-side
+```
+useAuth.js: избриши го ADMIN_EMAILS array
+Supabase: Authentication → Custom Access Token Hook → role: 'admin' во JWT
+```
+
+### А.2 — Row Level Security
+```sql
+-- Events: само читање јавно, пишување само за сопственикот
+ALTER TABLE events ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "public_read" ON events FOR SELECT USING (true);
+CREATE POLICY "owner_all" ON events FOR ALL USING (auth.uid() = user_id);
+
+-- Polls, Options, Questions: исто
+ALTER TABLE polls ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "public_read_polls" ON polls FOR SELECT USING (true);
+CREATE POLICY "owner_polls" ON polls FOR ALL USING (
+  event_id IN (SELECT id FROM events WHERE user_id = auth.uid()));
+```
+
+### А.3 — Votes табела (Analytics е broken без неа)
+```sql
+CREATE TABLE IF NOT EXISTS votes (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  poll_id UUID REFERENCES polls(id) ON DELETE CASCADE,
+  option_id UUID REFERENCES options(id),
+  session_id TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(poll_id, session_id)
+);
+CREATE INDEX idx_votes_poll ON votes(poll_id);
+CREATE INDEX idx_votes_session ON votes(session_id);
+CREATE INDEX idx_polls_event ON polls(event_id);
+CREATE INDEX idx_options_poll ON options(poll_id);
+```
+
+### А.4 — Persistent rate limiting
+```
+Инсталирај @vercel/kv → замени ја in-memory Map во api/generate.js
+```
+
+---
+
+## 🟡 ФАЗА Б — Квалитет (2 недели)
+
+- [ ] Live counter на Presenter: "23/30 одговориле"
+- [ ] Confetti при крај на квиз (canvas-confetti веќе во deps!)
+- [ ] PWA manifest — учениците може да зачуваат на home screen
+- [ ] Onboarding guided тур за нови наставници
+- [ ] survey_responses табела за Формулар тип
+- [ ] Подобрен PDF извоз layout
+
+---
+
+## 🟢 ФАЗА В — Светски функции (1 месец)
+
+### В.1 — Асинхрон/Homework режим
+- Настанот останува отворен 24-48h без наставникот онлајн
+- **Ова Mentimeter го нема на Free план**
+
+### В.2 — AI Insights по часот
+- По завршување → AI анализира: „42% погрешиле на пр.3 — потребно повторување"
+- Генерира план за следниот час базиран на слабите точки
+- **Ова не постои кај ниту една конкурентна алатка**
+
+### В.3 — Шаблон библиотека (crowd-sourced)
+- Наставниците споделуваат свои настани
+- Поврзано со македонскиот курикулум (предмет + одделение + тема)
+
+### В.4 — Integrations
+- Microsoft Teams Add-in (manifest.xml постои → треба publishing)
+- Google Classroom SSO
+- e-дневник извоз
+
+---
+
+## 🏆 ФАЗА Г — Пазарна стратегија
+
+### Конкурентна цена
+| | Mentimeter Pro | **Slidea Годишен** |
+|---|---|---|
+| Цена | ~€300/год | **€20/год** |
+| Јазик | Нема MK | 🇲🇰 Native |
+| AI со педагогија | Нема | ✅ Bloom-based |
+| **Разлика** | | **15× поевтино** |
+
+### Раст
+1. **5 пилот-училишта** → документирани резултати → МОН
+2. **Амбасадор програма** — 1 наставник по средно училиште, бесплатен Pro
+3. **Facebook/Viber наставнички групи** — директен target на 5,000+ наставници
+4. **YouTube** „Педагошки рецепт на недела" — 5 мин видео
+
+---
+
+## 📊 KPIs
+
+| | Денес | 3 мес | 6 мес | 12 мес |
+|--|-------|-------|-------|--------|
+| Регистрирани наставници | ~0 | 100 | 500 | 2,000 |
+| Активни сесии/мес | ~0 | 200 | 1,000 | 5,000 |
+| Плаќачки корисници | 0 | 10 | 50 | 200 |
+| MRR (€) | 0 | 50 | 250 | 1,000 |
+
+---
+
+*Macedonian Mentimeter — направено со срце, за македонски наставници.*
+
+---
+## ОРИГИНАЛЕН ПЛАН (историски запис)
 
 ---
 

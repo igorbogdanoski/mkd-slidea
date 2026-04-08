@@ -4,17 +4,71 @@
 
 export const PLANS = {
   free: {
-    label: 'Free',
-    maxActiveEvents: 3,
+    label: 'Бесплатен',
+    maxActiveEvents: 5,
     maxPollsPerEvent: 10,
-    maxParticipants: 50,
+    maxParticipants: 200,
     branding: false,
     csvExport: false,
     pdfExport: false,
     cohost: false,
     embed: false,
     advancedAnalytics: false,
+    aiGenerate: false,
   },
+  monthly: {
+    label: 'Месечен',
+    maxActiveEvents: Infinity,
+    maxPollsPerEvent: 10,
+    maxParticipants: 200,
+    branding: false,
+    csvExport: false,
+    pdfExport: false,
+    cohost: false,
+    embed: false,
+    advancedAnalytics: false,
+    aiGenerate: true,
+  },
+  quarterly: {
+    label: 'Квартален',
+    maxActiveEvents: Infinity,
+    maxPollsPerEvent: Infinity,
+    maxParticipants: 500,
+    branding: true,
+    csvExport: true,
+    pdfExport: true,
+    cohost: true,
+    embed: true,
+    advancedAnalytics: true,
+    aiGenerate: true,
+  },
+  semester: {
+    label: 'Семестрален',
+    maxActiveEvents: Infinity,
+    maxPollsPerEvent: Infinity,
+    maxParticipants: 1000,
+    branding: true,
+    csvExport: true,
+    pdfExport: true,
+    cohost: true,
+    embed: true,
+    advancedAnalytics: true,
+    aiGenerate: true,
+  },
+  yearly: {
+    label: 'Годишен',
+    maxActiveEvents: Infinity,
+    maxPollsPerEvent: Infinity,
+    maxParticipants: Infinity,
+    branding: true,
+    csvExport: true,
+    pdfExport: true,
+    cohost: true,
+    embed: true,
+    advancedAnalytics: true,
+    aiGenerate: true,
+  },
+  // Legacy alias
   pro: {
     label: 'Pro',
     maxActiveEvents: Infinity,
@@ -26,6 +80,7 @@ export const PLANS = {
     cohost: true,
     embed: true,
     advancedAnalytics: true,
+    aiGenerate: true,
   },
   admin: {
     label: 'Admin',
@@ -38,6 +93,7 @@ export const PLANS = {
     cohost: true,
     embed: true,
     advancedAnalytics: true,
+    aiGenerate: true,
   },
 };
 
@@ -57,5 +113,6 @@ export const planLimit = (user, key) => {
 };
 
 export const isPro = (user) => {
-  return user?.plan === 'pro' || user?.plan === 'admin' || user?.role === 'admin';
+  const paidPlans = ['pro', 'monthly', 'quarterly', 'semester', 'yearly', 'admin'];
+  return paidPlans.includes(user?.plan) || user?.role === 'admin';
 };

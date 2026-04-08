@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Zap, ChevronDown, PieChart, MessageSquare, Cloud, 
@@ -6,6 +6,7 @@ import {
   Users, School, Briefcase, Calendar, LayoutGrid, LogIn
 } from 'lucide-react';
 import LoginModal from './LoginModal';
+import { warmUp } from '../lib/supabase';
 
 const MegaMenu = ({ isOpen, items, setView, setActiveMenu }) => (
   <AnimatePresence>
@@ -57,6 +58,15 @@ const MegaMenu = ({ isOpen, items, setView, setActiveMenu }) => (
 const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout }) => {
   const [activeMenu, setActiveMenu] = useState(null);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+
+  useEffect(() => {
+    warmUp().catch(() => {});
+  }, []);
+
+  const openLogin = () => {
+    warmUp().catch(() => {});
+    setIsLoginOpen(true);
+  };
 
   const features = [
     {
@@ -201,13 +211,13 @@ const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout }) => {
           ) : (
             <>
               <button 
-                onClick={() => setIsLoginOpen(true)}
+                onClick={openLogin}
                 className="text-sm font-black text-slate-900 hover:text-indigo-600 transition-all px-6 py-2"
               >
                 Најави се
               </button>
               <button 
-                onClick={() => setIsLoginOpen(true)}
+                onClick={openLogin}
                 className="bg-indigo-600 text-white px-8 py-3.5 rounded-2xl text-sm font-black hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 active:scale-95 flex items-center gap-2"
               >
                 Регистрирај се

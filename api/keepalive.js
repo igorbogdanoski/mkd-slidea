@@ -1,8 +1,10 @@
 export const config = { runtime: 'edge' };
 
 export default async function handler() {
-  const url = process.env.VITE_SUPABASE_URL;
-  const key = process.env.VITE_SUPABASE_ANON_KEY;
+  // Server-side: use non-VITE_ env vars (VITE_ prefix is client-only)
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const key = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+  if (!url || !key) return new Response('missing env', { status: 500 });
   try {
     // Ping REST (PostgREST) and Auth (GoTrue) in parallel — both cold-start separately
     await Promise.all([

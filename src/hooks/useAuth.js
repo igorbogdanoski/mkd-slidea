@@ -1,25 +1,18 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase, warmUp } from '../lib/supabase';
 
-const ADMIN_EMAILS = [
-  'igor@slidea.mk',
-  'admin@slidea.mk',
-  'igorbogdanoski@gmail.com',
-  'bogdanoskiigor@gmail.com',
-  'igor@mismath.net',
-];
+// SECURITY: Admin role comes exclusively from the DB profiles table.
+// To grant admin: UPDATE profiles SET role='admin', plan='admin' WHERE email='your@email.com';
+// Never put admin emails in client-side code — visible in browser DevTools.
 
 const buildUserProfile = (supabaseUser, profile = null) => {
   if (!supabaseUser) return null;
-  const email = supabaseUser.email?.toLowerCase() || '';
-  const isAdmin = ADMIN_EMAILS.includes(email);
   return {
     id: supabaseUser.id,
     email: supabaseUser.email,
-    name: profile?.name || supabaseUser.user_metadata?.name || (isAdmin ? 'Игор Богданоски' : 'Корисник'),
-    // Admin emails always get admin role/plan regardless of DB value
-    role: isAdmin ? 'admin' : (profile?.role || 'user'),
-    plan: isAdmin ? 'admin' : (profile?.plan || 'free'),
+    name: profile?.name || supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'Корисник',
+    role: profile?.role || 'user',
+    plan: profile?.plan || 'free',
   };
 };
 
@@ -32,6 +25,8 @@ export const useAuth = () => {
     // Max 25s spinner then render anyway (Edge Tracking Prevention / cold start)
     const slowMsg = setTimeout(() => setLoadingMessage('Серверот се буди, момент...'), 5000);
     const timeout = setTimeout(() => setLoading(false), 25000);
+
+    warmUp().catch(() => {});
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       clearTimeout(slowMsg);

@@ -16,6 +16,13 @@ CREATE TABLE IF NOT EXISTS events (
   code       TEXT UNIQUE NOT NULL,
   title      TEXT,
   active_poll_id UUID,
+  user_id    UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  is_locked  BOOLEAN DEFAULT false,
+  password   TEXT,
+  cohost_code TEXT UNIQUE,
+  questions_moderation BOOLEAN DEFAULT false,
+  brand_color TEXT DEFAULT '#6366f1',
+  logo_url   TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -27,6 +34,11 @@ CREATE TABLE IF NOT EXISTS polls (
   type       TEXT DEFAULT 'poll',
   active     BOOLEAN DEFAULT true,
   is_quiz    BOOLEAN DEFAULT false,
+  position   INTEGER DEFAULT 0,
+  timer_ends_at TIMESTAMP WITH TIME ZONE,
+  results_visible BOOLEAN DEFAULT true,
+  needs_moderation BOOLEAN DEFAULT false,
+  survey_questions JSONB DEFAULT '[]'::jsonb,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -36,6 +48,7 @@ CREATE TABLE IF NOT EXISTS options (
   poll_id    UUID REFERENCES polls(id) ON DELETE CASCADE,
   text       TEXT NOT NULL,
   votes      INTEGER DEFAULT 0,
+  is_approved BOOLEAN DEFAULT true,
   is_correct BOOLEAN DEFAULT false
 );
 
@@ -46,8 +59,32 @@ CREATE TABLE IF NOT EXISTS questions (
   text        TEXT NOT NULL,
   author      TEXT DEFAULT 'Гостин',
   votes       INTEGER DEFAULT 0,
+  is_approved BOOLEAN DEFAULT true,
   is_answered BOOLEAN DEFAULT false,
   created_at  TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 6b. Табела за гласови по учесник (Votes)
+CREATE TABLE IF NOT EXISTS votes (
+  id         UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  poll_id    UUID REFERENCES polls(id) ON DELETE CASCADE,
+  option_id  UUID REFERENCES options(id) ON DELETE SET NULL,
+  session_id TEXT NOT NULL,
+  username   TEXT,
+  answer_text TEXT,
+  is_correct BOOLEAN,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(poll_id, session_id)
+);
+
+-- 6c. Табела за survey/form одговори
+CREATE TABLE IF NOT EXISTS survey_responses (
+  id         UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  poll_id    UUID REFERENCES polls(id) ON DELETE CASCADE,
+  session_id TEXT NOT NULL,
+  answers    JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(poll_id, session_id)
 );
 
 -- 6. Табела за Реакции (Reactions)
@@ -123,26 +160,8 @@ BEGIN
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'name', 'Корисник'),
-    CASE
-      WHEN NEW.email IN (
-        'igor@slidea.mk',
-        'admin@slidea.mk',
-        'igorbogdanoski@gmail.com',
-        'bogdanoskiigor@gmail.com',
-        'igor@mismath.net'
-      ) THEN 'admin'
-      ELSE 'user'
-    END,
-    CASE
-      WHEN NEW.email IN (
-        'igor@slidea.mk',
-        'admin@slidea.mk',
-        'igorbogdanoski@gmail.com',
-        'bogdanoskiigor@gmail.com',
-        'igor@mismath.net'
-      ) THEN 'pro'
-      ELSE 'basic'
-    END
+    'user',
+    'free'
   )
   ON CONFLICT (id) DO NOTHING;
   RETURN NEW;
@@ -154,3 +173,11 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+
+CREATE INDEX IF NOT EXISTS idx_events_user_id ON events(user_id);
+CREATE INDEX IF NOT EXISTS idx_polls_event_id ON polls(event_id);
+CREATE INDEX IF NOT EXISTS idx_options_poll_id ON options(poll_id);
+CREATE INDEX IF NOT EXISTS idx_questions_event_id ON questions(event_id);
+CREATE INDEX IF NOT EXISTS idx_votes_poll_id ON votes(poll_id);
+CREATE INDEX IF NOT EXISTS idx_votes_session_id ON votes(session_id);
+CREATE INDEX IF NOT EXISTS idx_survey_responses_poll_id ON survey_responses(poll_id);

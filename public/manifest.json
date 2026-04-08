@@ -1,0 +1,29 @@
+{
+  "name": "MKD Slidea — Интерактивна настава",
+  "short_name": "Slidea",
+  "description": "Платформа за интерактивна настава во живо — македонски Mentimeter",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8FAFC",
+  "theme_color": "#6366f1",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "lang": "mk",
+  "shortcuts": [
+    {
+      "name": "Приклучи се на настан",
+      "short_name": "Влези",
+      "description": "Внеси код и приклучи се",
+      "url": "/join",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    }
+  ]
+}

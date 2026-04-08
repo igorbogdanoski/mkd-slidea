@@ -4,6 +4,7 @@ import Sidebar from '../components/Dashboard/Sidebar';
 import HomeTab from '../components/Dashboard/HomeTab';
 import AnalyticsTab from '../components/Dashboard/AnalyticsTab';
 import EventResultsModal from '../components/Dashboard/EventResultsModal';
+import AdminTab from '../components/Dashboard/AdminTab';
 import { templates } from '../data/templates';
 import { supabase } from '../lib/supabase';
 
@@ -41,7 +42,8 @@ const Dashboard = ({ setView, user, onLogout }) => {
 
   const useTemplate = async (template) => {
     // Generate code outside try so it's accessible in catch
-    const eventCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const eventCode = Array.from(crypto.getRandomValues(new Uint8Array(4)))
+      .map(b => b.toString(36)).join('').toUpperCase().slice(0, 6);
     try {
       const { data: event, error: eventError } = await supabase
         .from('events')
@@ -217,10 +219,14 @@ const Dashboard = ({ setView, user, onLogout }) => {
             </div>
           </motion.div>
         );
+      case 'admin':
+        return user?.role === 'admin'
+          ? <AdminTab currentUser={user} />
+          : null;
       case 'plan':
         const planInfo = {
-          free:      { name: 'Бесплатен',    price: '€0',  period: 'Засекогаш',  participants: '50', polls: '3', events: '5' },
-          basic:     { name: 'Бесплатен',    price: '€0',  period: 'Засекогаш',  participants: '50', polls: '3', events: '5' },
+          free:      { name: 'Бесплатен',    price: '€0',  period: 'Засекогаш',  participants: '200', polls: '3', events: '5' },
+          basic:     { name: 'Бесплатен',    price: '€0',  period: 'Засекогаш',  participants: '200', polls: '3', events: '5' },
           monthly:   { name: 'Месечен',      price: '€5',  period: '/месец',     participants: '∞',  polls: '∞', events: '∞' },
           quarterly: { name: 'Квартален',    price: '€10', period: '/квартал',   participants: '∞',  polls: '∞', events: '∞' },
           semester:  { name: 'Семестар',     price: '€15', period: '/семестар',  participants: '∞',  polls: '∞', events: '∞' },
