@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase, warmUp } from '../lib/supabase';
 
 export const useEvent = (eventCode) => {
   const [event, setEvent] = useState(null);
@@ -42,10 +42,16 @@ export const useEvent = (eventCode) => {
       try {
         setLoading(true);
 
+        // Proactively warm REST/Auth endpoints without blocking too long
+        await Promise.race([
+          warmUp(),
+          new Promise((resolve) => setTimeout(resolve, 2000)),
+        ]);
+
         // Retry once on failure — handles transient auth state in new tabs
         let eventData = null;
         let eventError = null;
-        for (let attempt = 0; attempt < 2; attempt++) {
+        for (let attempt = 0; attempt < 4; attempt++) {
           const { data, error } = await supabase
             .from('events')
             .select('*')
@@ -57,7 +63,10 @@ export const useEvent = (eventCode) => {
           eventData = Array.isArray(data) && data.length > 0 ? data[0] : null;
 
           if (!eventError && eventData) break;
-          if (attempt === 0) await new Promise(r => setTimeout(r, 1200));
+          if (attempt < 3) {
+            const backoff = [1200, 1800, 2500][attempt] || 2500;
+            await new Promise((r) => setTimeout(r, backoff));
+          }
         }
 
         // Fallback for strict/legacy RLS setups: security-definer RPC
