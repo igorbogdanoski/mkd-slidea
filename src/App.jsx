@@ -17,8 +17,9 @@ const AppContent = () => {
   const location = useLocation();
   const [code, setCode] = useState('');
   const [username, setUsername] = useState(() => localStorage.getItem('mkd_slidea_user') || '');
+  const isEventRoute = location.pathname.startsWith('/event/');
 
-  const { user, loading, loadingMessage, signIn, signUp, signInWithGoogle, signInWithMagicLink, signOut } = useAuth();
+  const { user, loading, loadingMessage, signIn, signUp, signInWithGoogle, signInWithMagicLink, signOut } = useAuth({ enabled: !isEventRoute });
 
   const getSafeNextPath = () => {
     const params = new URLSearchParams(location.search);
@@ -85,7 +86,7 @@ const AppContent = () => {
     return children;
   };
 
-  if (loading && !showPublicShellWhileLoading) return (
+  if (loading && !showPublicShellWhileLoading && !isEventRoute) return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center gap-4">
       <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
       <p className="text-slate-400 font-bold text-sm animate-pulse">{loadingMessage}</p>

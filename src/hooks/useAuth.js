@@ -16,12 +16,18 @@ const buildUserProfile = (supabaseUser, profile = null) => {
   };
 };
 
-export const useAuth = () => {
+export const useAuth = ({ enabled = true } = {}) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadingMessage, setLoadingMessage] = useState('Се поврзуваме...');
 
   useEffect(() => {
+    if (!enabled) {
+      setLoading(false);
+      setUser(null);
+      return;
+    }
+
     // Max 25s spinner then render anyway (Edge Tracking Prevention / cold start)
     const slowMsg = setTimeout(() => setLoadingMessage('Серверот се буди, момент...'), 5000);
     const timeout = setTimeout(() => setLoading(false), 25000);
@@ -53,7 +59,7 @@ export const useAuth = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [enabled]);
 
   const fetchProfile = async (userId) => {
     const { data } = await supabase
