@@ -667,6 +667,12 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
                     </span>
                   </div>
                 )}
+              </div>
+            </div>
+
+            <div className="space-y-5 flex-1 overflow-y-auto pr-4 scrollbar-hide">
+              {currentPoll.is_quiz ? (
+                [...leaderboard].sort((a, b) => b.points - a.points).map((user, i) => {
                   const medals = ['🥇', '🥈', '🥉'];
                   const topColors = [
                     'bg-amber-500/20 border-amber-500/40 text-amber-300',
