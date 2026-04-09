@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase, warmUp } from '../lib/supabase';
+import { supabase, warmUp, authGetSessionSafe } from '../lib/supabase';
 
 // SECURITY: Admin role comes exclusively from the DB profiles table.
 // To grant admin: UPDATE profiles SET role='admin', plan='admin' WHERE email='your@email.com';
@@ -34,7 +34,7 @@ export const useAuth = ({ enabled = true } = {}) => {
 
     warmUp().catch(() => {});
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    authGetSessionSafe().then(async ({ data: { session } }) => {
       clearTimeout(slowMsg);
       clearTimeout(timeout);
       if (session?.user) {
@@ -50,11 +50,15 @@ export const useAuth = ({ enabled = true } = {}) => {
 
     // Auth state changes (SIGNED_IN fires after signInWithPassword resolves)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        const profile = await fetchProfile(session.user.id);
-        setUser(buildUserProfile(session.user, profile));
-      } else {
-        setUser(null);
+      try {
+        if (session?.user) {
+          const profile = await fetchProfile(session.user.id);
+          setUser(buildUserProfile(session.user, profile));
+        } else {
+          setUser(null);
+        }
+      } catch {
+        setUser(session?.user ? buildUserProfile(session.user, null) : null);
       }
     });
 
@@ -102,10 +106,14 @@ export const useAuth = ({ enabled = true } = {}) => {
     if (error) throw error;
   };
 
-  const signOut = () => {
+  const signOut = async () => {
     setUser(null);
     localStorage.removeItem('mkd_slidea_user_data');
-    supabase.auth.signOut(); // fire and forget
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // Keep local sign-out state even if remote sign-out races with another tab/request.
+    }
   };
 
   return { user, loading, loadingMessage, signIn, signUp, signInWithGoogle, signInWithMagicLink, signOut };

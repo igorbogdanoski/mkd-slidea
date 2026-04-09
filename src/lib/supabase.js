@@ -14,7 +14,10 @@ export const supabase = createClient(
 
 // Warm up both REST and Auth on load + every 4 min to avoid cold starts
 // Auth is pinged via HTTP directly to avoid Web Locks conflicts
+let warmUpInFlight = null;
 export const warmUp = async () => {
+  if (warmUpInFlight) return warmUpInFlight;
+
   const jobs = [
     supabase.from('events').select('id').limit(1),
   ];
@@ -31,7 +34,37 @@ export const warmUp = async () => {
     jobs.push(fetch('/api/keepalive'));
   }
 
-  await Promise.allSettled(jobs);
+  warmUpInFlight = Promise.allSettled(jobs).finally(() => {
+    warmUpInFlight = null;
+  });
+
+  return warmUpInFlight;
+};
+
+let sessionInFlight = null;
+export const authGetSessionSafe = async () => {
+  if (sessionInFlight) return sessionInFlight;
+
+  sessionInFlight = (async () => {
+    let lastError = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const result = await supabase.auth.getSession();
+        return result;
+      } catch (err) {
+        lastError = err;
+        const msg = String(err?.message || err || '');
+        const isLockError = msg.includes('lock:sb-') || msg.toLowerCase().includes('lock');
+        if (!isLockError || attempt === 2) break;
+        await new Promise((r) => setTimeout(r, 250 + attempt * 350));
+      }
+    }
+    return { data: { session: null }, error: lastError };
+  })().finally(() => {
+    sessionInFlight = null;
+  });
+
+  return sessionInFlight;
 };
 warmUp();
 setInterval(warmUp, 4 * 60 * 1000);
