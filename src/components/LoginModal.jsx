@@ -51,8 +51,8 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin }) => {
     return t;
   };
 
-  const primeAuth = async () => {
-    await warmUp().catch(() => {});
+  const primeAuth = () => {
+    warmUp().catch(() => {});
   };
 
   const handleLogin = async (e) => {
@@ -62,10 +62,7 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin }) => {
     setLoadingMsg('');
     const t = withSlowWarning(setLoadingMsg);
     try {
-      await Promise.race([
-        primeAuth(),
-        new Promise((resolve) => setTimeout(resolve, 350)),
-      ]);
+      primeAuth();
       await onLogin(email, password, 'password');
       clearTimeout(t);
       onClose();
@@ -77,9 +74,9 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin }) => {
         err.message?.toLowerCase().includes('network');
       if (isTimeout) {
         setLoadingMsg('Повторно се обидуваме...');
-        warmUp().catch(() => {});
+        primeAuth();
         try {
-          await new Promise(r => setTimeout(r, 700));
+          await new Promise(r => setTimeout(r, 500));
           await onLogin(email, password, 'password');
           clearTimeout(t);
           setLoading(false);
@@ -108,10 +105,7 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin }) => {
     setError('');
     const t = withSlowWarning(setLoadingMsg);
     try {
-      await Promise.race([
-        primeAuth(),
-        new Promise((resolve) => setTimeout(resolve, 350)),
-      ]);
+      primeAuth();
       await onLogin(email, password, 'register', name);
       clearTimeout(t);
       onClose();
@@ -129,10 +123,7 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin }) => {
     setLoading(true);
     setError('');
     try {
-      await Promise.race([
-        primeAuth(),
-        new Promise((resolve) => setTimeout(resolve, 350)),
-      ]);
+      primeAuth();
       await onLogin(email, null, 'magic');
       setMagicSent(true);
     } catch (err) {
@@ -185,7 +176,7 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin }) => {
                   type="button"
                   onClick={async () => {
                     try {
-                      await primeAuth();
+                      primeAuth();
                       await onGoogleLogin();
                       onClose();
                     } catch {}
