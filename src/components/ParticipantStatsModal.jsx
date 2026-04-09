@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Users, Trophy, CheckCircle, Clock } from 'lucide-react';
+import { X, Users, Trophy, CheckCircle, Clock, Download } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 const ParticipantStatsModal = ({ isOpen, onClose, event, polls }) => {
@@ -90,6 +90,43 @@ const ParticipantStatsModal = ({ isOpen, onClose, event, polls }) => {
     </button>
   );
 
+  const exportEDnevnikCSV = () => {
+    if (sorted.length === 0) {
+      alert('Нема податоци за извоз.');
+      return;
+    }
+
+    const today = new Date().toLocaleDateString('mk-MK');
+    const rows = [
+      ['MKD Slidea — e-дневник извоз'],
+      [`Настан: ${event?.title || ''}`, `Код: ${event?.code || ''}`, `Датум: ${today}`],
+      [],
+      ['Ученик', 'Одговори', 'Точни', 'Поени', 'Комплетираност (%)', 'Последна активност'],
+      ...sorted.map((p) => {
+        const lastDate = p.lastAt
+          ? new Date(p.lastAt).toLocaleString('mk-MK', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })
+          : '—';
+        return [
+          p.username || 'Анонимен',
+          p.answers,
+          p.correct,
+          p.points,
+          p.completionPct,
+          lastDate,
+        ];
+      }),
+    ];
+
+    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ednevnik-${event?.code || 'event'}-${today.replace(/\./g, '-')}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="fixed inset-0 z-[400] flex items-center justify-center p-4" onClick={onClose}>
       <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" />
@@ -115,6 +152,16 @@ const ParticipantStatsModal = ({ isOpen, onClose, event, polls }) => {
           </div>
           <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all">
             <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="px-8 pb-2 flex-shrink-0 flex justify-end">
+          <button
+            onClick={exportEDnevnikCSV}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-emerald-100 transition-colors"
+            title="Извоз за e-дневник"
+          >
+            <Download className="w-4 h-4" /> Извоз e-дневник CSV
           </button>
         </div>
 

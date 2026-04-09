@@ -200,3 +200,27 @@ CREATE INDEX IF NOT EXISTS idx_questions_event_id ON questions(event_id);
 CREATE INDEX IF NOT EXISTS idx_votes_poll_id ON votes(poll_id);
 CREATE INDEX IF NOT EXISTS idx_votes_session_id ON votes(session_id);
 CREATE INDEX IF NOT EXISTS idx_survey_responses_poll_id ON survey_responses(poll_id);
+
+-- ============================================================
+-- RLS за Community Templates
+-- ============================================================
+
+ALTER TABLE community_templates ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS community_templates_public_read ON community_templates;
+CREATE POLICY community_templates_public_read ON community_templates
+FOR SELECT USING (is_public = true OR user_id = auth.uid());
+
+DROP POLICY IF EXISTS community_templates_authenticated_insert ON community_templates;
+CREATE POLICY community_templates_authenticated_insert ON community_templates
+FOR INSERT TO authenticated
+WITH CHECK (user_id = auth.uid());
+
+DROP POLICY IF EXISTS community_templates_owner_update ON community_templates;
+CREATE POLICY community_templates_owner_update ON community_templates
+FOR UPDATE USING (user_id = auth.uid())
+WITH CHECK (user_id = auth.uid());
+
+DROP POLICY IF EXISTS community_templates_owner_delete ON community_templates;
+CREATE POLICY community_templates_owner_delete ON community_templates
+FOR DELETE USING (user_id = auth.uid());

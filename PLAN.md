@@ -98,6 +98,8 @@ CREATE INDEX idx_options_poll ON options(poll_id);
 - Google Classroom SSO
 - e-дневник извоз
 
+✅ MVP имплементација (делумно): e-дневник CSV извоз од `ParticipantStatsModal` (ученик, одговори, точни, поени, completion, последна активност)
+
 ---
 
 ## 🏆 ФАЗА Г — Пазарна стратегија
