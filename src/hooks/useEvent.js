@@ -43,18 +43,25 @@ export const useEvent = (eventCode) => {
         setLoading(true);
 
         // Retry once on failure — handles transient auth state in new tabs
-        let eventData, eventError;
+        let eventData = null;
+        let eventError = null;
         for (let attempt = 0; attempt < 2; attempt++) {
-          ({ data: eventData, error: eventError } = await supabase
+          const { data, error } = await supabase
             .from('events')
             .select('*')
             .ilike('code', normalizedCode)
-            .single());
-          if (!eventError) break;
+            .order('created_at', { ascending: false })
+            .limit(1);
+
+          eventError = error;
+          eventData = Array.isArray(data) && data.length > 0 ? data[0] : null;
+
+          if (!eventError && eventData) break;
           if (attempt === 0) await new Promise(r => setTimeout(r, 1200));
         }
 
         if (eventError) throw eventError;
+        if (!eventData) throw new Error('Настанот не е пронајден.');
         if (mounted) {
           setEvent(eventData);
           await Promise.all([
