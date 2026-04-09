@@ -128,7 +128,12 @@ export const useEvent = (eventCode) => {
       )
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'options' },
-        () => fetchPolls(event.id)
+        (payload) => {
+          // Always refetch polls on any option change to catch vote updates
+          if (payload?.new?.poll_id) {
+            fetchPolls(event.id);
+          }
+        }
       )
       .subscribe();
 
@@ -193,16 +198,40 @@ export const useEvent = (eventCode) => {
       })
       .subscribe();
 
-    // Polling fallback — syncs active poll every 3s in case real-time misses it
+    // Polling fallback — syncs active poll every 5s in case real-time misses it
+    // Use string comparison to avoid unnecessary updates
     const syncInterval = setInterval(async () => {
-      const { data } = await supabase.from('events').select('active_poll_id').eq('id', event.id).single();
-      if (data && data.active_poll_id !== event.active_poll_id) {
-        setEvent(prev => ({ ...prev, active_poll_id: data.active_poll_id }));
+      try {
+        const { data } = await supabase.from('events').select('active_poll_id').eq('id', event.id).single();
+        if (!data) return;
+        
+        const currentId = String(event.active_poll_id || '');
+        const nextId = String(data.active_poll_id || '');
+        
+        if (currentId !== nextId) {
+          setEvent(prev => {
+            if (!prev) return prev;
+            if (String(prev.active_poll_id || '') === nextId) return prev;
+            return { ...prev, active_poll_id: data.active_poll_id };
+          });
+        }
+      } catch (err) {
+        // Silently ignore polling errors
       }
-    }, 3000);
+    }, 5000);
+
+    // Polling fallback for poll results — ensures votes stay synced even if realtime misses updates
+    const resultsInterval = setInterval(async () => {
+      try {
+        await fetchPolls(event.id);
+      } catch (err) {
+        // Silently ignore
+      }
+    }, 4000);
 
     return () => {
       clearInterval(syncInterval);
+      clearInterval(resultsInterval);
       supabase.removeChannel(pollChannel);
       supabase.removeChannel(questionChannel);
       supabase.removeChannel(reactionChannel);
