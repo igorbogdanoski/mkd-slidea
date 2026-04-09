@@ -90,14 +90,21 @@ const Host = ({ setView, user }) => {
       if (data) setPolls(data);
     };
     const fetchPendingQuestions = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('questions')
         .select('*')
         .eq('event_id', event.id)
         .eq('is_answered', false)
-        .eq('is_approved', false)
         .order('created_at', { ascending: true });
-      setPendingQuestions(data || []);
+
+      if (error) {
+        setPendingQuestions([]);
+        return;
+      }
+
+      const rows = data || [];
+      const hasApprovalFlag = rows.some((q) => Object.prototype.hasOwnProperty.call(q, 'is_approved'));
+      setPendingQuestions(hasApprovalFlag ? rows.filter((q) => q.is_approved === false) : rows);
     };
     fetchPolls();
     fetchPendingQuestions();

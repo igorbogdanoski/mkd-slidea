@@ -25,22 +25,16 @@ export const useEvent = (eventCode) => {
       .select('*')
       .eq('event_id', eventId)
       .eq('is_answered', false)
-      .eq('is_approved', true)
       .order('votes', { ascending: false });
 
-    if (!error) {
-      setQuestions(data || []);
+    if (error) {
+      setQuestions([]);
       return;
     }
 
-    // Legacy fallback: some older schemas may miss is_approved.
-    const { data: fallbackData } = await supabase
-      .from('questions')
-      .select('*')
-      .eq('event_id', eventId)
-      .eq('is_answered', false)
-      .order('votes', { ascending: false });
-    setQuestions(fallbackData || []);
+    const rows = data || [];
+    const hasApprovalFlag = rows.some((q) => Object.prototype.hasOwnProperty.call(q, 'is_approved'));
+    setQuestions(hasApprovalFlag ? rows.filter((q) => q.is_approved === true) : rows);
   }, []);
 
   useEffect(() => {
