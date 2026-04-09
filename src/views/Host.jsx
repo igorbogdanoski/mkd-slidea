@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, ArrowLeft, Sparkles, ChevronLeft, ChevronRight, Settings, X, Timer, Square, ShieldCheck, Check, Trash2, MessageSquare, FileDown, Eye, EyeOff, BarChart2, Copy, UserPlus, RotateCcw, Sheet, Lock, Unlock, Upload
@@ -18,6 +18,16 @@ import PollCard from '../components/Host/PollCard';
 import RemoteController from '../components/Host/RemoteController';
 import ImportPPTXModal from '../components/ImportPPTXModal';
 import PublishTemplateModal from '../components/PublishTemplateModal';
+
+const getHostSessionId = () => {
+  let sid = localStorage.getItem('mkd_host_session_id');
+  if (!sid) {
+    sid = crypto.randomUUID?.() || `host-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+    localStorage.setItem('mkd_host_session_id', sid);
+  }
+  return sid;
+};
+
 const Host = ({ setView, user }) => {
   const [event, setEvent] = useState(null);
   const [polls, setPolls] = useState([]);
@@ -45,6 +55,8 @@ const Host = ({ setView, user }) => {
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isInsightsOpen, setIsInsightsOpen] = useState(false);
   const [isPublishTemplateOpen, setIsPublishTemplateOpen] = useState(false);
+  const navChannelRef = useRef(null);
+  const presenceChannelRef = useRef(null);
 
   const toInputDateTime = (iso) => {
     if (!iso) return '';
@@ -121,6 +133,44 @@ const Host = ({ setView, user }) => {
       .subscribe();
     return () => { sub.unsubscribe(); };
   }, [event]);
+
+  useEffect(() => {
+    if (!event?.id) return;
+
+    const navChannel = supabase.channel(`event-nav-${event.id}`).subscribe();
+    navChannelRef.current = navChannel;
+
+    return () => {
+      navChannelRef.current = null;
+      supabase.removeChannel(navChannel);
+    };
+  }, [event?.id]);
+
+  useEffect(() => {
+    if (!event?.id) return;
+
+    const presenceChannel = supabase.channel(`presence:${event.id}`, {
+      config: { presence: { key: `host-${getHostSessionId()}` } }
+    });
+
+    presenceChannel
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await presenceChannel.track({
+            role: 'host',
+            active_poll_id: event.active_poll_id || null,
+            online_at: new Date().toISOString(),
+          });
+        }
+      });
+
+    presenceChannelRef.current = presenceChannel;
+
+    return () => {
+      presenceChannelRef.current = null;
+      supabase.removeChannel(presenceChannel);
+    };
+  }, [event?.id]);
 
   const onSavePoll = async (pollData) => {
     try {
@@ -348,13 +398,68 @@ const Host = ({ setView, user }) => {
   };
 
   const setActivePoll = async (index) => {
+    const nextPoll = polls[index];
+    if (!nextPoll) return;
+
     setActivePollIndex(index);
-    if (polls[index]) {
-      await supabase
-        .from('events')
-        .update({ active_poll_id: polls[index].id })
-        .eq('id', event.id);
+    setEvent((prev) => (prev ? { ...prev, active_poll_id: nextPoll.id } : prev));
+
+    // Broadcast to participants (fallback sync channel)
+    if (navChannelRef.current) {
+      navChannelRef.current.send({
+        type: 'broadcast',
+        event: 'active-poll',
+        payload: {
+          event_id: event.id,
+          active_poll_id: nextPoll.id,
+        },
+      }).catch(() => {});
     }
+
+    // Update presence metadata (fallback for new tabs)
+    if (presenceChannelRef.current) {
+      presenceChannelRef.current.track({
+        role: 'host',
+        active_poll_id: nextPoll.id,
+        online_at: new Date().toISOString(),
+      }).catch(() => {});
+    }
+
+    // Primary: update events.active_poll_id with retry on lock conflict
+    const dbUpdateWithRetry = async () => {
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const { error } = await supabase
+            .from('events')
+            .update({ active_poll_id: nextPoll.id })
+            .eq('id', event.id);
+          
+          if (!error) return true;
+          
+          const isLockError = String(error.message || '').includes('lock:sb-');
+          if (isLockError && attempt < 2) {
+            await new Promise(r => setTimeout(r, 100 + attempt * 150));
+            continue;
+          }
+          
+          // If id update fails, try by code
+          if (attempt === 2) {
+            await supabase
+              .from('events')
+              .update({ active_poll_id: nextPoll.id })
+              .eq('code', event.code)
+              .catch(() => {});
+          }
+          return true;
+        } catch (e) {
+          if (attempt === 2) return true;
+          await new Promise(r => setTimeout(r, 100 + attempt * 150));
+        }
+      }
+      return true;
+    };
+    
+    dbUpdateWithRetry();
   };
 
   const goNext = () => { if (activePollIndex < polls.length - 1) setActivePoll(activePollIndex + 1); };

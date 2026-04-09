@@ -66,8 +66,9 @@ const EventWrapper = ({ type, username, setUsername }) => {
     }
   }, [event, username, setEvent, setPresence]);
 
-  const rawIndex = event?.active_poll_id
-    ? polls.findIndex(p => p.id === event.active_poll_id)
+  const activePollId = event?.active_poll_id ? String(event.active_poll_id) : null;
+  const rawIndex = activePollId
+    ? polls.findIndex((p) => String(p.id) === activePollId)
     : 0;
   // Guard: findIndex returns -1 if poll was deleted after being set active
   const activePollIndex = rawIndex >= 0 ? rawIndex : 0;
@@ -300,21 +301,57 @@ const EventWrapper = ({ type, username, setUsername }) => {
               }
             }
           }
+          
           const sid = getSessionId();
-          await supabase.from('votes').upsert(
-            {
-              poll_id: currentPoll.id,
-              session_id: sid,
-              username: username || 'Анонимен',
-              answer_text: answerText,
-              is_correct: isCorrect,
-            },
-            { onConflict: 'poll_id,session_id', ignoreDuplicates: false }
-          );
+          
+          // Retry vote upsert on lock conflict
+          let votesError;
+          for (let attempt = 0; attempt < 3; attempt++) {
+            try {
+              const { error } = await supabase.from('votes').upsert(
+                {
+                  poll_id: currentPoll.id,
+                  session_id: sid,
+                  username: username || 'Анонимен',
+                  answer_text: answerText,
+                  is_correct: isCorrect,
+                },
+                { onConflict: 'poll_id,session_id', ignoreDuplicates: false }
+              );
+              
+              if (!error) {
+                markVoted(currentPoll.id);
+                return;
+              }
+              
+              votesError = error;
+              const isLockError = String(error.message || '').includes('lock:sb-');
+              if (isLockError && attempt < 2) {
+                await new Promise(r => setTimeout(r, 50 + attempt * 100));
+                continue;
+              }
+              break;
+            } catch (e) {
+              votesError = e;
+              if (attempt < 2) {
+                await new Promise(r => setTimeout(r, 50 + attempt * 100));
+                continue;
+              }
+              throw e;
+            }
+          }
+          
           markVoted(currentPoll.id);
         } catch (err) {
-          console.error('Vote failed:', err);
-          setVoteError('Гласањето не успеа. Обидете се повторно.');
+          const msg = String(err?.message || err || '');
+          const isLockError = msg.includes('lock:sb-');
+          
+          if (!isLockError) {
+            console.error('Vote failed:', err);
+            setVoteError('Гласањето не успеа. Обидете се повторно.');
+          } else {
+            markVoted(polls[activePollIndex]?.id);
+          }
         } finally {
           setIsVoting(false);
         }

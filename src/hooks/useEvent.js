@@ -162,6 +162,37 @@ export const useEvent = (eventCode) => {
       )
       .subscribe();
 
+    const navChannel = supabase
+      .channel(`event-nav-${event.id}`)
+      .on('broadcast', { event: 'active-poll' }, ({ payload }) => {
+        const nextPollId = payload?.active_poll_id;
+        if (!nextPollId) return;
+        setEvent((prev) => {
+          if (!prev) return prev;
+          if (String(prev.active_poll_id || '') === String(nextPollId)) return prev;
+          return { ...prev, active_poll_id: nextPollId };
+        });
+      })
+      .subscribe();
+
+    const presenceNavChannel = supabase
+      .channel(`presence:${event.id}`)
+      .on('presence', { event: 'sync' }, () => {
+        const state = presenceNavChannel.presenceState();
+        const allMeta = Object.values(state).flat();
+        const hostMeta = allMeta
+          .filter((m) => m?.role === 'host' && m?.active_poll_id)
+          .sort((a, b) => new Date(b.online_at || 0).getTime() - new Date(a.online_at || 0).getTime())[0];
+
+        if (!hostMeta?.active_poll_id) return;
+        setEvent((prev) => {
+          if (!prev) return prev;
+          if (String(prev.active_poll_id || '') === String(hostMeta.active_poll_id)) return prev;
+          return { ...prev, active_poll_id: hostMeta.active_poll_id };
+        });
+      })
+      .subscribe();
+
     // Polling fallback — syncs active poll every 3s in case real-time misses it
     const syncInterval = setInterval(async () => {
       const { data } = await supabase.from('events').select('active_poll_id').eq('id', event.id).single();
@@ -176,6 +207,8 @@ export const useEvent = (eventCode) => {
       supabase.removeChannel(questionChannel);
       supabase.removeChannel(reactionChannel);
       supabase.removeChannel(eventChannel);
+      supabase.removeChannel(navChannel);
+      supabase.removeChannel(presenceNavChannel);
     };
   }, [event?.id, event?.active_poll_id, fetchPolls, fetchQuestions]);
 

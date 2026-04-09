@@ -1,4 +1,4 @@
-import React, { useState, lazy, Suspense } from 'react';
+import React, { useState, lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import Nav from './components/Nav';
@@ -12,6 +12,31 @@ const Dashboard = lazy(() => import('./views/Dashboard'));
 const Pricing = lazy(() => import('./views/Pricing'));
 const EventWrapper = lazy(() => import('./components/EventWrapper'));
 const Embed = lazy(() => import('./views/Embed'));
+
+// Suppress Supabase auth lock violations and permissions policy violations
+if (typeof window !== 'undefined') {
+  const originalError = console.error;
+  console.error = function(...args) {
+    const msg = String(args[0] || '');
+    const isLockViolation = msg.includes('lock:sb-') && msg.includes('was released');
+    const isPermissionsPolicyViolation = msg.includes('Permissions policy violation');
+    
+    if (isLockViolation || isPermissionsPolicyViolation) {
+      return;
+    }
+    originalError.apply(console, args);
+  };
+
+  window.addEventListener('unhandledrejection', (event) => {
+    const msg = String(event.reason?.message || event.reason || '');
+    const isLockViolation = msg.includes('lock:sb-') && msg.includes('was released');
+    
+    if (isLockViolation) {
+      event.preventDefault();
+      return;
+    }
+  }, false);
+}
 
 const AppContent = () => {
   const navigate = useNavigate();

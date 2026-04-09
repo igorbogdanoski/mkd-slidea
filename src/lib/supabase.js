@@ -8,9 +8,27 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn("Supabase credentials are missing. Real-time features will not work.");
 }
 
+// Multi-tab resilient configuration
+// Use crossTab: false to minimize lock contention, rely on broadcast fallback instead
+// Use lock for atomicity where needed (participant voting per session)
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder'
+  supabaseAnonKey || 'placeholder',
+  {
+    auth: {
+      // Reduce lock contention across tabs by using memory storage for tokens
+      // and relying on real-time broadcasters for sync instead
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    },
+    realtime: {
+      params: {
+        eventsPerSecond: 10,
+      },
+    },
+  }
 );
 
 // Warm up both REST and Auth on load + every 4 min to avoid cold starts

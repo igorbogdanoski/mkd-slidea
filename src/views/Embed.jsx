@@ -27,8 +27,9 @@ const Embed = () => {
 
   const brandColor = event?.brand_color || '#6366f1';
 
-  const rawIndex = event?.active_poll_id
-    ? polls.findIndex(p => p.id === event.active_poll_id)
+  const activePollId = event?.active_poll_id ? String(event.active_poll_id) : null;
+  const rawIndex = activePollId
+    ? polls.findIndex((p) => String(p.id) === activePollId)
     : 0;
   const activePollIndex = rawIndex >= 0 ? rawIndex : 0;
   const currentPoll = polls[activePollIndex];
