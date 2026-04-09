@@ -65,11 +65,11 @@ CREATE INDEX idx_options_poll ON options(poll_id);
 
 ## 🟡 ФАЗА Б — Квалитет (2 недели)
 
-- [ ] Live counter на Presenter: "23/30 одговориле"
-- [ ] Confetti при крај на квиз (canvas-confetti веќе во deps!)
-- [ ] PWA manifest — учениците може да зачуваат на home screen
-- [ ] Onboarding guided тур за нови наставници
-- [ ] survey_responses табела за Формулар тип
+- [x] Live counter на Presenter: "23/30 одговориле"
+- [x] Confetti при крај на квиз (canvas-confetti веќе во deps!)
+- [x] PWA manifest — учениците може да зачуваат на home screen
+- [x] Onboarding guided тур за нови наставници
+- [x] survey_responses табела за Формулар тип
 - [ ] Подобрен PDF извоз layout
 
 ---

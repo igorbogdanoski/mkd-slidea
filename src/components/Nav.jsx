@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Zap, ChevronDown, PieChart, MessageSquare, Cloud, 
@@ -56,6 +57,8 @@ const MegaMenu = ({ isOpen, items, setView, setActiveMenu }) => (
 );
 
 const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState(null);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
 
@@ -63,10 +66,34 @@ const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout }) => {
     warmUp().catch(() => {});
   }, []);
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (!user && params.get('login') === '1') {
+      setIsLoginOpen(true);
+    }
+  }, [location.search, user]);
+
   const openLogin = () => {
     warmUp().catch(() => {});
     setIsLoginOpen(true);
   };
+
+  const closeLogin = () => {
+    setIsLoginOpen(false);
+    const params = new URLSearchParams(location.search);
+    if (params.has('login')) {
+      params.delete('login');
+      params.delete('next');
+      const nextSearch = params.toString();
+      navigate(`${location.pathname}${nextSearch ? `?${nextSearch}` : ''}`, { replace: true });
+    }
+  };
+
+  const nextPath = (() => {
+    const params = new URLSearchParams(location.search);
+    const next = params.get('next');
+    return next && next.startsWith('/') ? next : '/dashboard';
+  })();
 
   const features = [
     {
@@ -228,9 +255,9 @@ const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout }) => {
       </div>
       <LoginModal
         isOpen={isLoginOpen}
-        onClose={() => setIsLoginOpen(false)}
+        onClose={closeLogin}
         onLogin={onLogin}
-        onGoogleLogin={onGoogleLogin}
+        onGoogleLogin={() => onGoogleLogin(nextPath)}
       />
     </nav>
   );

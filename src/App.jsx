@@ -20,21 +20,33 @@ const AppContent = () => {
 
   const { user, loading, loadingMessage, signIn, signUp, signInWithGoogle, signInWithMagicLink, signOut } = useAuth();
 
+  const getSafeNextPath = () => {
+    const params = new URLSearchParams(location.search);
+    const next = params.get('next');
+    if (!next || !next.startsWith('/')) return '/dashboard';
+    return next;
+  };
+
   const updateUsername = (val) => {
     setUsername(val);
     localStorage.setItem('mkd_slidea_user', val);
   };
 
   const handleLogin = async (email, password, mode = 'password', name = '') => {
+    const nextPath = getSafeNextPath();
     if (mode === 'magic') {
       await signInWithMagicLink(email);
     } else if (mode === 'register') {
       await signUp(email, password, name);
-      navigate('/dashboard');
+      navigate(nextPath);
     } else {
       await signIn(email, password);
-      navigate('/dashboard');
+      navigate(nextPath);
     }
+  };
+
+  const handleGoogleLogin = async (nextPath = '/dashboard') => {
+    await signInWithGoogle(nextPath);
   };
 
   const handleLogout = () => {
@@ -65,7 +77,10 @@ const AppContent = () => {
 
   // Protected route — redirects to / with login modal open if not authenticated
   const ProtectedRoute = ({ children }) => {
-    if (!user) return <Navigate to="/" replace />;
+    if (!user) {
+      const nextPath = `${location.pathname}${location.search}`;
+      return <Navigate to={`/?login=1&next=${encodeURIComponent(nextPath)}`} replace />;
+    }
     return children;
   };
 
@@ -79,7 +94,7 @@ const AppContent = () => {
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-700">
       {isPublicRoute && (
-        <Nav setView={setView} onLogin={handleLogin} onGoogleLogin={signInWithGoogle} user={user} onLogout={handleLogout} />
+        <Nav setView={setView} onLogin={handleLogin} onGoogleLogin={handleGoogleLogin} user={user} onLogout={handleLogout} />
       )}
 
       <main className={isPublicRoute ? 'pt-16' : ''}>

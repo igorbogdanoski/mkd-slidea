@@ -80,10 +80,10 @@ export const useAuth = () => {
     if (error) throw error;
   };
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = async (redirectPath = '/dashboard') => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin + '/dashboard' },
+      options: { redirectTo: window.location.origin + redirectPath },
     });
     if (error) throw error;
   };

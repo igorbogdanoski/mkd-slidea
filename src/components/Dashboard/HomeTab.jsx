@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, Clock, ChevronRight,
   Presentation, Bell, Zap, MoreVertical, LayoutGrid,
-  MessageSquare, CheckCheck, X
+  MessageSquare, CheckCheck, X, Sparkles
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { templates } from '../../data/templates';
@@ -34,8 +34,40 @@ const HomeTab = ({ setView, setActiveTab, user, useTemplate }) => {
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [pendingQuestions, setPendingQuestions] = useState([]);
   const [bellOpen, setBellOpen] = useState(false);
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
+  const [onboardingStep, setOnboardingStep] = useState(0);
   const bellRef = useRef(null);
   const featuredTemplates = templates.slice(0, 3);
+  const onboardingSteps = [
+    {
+      title: 'Добредојде во MKD Slidea',
+      text: 'За помалку од 2 минути можеш да пуштиш интерактивен час со анкета, квиз или word cloud.',
+      accent: 'Одличен старт за нов наставник.'
+    },
+    {
+      title: '1. Креирај нов настан',
+      text: 'Копчето Нова презентација веднаш отвора host view каде додавате активности и стартувате час.',
+      accent: 'Најбрзиот пат е преку шаблон или празен настан.'
+    },
+    {
+      title: '2. Искористи шаблон',
+      text: 'Во Сите шаблони веќе имаш готови сценарија за квиз, feedback, exit ticket и brainstorming.',
+      accent: 'Не почнувај од нула ако не мора.'
+    },
+    {
+      title: '3. Следи што се случува во живо',
+      text: 'Bell нотификациите и analytics ти покажуваат прашања, одговори и ангажман додека трае часот.',
+      accent: 'Ова е твојот контролен центар.'
+    },
+  ];
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const key = `mkd_slidea_onboarding_seen_${user.id}`;
+    if (!localStorage.getItem(key)) {
+      setOnboardingOpen(true);
+    }
+  }, [user?.id]);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -59,6 +91,22 @@ const HomeTab = ({ setView, setActiveTab, user, useTemplate }) => {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
+
+  const closeOnboarding = () => {
+    if (user?.id) {
+      localStorage.setItem(`mkd_slidea_onboarding_seen_${user.id}`, '1');
+    }
+    setOnboardingOpen(false);
+    setOnboardingStep(0);
+  };
+
+  const advanceOnboarding = () => {
+    if (onboardingStep === onboardingSteps.length - 1) {
+      closeOnboarding();
+      return;
+    }
+    setOnboardingStep((current) => current + 1);
+  };
 
   const loadEvents = async () => {
     const { data } = await supabase
@@ -111,6 +159,87 @@ const HomeTab = ({ setView, setActiveTab, user, useTemplate }) => {
       animate={{ opacity: 1, y: 0 }}
       className="p-12 max-w-7xl mx-auto"
     >
+      <AnimatePresence>
+        {onboardingOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm"
+              onClick={closeOnboarding}
+            />
+            <motion.div
+              initial={{ opacity: 0, y: 24, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 24, scale: 0.96 }}
+              className="fixed inset-x-4 top-24 z-50 max-w-2xl mx-auto bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl p-8 sm:p-10"
+            >
+              <div className="flex items-center justify-between mb-8">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 text-indigo-600 text-xs font-black uppercase tracking-widest">
+                  <Sparkles size={14} /> Брз водич
+                </div>
+                <button onClick={closeOnboarding} className="text-slate-300 hover:text-slate-500 transition-colors">
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="mb-6 flex gap-2">
+                {onboardingSteps.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`h-2 flex-1 rounded-full ${index <= onboardingStep ? 'bg-indigo-600' : 'bg-slate-100'}`}
+                  />
+                ))}
+              </div>
+
+              <h3 className="text-3xl font-black text-slate-900 mb-4 tracking-tight">{onboardingSteps[onboardingStep].title}</h3>
+              <p className="text-slate-600 font-bold text-lg leading-relaxed mb-3">{onboardingSteps[onboardingStep].text}</p>
+              <p className="text-sm font-black uppercase tracking-widest text-slate-300 mb-10">{onboardingSteps[onboardingStep].accent}</p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <button
+                  onClick={() => { closeOnboarding(); setView('host'); }}
+                  className="px-6 py-4 rounded-2xl bg-slate-900 text-white font-black hover:bg-slate-800 transition-all"
+                >
+                  Нова презентација
+                </button>
+                <button
+                  onClick={() => { closeOnboarding(); setActiveTab('templates'); }}
+                  className="px-6 py-4 rounded-2xl bg-white border-2 border-slate-100 text-slate-900 font-black hover:border-indigo-500 hover:text-indigo-600 transition-all"
+                >
+                  Разгледај шаблони
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between gap-4">
+                <button
+                  onClick={closeOnboarding}
+                  className="text-slate-400 font-black hover:text-slate-600 transition-colors"
+                >
+                  Прескокни
+                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setOnboardingStep((current) => Math.max(0, current - 1))}
+                    disabled={onboardingStep === 0}
+                    className="px-5 py-3 rounded-2xl bg-slate-100 text-slate-500 font-black disabled:opacity-40"
+                  >
+                    Назад
+                  </button>
+                  <button
+                    onClick={advanceOnboarding}
+                    className="px-6 py-3 rounded-2xl bg-indigo-600 text-white font-black hover:bg-indigo-700 transition-all"
+                  >
+                    {onboardingStep === onboardingSteps.length - 1 ? 'Заврши' : 'Следно'}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <div className="flex items-center justify-between mb-12">
         <div>
