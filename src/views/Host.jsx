@@ -94,7 +94,6 @@ const Host = ({ setView, user }) => {
         .from('questions')
         .select('*')
         .eq('event_id', event.id)
-        .eq('is_answered', false)
         .order('created_at', { ascending: true });
 
       if (error) {
@@ -103,8 +102,14 @@ const Host = ({ setView, user }) => {
       }
 
       const rows = data || [];
-      const hasApprovalFlag = rows.some((q) => Object.prototype.hasOwnProperty.call(q, 'is_approved'));
-      setPendingQuestions(hasApprovalFlag ? rows.filter((q) => q.is_approved === false) : rows);
+      const activeOnly = rows.filter((q) => {
+        if (Object.prototype.hasOwnProperty.call(q, 'is_answered')) {
+          return q.is_answered === false;
+        }
+        return true;
+      });
+      const hasApprovalFlag = activeOnly.some((q) => Object.prototype.hasOwnProperty.call(q, 'is_approved'));
+      setPendingQuestions(hasApprovalFlag ? activeOnly.filter((q) => q.is_approved === false) : activeOnly);
     };
     fetchPolls();
     fetchPendingQuestions();

@@ -24,7 +24,6 @@ export const useEvent = (eventCode) => {
       .from('questions')
       .select('*')
       .eq('event_id', eventId)
-      .eq('is_answered', false)
       .order('votes', { ascending: false });
 
     if (error) {
@@ -33,8 +32,15 @@ export const useEvent = (eventCode) => {
     }
 
     const rows = data || [];
-    const hasApprovalFlag = rows.some((q) => Object.prototype.hasOwnProperty.call(q, 'is_approved'));
-    setQuestions(hasApprovalFlag ? rows.filter((q) => q.is_approved === true) : rows);
+    const activeOnly = rows.filter((q) => {
+      if (Object.prototype.hasOwnProperty.call(q, 'is_answered')) {
+        return q.is_answered === false;
+      }
+      return true;
+    });
+
+    const hasApprovalFlag = activeOnly.some((q) => Object.prototype.hasOwnProperty.call(q, 'is_approved'));
+    setQuestions(hasApprovalFlag ? activeOnly.filter((q) => q.is_approved === true) : activeOnly);
   }, []);
 
   useEffect(() => {
