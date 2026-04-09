@@ -2,12 +2,21 @@ export const config = {
   runtime: 'edge',
 };
 
-// IP-based rate limiting (per Edge instance — good enough for basic abuse prevention)
+import { kv } from '@vercel/kv';
+
+// Persistent distributed rate limiting (Vercel KV / Upstash).
+// Fallback to in-memory map only when KV is not configured/reachable.
 const rateLimitMap = new Map();
 const RATE_LIMIT = 10;       // max requests
 const RATE_WINDOW_MS = 60 * 1000; // per 1 minute
 
-function checkRateLimit(ip) {
+function getClientIp(req) {
+  const xff = req.headers.get('x-forwarded-for');
+  if (xff) return xff.split(',')[0].trim();
+  return req.headers.get('x-real-ip') || 'unknown';
+}
+
+function checkRateLimitFallback(ip) {
   const now = Date.now();
   const entry = rateLimitMap.get(ip) || { count: 0, resetAt: now + RATE_WINDOW_MS };
   if (now > entry.resetAt) {
@@ -16,7 +25,32 @@ function checkRateLimit(ip) {
   }
   entry.count++;
   rateLimitMap.set(ip, entry);
-  return entry.count <= RATE_LIMIT;
+  return {
+    allowed: entry.count <= RATE_LIMIT,
+    limit: RATE_LIMIT,
+    remaining: Math.max(0, RATE_LIMIT - entry.count),
+    resetAt: entry.resetAt,
+  };
+}
+
+async function checkRateLimit(ip) {
+  const bucket = Math.floor(Date.now() / RATE_WINDOW_MS);
+  const key = `rate:generate:${ip}:${bucket}`;
+
+  try {
+    const count = await kv.incr(key);
+    if (count === 1) {
+      await kv.expire(key, Math.ceil(RATE_WINDOW_MS / 1000));
+    }
+    return {
+      allowed: count <= RATE_LIMIT,
+      limit: RATE_LIMIT,
+      remaining: Math.max(0, RATE_LIMIT - count),
+      resetAt: (bucket + 1) * RATE_WINDOW_MS,
+    };
+  } catch {
+    return checkRateLimitFallback(ip);
+  }
 }
 
 export default async function handler(req) {
@@ -25,11 +59,22 @@ export default async function handler(req) {
   }
 
   // Rate limiting
-  const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
-  if (!checkRateLimit(ip)) {
+  const ip = getClientIp(req);
+  const rate = await checkRateLimit(ip);
+  if (!rate.allowed) {
+    const retryAfter = Math.max(1, Math.ceil((rate.resetAt - Date.now()) / 1000));
     return new Response(
       JSON.stringify({ error: 'Премногу барања. Обидете се повторно за 1 минута.' }),
-      { status: 429, headers: { 'Content-Type': 'application/json' } }
+      {
+        status: 429,
+        headers: {
+          'Content-Type': 'application/json',
+          'Retry-After': String(retryAfter),
+          'X-RateLimit-Limit': String(rate.limit),
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': String(Math.floor(rate.resetAt / 1000)),
+        },
+      }
     );
   }
 

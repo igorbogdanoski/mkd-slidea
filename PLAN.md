@@ -57,9 +57,7 @@ CREATE INDEX idx_options_poll ON options(poll_id);
 ```
 
 ### А.4 — Persistent rate limiting
-```
-Инсталирај @vercel/kv → замени ја in-memory Map во api/generate.js
-```
+✅ Имплементирано (`api/generate.js`): distributed limiter со KV + fallback map и `Retry-After` headers
 
 ---
 
