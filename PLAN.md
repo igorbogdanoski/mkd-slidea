@@ -98,7 +98,15 @@ CREATE INDEX idx_options_poll ON options(poll_id);
 - Google Classroom SSO
 - e-дневник извоз
 
-✅ MVP имплементација (делумно): e-дневник CSV извоз од `ParticipantStatsModal` (ученик, одговори, точни, поени, completion, последна активност)
+✅ Product-side интеграции затворени:
+- e-дневник CSV извоз од `ParticipantStatsModal` (ученик, одговори, точни, поени, completion, последна активност)
+- Dashboard `Integrations` hub со инсталациски чекори и download линкови
+- Google Workspace/Classroom-ready sign-in flow преку Google OAuth
+- Microsoft PowerPoint add-in manifest подготвен за sideload / publishing
+
+🟡 External publishing останува како оперативен чекор:
+- Microsoft marketplace / admin deployment
+- Google Workspace marketplace / Apps Script publishing
 
 ---
 

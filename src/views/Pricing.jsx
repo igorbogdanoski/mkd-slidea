@@ -83,7 +83,7 @@ const Pricing = ({ setView }) => {
         "Најдобра вредност",
         "Сопствено брендирање",
         "Експорт на податоци",
-        "PowerPoint Додаток"
+        "Интеграции: PowerPoint, Google и e-дневник"
       ],
       button: "Активирај Годишно",
       color: "bg-slate-900 text-white",

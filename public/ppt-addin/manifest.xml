@@ -3,12 +3,12 @@
   <Id>54a0f443-4a1b-40f2-892b-8a8f19293123</Id>
   <Version>1.0.0.0</Version>
   <ProviderName>MKD Slidea</ProviderName>
-  <DefaultLocale>en-US</DefaultLocale>
+  <DefaultLocale>mk-MK</DefaultLocale>
   <DisplayName DefaultValue="MKD Slidea" />
-  <Description DefaultValue="Interactive presentation tool for live polls and quizzes." />
+  <Description DefaultValue="Интерактивна алатка за презентации, анкети и квизови во живо." />
   <IconUrl DefaultValue="https://mkd-slidea.vercel.app/favicon.svg" />
   <HighResolutionIconUrl DefaultValue="https://mkd-slidea.vercel.app/favicon.svg" />
-  <SupportUrl DefaultValue="https://mkd-slidea.vercel.app" />
+  <SupportUrl DefaultValue="https://mkd-slidea.vercel.app/integrations/index.html#microsoft" />
   <AppDomains>
     <AppDomain>https://mkd-slidea.vercel.app</AppDomain>
   </AppDomains>
@@ -25,8 +25,8 @@
         <DesktopFormFactor>
           <GetStarted>
             <Title DefaultValue="MKD Slidea" />
-            <Description DefaultValue="Open MKD Slidea to add interaction to your slides." />
-            <LearnMoreUrl DefaultValue="https://mkd-slidea.vercel.app" />
+            <Description DefaultValue="Отворете MKD Slidea и додајте анкети, квизови и интеракција во презентацијата." />
+            <LearnMoreUrl DefaultValue="https://mkd-slidea.vercel.app/integrations/index.html#microsoft" />
           </GetStarted>
           <FunctionFile resid="Commands.Url" />
           <ExtensionPoint xsi:type="PrimaryCommandSurface">
@@ -34,10 +34,10 @@
               <Group id="GroupSlidea">
                 <Label DefaultValue="MKD Slidea" />
                 <Control xsi:type="Button" id="BtnOpenSlidea">
-                  <Label DefaultValue="Open MKD Slidea" />
+                  <Label DefaultValue="Отвори MKD Slidea" />
                   <Supertip>
-                    <Title DefaultValue="Open MKD Slidea" />
-                    <Description DefaultValue="Add live polls and quizzes to your presentation." />
+                    <Title DefaultValue="Отвори MKD Slidea" />
+                    <Description DefaultValue="Додајте анкети и квизови во живо во презентацијата." />
                   </Supertip>
                   <Icon>
                     <bt:Image size="16" resid="Icon.16x16" />
@@ -66,5 +66,5 @@
         <bt:Url id="Taskpane.Url" DefaultValue="https://mkd-slidea.vercel.app" />
       </bt:Urls>
     </Resources>
-  </Permissions>
+  </VersionOverrides>
 </OfficeApp>

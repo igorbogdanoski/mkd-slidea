@@ -15,7 +15,7 @@ const Sidebar = ({ activeTab, setActiveTab, user, onLogout }) => {
     { id: 'team', label: 'Креирај тим', icon: <Users size={20} />, locked: userPlan === 'basic' },
     { id: 'plan', label: 'Мој план', icon: <CreditCard size={20} /> },
     ...(user?.role === 'admin' ? [{ id: 'admin', label: 'Админ панел', icon: <Shield size={20} /> }] : []),
-    { id: 'integrations', label: 'Интеграции', icon: <Share2 size={20} />, locked: userPlan === 'basic' },
+    { id: 'integrations', label: 'Интеграции', icon: <Share2 size={20} /> },
     { id: 'trash', label: 'Корпа', icon: <Trash2 size={20} /> },
   ];
 
