@@ -15,6 +15,17 @@ RETURNS boolean AS $$
   );
 $$ LANGUAGE sql STABLE SECURITY DEFINER;
 
+CREATE OR REPLACE FUNCTION public.get_event_by_code(p_code TEXT)
+RETURNS SETOF public.events AS $$
+  SELECT *
+  FROM public.events
+  WHERE UPPER(code) = UPPER(TRIM(LEADING '#' FROM p_code))
+  ORDER BY created_at DESC
+  LIMIT 1;
+$$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION public.get_event_by_code(TEXT) TO anon, authenticated;
+
 ALTER TABLE public.events
   ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   ADD COLUMN IF NOT EXISTS is_locked BOOLEAN DEFAULT false,

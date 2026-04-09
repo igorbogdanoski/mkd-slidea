@@ -166,6 +166,18 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- 11b. RPC за читање настан по код (case-insensitive) за participant/presenter
+CREATE OR REPLACE FUNCTION get_event_by_code(p_code TEXT)
+RETURNS SETOF events AS $$
+  SELECT *
+  FROM events
+  WHERE UPPER(code) = UPPER(TRIM(LEADING '#' FROM p_code))
+  ORDER BY created_at DESC
+  LIMIT 1;
+$$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION get_event_by_code(TEXT) TO anon, authenticated;
+
 -- ============================================================
 -- AUTH TRIGGER — Автоматски креира профил при регистрација
 -- ============================================================

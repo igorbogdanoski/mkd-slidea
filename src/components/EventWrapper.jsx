@@ -117,6 +117,11 @@ const EventWrapper = ({ type, username, setUsername }) => {
         <p className="font-bold opacity-80 mb-8 leading-relaxed text-slate-500">
           Проверете го кодот <span className="bg-red-100 px-2 py-0.5 rounded text-red-700">#{normalizedCode || id}</span>. Можно е настанот да е истечен или избришан.
         </p>
+        {error && (
+          <p className="text-xs text-slate-400 font-mono break-words mb-4">
+            Детали: {String(error)}
+          </p>
+        )}
         <button 
           onClick={() => window.location.href='/'} 
           className="w-full bg-red-600 text-white px-8 py-4 rounded-2xl font-black hover:bg-red-700 transition-all active:scale-95 shadow-lg shadow-red-200"

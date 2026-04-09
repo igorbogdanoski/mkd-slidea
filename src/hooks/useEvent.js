@@ -60,6 +60,18 @@ export const useEvent = (eventCode) => {
           if (attempt === 0) await new Promise(r => setTimeout(r, 1200));
         }
 
+        // Fallback for strict/legacy RLS setups: security-definer RPC
+        if (!eventData) {
+          const { data: rpcData, error: rpcError } = await supabase
+            .rpc('get_event_by_code', { p_code: normalizedCode });
+          if (!rpcError && Array.isArray(rpcData) && rpcData.length > 0) {
+            eventData = rpcData[0];
+            eventError = null;
+          } else if (rpcError) {
+            eventError = rpcError;
+          }
+        }
+
         if (eventError) throw eventError;
         if (!eventData) throw new Error('Настанот не е пронајден.');
         if (mounted) {
