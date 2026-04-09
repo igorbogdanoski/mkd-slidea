@@ -29,7 +29,7 @@ export const useAuth = ({ enabled = true } = {}) => {
     }
 
     // Max 25s spinner then render anyway (Edge Tracking Prevention / cold start)
-    const slowMsg = setTimeout(() => setLoadingMessage('Серверот се буди, момент...'), 5000);
+    const slowMsg = setTimeout(() => setLoadingMessage('Серверот се буди, момент...'), 9000);
     const timeout = setTimeout(() => setLoading(false), 25000);
 
     warmUp().catch(() => {});

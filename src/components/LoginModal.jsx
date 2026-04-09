@@ -47,13 +47,12 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin }) => {
   };
 
   const withSlowWarning = (setMsg) => {
-    const t = setTimeout(() => setMsg('Серверот се буди, уште малку...'), 4000);
+    const t = setTimeout(() => setMsg('Серверот се буди, уште малку...'), 6500);
     return t;
   };
 
   const primeAuth = async () => {
-    warmUp().catch(() => {});
-    await new Promise((resolve) => setTimeout(resolve, 700));
+    await warmUp().catch(() => {});
   };
 
   const handleLogin = async (e) => {
@@ -63,7 +62,10 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin }) => {
     setLoadingMsg('');
     const t = withSlowWarning(setLoadingMsg);
     try {
-      await primeAuth();
+      await Promise.race([
+        primeAuth(),
+        new Promise((resolve) => setTimeout(resolve, 350)),
+      ]);
       await onLogin(email, password, 'password');
       clearTimeout(t);
       onClose();
@@ -75,9 +77,9 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin }) => {
         err.message?.toLowerCase().includes('network');
       if (isTimeout) {
         setLoadingMsg('Повторно се обидуваме...');
-        warmUp();
+        warmUp().catch(() => {});
         try {
-          await new Promise(r => setTimeout(r, 2000));
+          await new Promise(r => setTimeout(r, 700));
           await onLogin(email, password, 'password');
           clearTimeout(t);
           setLoading(false);
@@ -106,7 +108,10 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin }) => {
     setError('');
     const t = withSlowWarning(setLoadingMsg);
     try {
-      await primeAuth();
+      await Promise.race([
+        primeAuth(),
+        new Promise((resolve) => setTimeout(resolve, 350)),
+      ]);
       await onLogin(email, password, 'register', name);
       clearTimeout(t);
       onClose();
@@ -124,7 +129,10 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin }) => {
     setLoading(true);
     setError('');
     try {
-      await primeAuth();
+      await Promise.race([
+        primeAuth(),
+        new Promise((resolve) => setTimeout(resolve, 350)),
+      ]);
       await onLogin(email, null, 'magic');
       setMagicSent(true);
     } catch (err) {
