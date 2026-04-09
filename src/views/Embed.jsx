@@ -132,7 +132,7 @@ const Embed = () => {
               </div>
 
               {/* Question */}
-              <h2 style={{ fontSize: 18, fontWeight: 900, color: '#0f172a', lineHeight: 1.4, marginBottom: 16 }}>
+              <h2 style={{ fontSize: 18, fontWeight: 900, color: '#0f172a', lineHeight: 1.4, marginBottom: 16, whiteSpace: 'pre-line' }}>
                 {currentPoll.question}
               </h2>
 

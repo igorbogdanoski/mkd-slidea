@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Plus, Trash2, Save, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import MathSymbolPicker from './MathSymbolPicker';
 
 const SURVEY_Q_TYPES = [
   { value: 'open',   label: 'Отворен текст' },
@@ -13,6 +14,7 @@ const newSurveyQ = () => ({ id: crypto.randomUUID(), text: '', type: 'open', opt
 const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData = null }) => {
   const [question, setQuestion] = useState('');
   const [options, setOptions] = useState(['', '']);
+  const questionRef = useRef(null);
 
   useEffect(() => {
     if (initialData) {
@@ -125,6 +127,25 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
     }
   };
 
+  const insertSymbol = (symbol) => {
+    const input = questionRef.current;
+    if (!input) {
+      setQuestion((current) => `${current}${symbol}`);
+      return;
+    }
+
+    const start = input.selectionStart ?? question.length;
+    const end = input.selectionEnd ?? question.length;
+    const next = `${question.slice(0, start)}${symbol}${question.slice(end)}`;
+    setQuestion(next);
+
+    requestAnimationFrame(() => {
+      input.focus();
+      const cursor = start + symbol.length;
+      input.setSelectionRange(cursor, cursor);
+    });
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -154,14 +175,18 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
             <div className="space-y-6">
               <div>
                 <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Прашање</label>
-                <input 
-                  type="text" 
-                  placeholder="Што сакате да прашате?"
+                <textarea
+                  ref={questionRef}
+                  rows={3}
+                  placeholder="Што сакате да прашате? Можете и: x² + y² = r²"
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
                   maxLength={300}
-                  className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all"
+                  className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all resize-none"
                 />
+                <div className="mt-3">
+                  <MathSymbolPicker onInsert={insertSymbol} />
+                </div>
               </div>
 
               {isSurvey && (

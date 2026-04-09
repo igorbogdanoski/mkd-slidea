@@ -604,7 +604,7 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
           <motion.h2
             key={currentPoll.question}
             initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }}
-            className="text-6xl font-black leading-tight max-w-4xl"
+            className="text-6xl font-black leading-tight max-w-4xl whitespace-pre-line"
           >
             {currentPoll.question}
           </motion.h2>

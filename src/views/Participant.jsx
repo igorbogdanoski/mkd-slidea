@@ -161,7 +161,7 @@ const Participant = ({
               </span>
             </div>
             
-            <h2 className="text-2xl font-black text-slate-900 mb-8 leading-tight">
+            <h2 className="text-2xl font-black text-slate-900 mb-8 leading-tight whitespace-pre-line">
               {currentPoll.question}
             </h2>
 
