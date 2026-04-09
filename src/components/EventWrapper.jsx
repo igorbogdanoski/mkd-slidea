@@ -21,11 +21,12 @@ const getSessionId = () => {
 
 const EventWrapper = ({ type, username, setUsername }) => {
   const { id } = useParams();
+  const normalizedCode = (id || '').replace(/^#/, '').trim().toUpperCase();
   const {
     event, polls, questions, reactions,
     loading, error, vote, submitSurvey, submitQuestion,
     upvoteQuestion, markQuestionAnswered, sendReaction
-  } = useEvent(id);
+  } = useEvent(normalizedCode);
 
   const { setEvent, setPresence } = useEventStore();
   const [quizResult, setQuizResult] = useState(null);
@@ -114,7 +115,7 @@ const EventWrapper = ({ type, username, setUsername }) => {
         </div>
         <h2 className="text-3xl font-black mb-2">Настанот не е пронајден</h2>
         <p className="font-bold opacity-80 mb-8 leading-relaxed text-slate-500">
-          Проверете го кодот <span className="bg-red-100 px-2 py-0.5 rounded text-red-700">#{id}</span>. Можно е настанот да е истечен или избришан.
+          Проверете го кодот <span className="bg-red-100 px-2 py-0.5 rounded text-red-700">#{normalizedCode || id}</span>. Можно е настанот да е истечен или избришан.
         </p>
         <button 
           onClick={() => window.location.href='/'} 

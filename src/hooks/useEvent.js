@@ -33,6 +33,9 @@ export const useEvent = (eventCode) => {
   useEffect(() => {
     if (!eventCode) return;
 
+    const normalizedCode = String(eventCode).replace(/^#/, '').trim().toUpperCase();
+    if (!normalizedCode) return;
+
     let mounted = true;
 
     const initializeEvent = async () => {
@@ -45,7 +48,7 @@ export const useEvent = (eventCode) => {
           ({ data: eventData, error: eventError } = await supabase
             .from('events')
             .select('*')
-            .eq('code', eventCode)
+            .ilike('code', normalizedCode)
             .single());
           if (!eventError) break;
           if (attempt === 0) await new Promise(r => setTimeout(r, 1200));

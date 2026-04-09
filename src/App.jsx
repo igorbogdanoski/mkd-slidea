@@ -69,7 +69,8 @@ const AppContent = () => {
 
   const handleJoin = (e) => {
     if (e) e.preventDefault();
-    if (code.length === 6) navigate('/event/' + code);
+    const cleanCode = (code || '').replace(/^#/, '').trim().toUpperCase();
+    if (cleanCode.length === 6) navigate('/event/' + cleanCode);
   };
 
   const isPublicRoute = ['/', '/join', '/pricing'].includes(location.pathname);
