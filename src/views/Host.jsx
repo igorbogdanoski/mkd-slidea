@@ -17,6 +17,7 @@ import HostHeader from '../components/Host/HostHeader';
 import PollCard from '../components/Host/PollCard';
 import RemoteController from '../components/Host/RemoteController';
 import ImportPPTXModal from '../components/ImportPPTXModal';
+import PublishTemplateModal from '../components/PublishTemplateModal';
 const Host = ({ setView, user }) => {
   const [event, setEvent] = useState(null);
   const [polls, setPolls] = useState([]);
@@ -43,6 +44,7 @@ const Host = ({ setView, user }) => {
   const [isRemoteMode, setIsRemoteMode] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isInsightsOpen, setIsInsightsOpen] = useState(false);
+  const [isPublishTemplateOpen, setIsPublishTemplateOpen] = useState(false);
 
   const toInputDateTime = (iso) => {
     if (!iso) return '';
@@ -298,6 +300,39 @@ const Host = ({ setView, user }) => {
     a.download = `slidea-${event.code}-${today.replace(/\./g, '-')}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const publishTemplate = async ({ title, category, description }) => {
+    if (!event || polls.length === 0) {
+      alert('Нема активности за објавување.');
+      return;
+    }
+
+    const payload = polls.map((p) => ({
+      question: p.question,
+      type: p.type || 'poll',
+      is_quiz: !!p.is_quiz,
+      options: (p.options || []).map((o) => ({
+        text: o.text,
+        is_correct: !!o.is_correct,
+      })),
+    }));
+
+    const { error } = await supabase.from('community_templates').insert([{
+      user_id: user?.id || null,
+      title,
+      category: category || 'Community',
+      description: description || null,
+      polls: payload,
+      is_public: true,
+    }]);
+
+    if (error) {
+      alert('Грешка при објавување: ' + error.message);
+      return;
+    }
+
+    alert('Шаблонот е успешно објавен во Community библиотеката.');
   };
 
   const setActivePoll = async (index) => {
@@ -743,6 +778,12 @@ const Host = ({ setView, user }) => {
         onClose={() => setIsImportOpen(false)}
         onImport={handlePPTXImport}
       />
+      <PublishTemplateModal
+        isOpen={isPublishTemplateOpen}
+        onClose={() => setIsPublishTemplateOpen(false)}
+        onPublish={publishTemplate}
+        polls={polls}
+      />
 
       <HostHeader event={event} setIsQRModalOpen={setIsQRModalOpen} setView={setView} isRemoteMode={isRemoteMode} setIsRemoteMode={setIsRemoteMode} />
       {isRemoteMode && (
@@ -817,6 +858,15 @@ const Host = ({ setView, user }) => {
                       >
                         <Upload className="w-6 h-6 text-violet-600" /> Увези PPTX
                       </button>
+                      {polls.length > 0 && (
+                        <button
+                          onClick={() => setIsPublishTemplateOpen(true)}
+                          className="flex items-center justify-center gap-3 px-8 py-4 bg-white border-2 border-slate-100 text-slate-900 rounded-2xl font-black text-lg hover:border-emerald-600 hover:text-emerald-600 transition-all shadow-sm active:scale-95"
+                          title="Објави како Community Template"
+                        >
+                          <Upload className="w-6 h-6 text-emerald-600" /> Објави шаблон
+                        </button>
+                      )}
                       {polls.length > 0 && (
                         <>
                           <button

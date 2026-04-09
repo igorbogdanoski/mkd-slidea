@@ -118,6 +118,23 @@ CREATE TABLE IF NOT EXISTS profiles (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- 9. Community Templates (crowd-sourced library)
+CREATE TABLE IF NOT EXISTS community_templates (
+  id          UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id     UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  title       TEXT NOT NULL,
+  category    TEXT DEFAULT 'Community',
+  description TEXT,
+  image_url   TEXT,
+  polls       JSONB NOT NULL DEFAULT '[]'::jsonb,
+  usage_count INTEGER NOT NULL DEFAULT 0,
+  is_public   BOOLEAN NOT NULL DEFAULT true,
+  created_at  TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_community_templates_public_created
+  ON community_templates(is_public, created_at DESC);
+
 -- ============================================================
 -- RPC ФУНКЦИИ
 -- ============================================================

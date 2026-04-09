@@ -91,6 +91,8 @@ CREATE INDEX idx_options_poll ON options(poll_id);
 - Наставниците споделуваат свои настани
 - Поврзано со македонскиот курикулум (предмет + одделение + тема)
 
+✅ MVP имплементација: `community_templates` (schema + RLS), Host publish flow (`PublishTemplateModal`), Dashboard community listing + one-click use
+
 ### В.4 — Integrations
 - Microsoft Teams Add-in (manifest.xml постои → треба publishing)
 - Google Classroom SSO

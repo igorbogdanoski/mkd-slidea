@@ -27,6 +27,8 @@ const Dashboard = ({ setView, user, onLogout }) => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [allEvents, setAllEvents] = useState([]);
   const [eventsLoading, setEventsLoading] = useState(false);
+  const [communityTemplates, setCommunityTemplates] = useState([]);
+  const [templatesLoading, setTemplatesLoading] = useState(false);
 
   useEffect(() => {
     if (activeTab !== 'presentations') return;
@@ -38,6 +40,44 @@ const Dashboard = ({ setView, user, onLogout }) => {
       .order('created_at', { ascending: false })
       .limit(50)
       .then(({ data }) => { setAllEvents(data || []); setEventsLoading(false); });
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== 'templates') return;
+    let cancelled = false;
+    setTemplatesLoading(true);
+    supabase
+      .from('community_templates')
+      .select('id, title, category, description, image_url, polls, usage_count, created_at')
+      .eq('is_public', true)
+      .order('created_at', { ascending: false })
+      .limit(80)
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          console.error('Error loading community templates:', error);
+          setCommunityTemplates([]);
+          setTemplatesLoading(false);
+          return;
+        }
+        const normalized = (data || []).map((t) => ({
+          id: `community-${t.id}`,
+          source: 'community',
+          originalId: t.id,
+          title: t.title,
+          category: t.category || 'Community',
+          description: t.description || '',
+          img: t.image_url || 'https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=400&h=250&auto=format&fit=crop',
+          polls: Array.isArray(t.polls) ? t.polls : [],
+          usage_count: t.usage_count || 0,
+        }));
+        setCommunityTemplates(normalized);
+        setTemplatesLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [activeTab]);
 
   const useTemplate = async (template) => {
@@ -82,6 +122,14 @@ const Dashboard = ({ setView, user, onLogout }) => {
           const ratings = ['1', '2', '3', '4', '5'].map(val => ({ poll_id: newPoll.id, text: val }));
           await supabase.from('options').insert(ratings);
         }
+      }
+
+      if (template.source === 'community' && template.originalId) {
+        const nextUsage = (template.usage_count || 0) + 1;
+        await supabase
+          .from('community_templates')
+          .update({ usage_count: nextUsage })
+          .eq('id', template.originalId);
       }
 
       localStorage.setItem('active_event_code', eventCode);
@@ -178,6 +226,7 @@ const Dashboard = ({ setView, user, onLogout }) => {
           </motion.div>
         );
       case 'templates':
+        const allTemplates = [...templates, ...communityTemplates];
         return (
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -187,12 +236,19 @@ const Dashboard = ({ setView, user, onLogout }) => {
             <div className="flex items-center justify-between mb-12">
               <div>
                 <h2 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">Сите шаблони</h2>
-                <p className="text-slate-400 font-bold">Започнете брзо со еден од нашите претходно дизајнирани шаблони.</p>
+                <p className="text-slate-400 font-bold">Официјални + community шаблони за брз старт.</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-               {templates.map((temp) => (
+            {templatesLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                  <div key={i} className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm h-80 animate-pulse" />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+               {allTemplates.map((temp) => (
                  <div key={temp.id} className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden group cursor-pointer hover:shadow-2xl hover:shadow-indigo-50 transition-all">
                     <div className="h-48 relative overflow-hidden">
                       <img src={temp.img} alt={temp.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
@@ -201,9 +257,21 @@ const Dashboard = ({ setView, user, onLogout }) => {
                           {temp.category}
                         </span>
                       </div>
+                      {temp.source === 'community' && (
+                        <div className="absolute top-4 right-4">
+                          <span className="bg-emerald-500/95 text-white px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest">
+                            Community
+                          </span>
+                        </div>
+                      )}
                     </div>
                     <div className="p-8">
                       <h4 className="font-black text-slate-900 mb-6 line-clamp-2">{temp.title}</h4>
+                      {temp.source === 'community' && (
+                        <p className="text-[11px] text-slate-400 font-black uppercase tracking-widest mb-4">
+                          Користен {temp.usage_count || 0} пати
+                        </p>
+                      )}
                       <div className="flex gap-2">
                         <button 
                           onClick={() => useTemplate(temp)}
@@ -216,7 +284,8 @@ const Dashboard = ({ setView, user, onLogout }) => {
                     </div>
                  </div>
                ))}
-            </div>
+              </div>
+            )}
           </motion.div>
         );
       case 'admin':

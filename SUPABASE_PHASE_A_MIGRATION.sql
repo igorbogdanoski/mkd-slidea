@@ -60,6 +60,19 @@ CREATE TABLE IF NOT EXISTS public.survey_responses (
   UNIQUE(poll_id, session_id)
 );
 
+CREATE TABLE IF NOT EXISTS public.community_templates (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  title TEXT NOT NULL,
+  category TEXT DEFAULT 'Community',
+  description TEXT,
+  image_url TEXT,
+  polls JSONB NOT NULL DEFAULT '[]'::jsonb,
+  usage_count INTEGER NOT NULL DEFAULT 0,
+  is_public BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 CREATE INDEX IF NOT EXISTS idx_events_user_id ON public.events(user_id);
 CREATE INDEX IF NOT EXISTS idx_events_code ON public.events(code);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_events_cohost_code_unique ON public.events(cohost_code) WHERE cohost_code IS NOT NULL;
@@ -70,6 +83,7 @@ CREATE INDEX IF NOT EXISTS idx_questions_event_id ON public.questions(event_id);
 CREATE INDEX IF NOT EXISTS idx_votes_poll_id ON public.votes(poll_id);
 CREATE INDEX IF NOT EXISTS idx_votes_session_id ON public.votes(session_id);
 CREATE INDEX IF NOT EXISTS idx_survey_responses_poll_id ON public.survey_responses(poll_id);
+CREATE INDEX IF NOT EXISTS idx_community_templates_public_created ON public.community_templates(is_public, created_at DESC);
 
 UPDATE public.profiles
 SET plan = 'free'
@@ -100,6 +114,7 @@ ALTER TABLE public.leaderboard ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.votes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.survey_responses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.community_templates ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS events_public_read ON public.events;
 CREATE POLICY events_public_read ON public.events FOR SELECT USING (true);
@@ -171,6 +186,24 @@ DROP POLICY IF EXISTS profiles_self_read ON public.profiles;
 CREATE POLICY profiles_self_read ON public.profiles FOR SELECT USING (auth.uid() = id OR public.is_admin());
 DROP POLICY IF EXISTS profiles_self_update ON public.profiles;
 CREATE POLICY profiles_self_update ON public.profiles FOR UPDATE USING (auth.uid() = id OR public.is_admin()) WITH CHECK (auth.uid() = id OR public.is_admin());
+
+DROP POLICY IF EXISTS community_templates_public_read ON public.community_templates;
+CREATE POLICY community_templates_public_read ON public.community_templates
+FOR SELECT USING (is_public = true OR user_id = auth.uid() OR public.is_admin());
+
+DROP POLICY IF EXISTS community_templates_authenticated_insert ON public.community_templates;
+CREATE POLICY community_templates_authenticated_insert ON public.community_templates
+FOR INSERT TO authenticated
+WITH CHECK (user_id = auth.uid() OR public.is_admin());
+
+DROP POLICY IF EXISTS community_templates_owner_update ON public.community_templates;
+CREATE POLICY community_templates_owner_update ON public.community_templates
+FOR UPDATE USING (user_id = auth.uid() OR public.is_admin())
+WITH CHECK (user_id = auth.uid() OR public.is_admin());
+
+DROP POLICY IF EXISTS community_templates_owner_delete ON public.community_templates;
+CREATE POLICY community_templates_owner_delete ON public.community_templates
+FOR DELETE USING (user_id = auth.uid() OR public.is_admin());
 
 -- One-time admin grant after first Google sign-in.
 -- Replace the email if needed and run once.
