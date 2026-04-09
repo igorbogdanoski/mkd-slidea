@@ -20,33 +20,6 @@ export const useEvent = (eventCode) => {
   }, []);
 
   const fetchQuestions = useCallback(async (eventId) => {
-  const [reactions, setReactions] = useState([]);
-
-  const fetchPolls = useCallback(async (eventId) => {
-    const { data } = await supabase
-      .from('polls')
-      .select('*, options(*)')
-      .eq('event_id', eventId)
-      .order('position', { ascending: true })
-      .order('created_at', { ascending: true });
-    
-    // Prevent unnecessary re-renders by comparing vote counts
-    setPolls(prev => {
-      if (!Array.isArray(prev) || !Array.isArray(data)) return data || [];
-      if (prev.length !== data.length) return data || [];
-      const changed = prev.some((p, i) => {
-        const newP = data[i];
-        if (p.id !== newP.id) return true;
-        const prevOpts = p.options || [];
-        const newOpts = newP.options || [];
-        if (prevOpts.length !== newOpts.length) return true;
-        return prevOpts.some((opt, j) => opt.votes !== (newOpts[j]?.votes || 0));
-      });
-      return changed ? data : prev;
-    });
-  }, []);
-
-  const fetchQuestions = useCallback(async (eventId) => {
     const { data, error } = await supabase
       .from('questions')
       .select('*')
@@ -267,30 +240,6 @@ export const useEvent = (eventCode) => {
       supabase.removeChannel(presenceNavChannel);
     };
   }, [event?.id, event?.active_poll_id, fetchPolls, fetchQuestions]);
-      // Debounce fetchPolls to prevent excessive polling (max update per 500ms)
-      let pollsTimeoutId;
-      const debouncedFetchPolls = (eventId) => {
-        clearTimeout(pollsTimeoutId);
-        pollsTimeoutId = setTimeout(() => {
-          fetchPolls(eventId).catch(() => {});
-        }, 500);
-      };
-
-      // Polling fallback for poll results every 6s (debounced to prevent flickering)
-      const resultsInterval = setInterval(() => debouncedFetchPolls(event.id), 6000);
-
-      return () => {
-        clearTimeout(pollsTimeoutId);
-        clearInterval(syncInterval);
-        clearInterval(resultsInterval);
-        supabase.removeChannel(pollChannel);
-        supabase.removeChannel(questionChannel);
-        supabase.removeChannel(reactionChannel);
-        supabase.removeChannel(eventChannel);
-        supabase.removeChannel(navChannel);
-        supabase.removeChannel(presenceNavChannel);
-      };
-    }, [event?.id, event?.active_poll_id, fetchPolls, fetchQuestions]);
 
   const sendReaction = async (emoji) => {
     if (!event) return;
