@@ -8,6 +8,7 @@ import CreatePollModal from '../components/CreatePollModal';
 import CreateQuizModal from '../components/CreateQuizModal';
 import InteractionTypeGrid from '../components/InteractionTypeGrid';
 import AIAssistantModal from '../components/AIAssistantModal';
+import AIInsightsModal from '../components/AIInsightsModal';
 import ExportPDFModal from '../components/ExportPDFModal';
 import ParticipantStatsModal from '../components/ParticipantStatsModal';
 import { supabase } from '../lib/supabase';
@@ -41,6 +42,7 @@ const Host = ({ setView, user }) => {
   const [showPwd, setShowPwd] = useState(false);
   const [isRemoteMode, setIsRemoteMode] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isInsightsOpen, setIsInsightsOpen] = useState(false);
 
   const toInputDateTime = (iso) => {
     if (!iso) return '';
@@ -718,6 +720,12 @@ const Host = ({ setView, user }) => {
         onGenerate={onSavePoll}
         user={user}
       />
+      <AIInsightsModal
+        isOpen={isInsightsOpen}
+        onClose={() => setIsInsightsOpen(false)}
+        event={event}
+        polls={polls}
+      />
       <ExportPDFModal
         isOpen={isExportOpen}
         onClose={() => setIsExportOpen(false)}
@@ -835,6 +843,16 @@ const Host = ({ setView, user }) => {
                               title="Извоз PDF"
                             >
                               <FileDown className="w-5 h-5" />
+                            </button>
+                            {!isPro(user) && <span className="absolute -top-2 -right-2 bg-amber-400 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wide pointer-events-none">Pro</span>}
+                          </div>
+                          <div className="relative">
+                            <button
+                              onClick={() => setIsInsightsOpen(true)}
+                              className="flex items-center justify-center gap-2 px-5 py-4 bg-white border-2 border-slate-100 text-slate-500 rounded-2xl font-black hover:border-violet-200 hover:text-violet-600 transition-all shadow-sm active:scale-95"
+                              title="AI Insights по час"
+                            >
+                              <Sparkles className="w-5 h-5" />
                             </button>
                             {!isPro(user) && <span className="absolute -top-2 -right-2 bg-amber-400 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wide pointer-events-none">Pro</span>}
                           </div>
