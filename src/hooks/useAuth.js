@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase, warmUp, authGetSessionSafe } from '../lib/supabase';
+import { debugWarn, recordLoginLatency } from '../utils/observability';
 
 // SECURITY: Admin role comes exclusively from the DB profiles table.
 // To grant admin: UPDATE profiles SET role='admin', plan='admin' WHERE email='your@email.com';
@@ -77,33 +78,53 @@ export const useAuth = ({ enabled = true } = {}) => {
   // No artificial timeout — let Supabase handle its own (~60s).
   // onAuthStateChange will fire SIGNED_IN when it succeeds.
   const signIn = async (email, password) => {
+    const startedAt = performance.now();
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
+    if (error) {
+      recordLoginLatency({ method: 'password', action: 'signIn', durationMs: performance.now() - startedAt, ok: false, reason: error.message });
+      throw error;
+    }
+    recordLoginLatency({ method: 'password', action: 'signIn', durationMs: performance.now() - startedAt, ok: true });
   };
 
   const signUp = async (email, password, name = '') => {
+    const startedAt = performance.now();
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { name: name || email.split('@')[0] } },
     });
-    if (error) throw error;
+    if (error) {
+      recordLoginLatency({ method: 'password', action: 'signUp', durationMs: performance.now() - startedAt, ok: false, reason: error.message });
+      throw error;
+    }
+    recordLoginLatency({ method: 'password', action: 'signUp', durationMs: performance.now() - startedAt, ok: true });
   };
 
   const signInWithGoogle = async (redirectPath = '/dashboard') => {
+    const startedAt = performance.now();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: window.location.origin + redirectPath },
     });
-    if (error) throw error;
+    if (error) {
+      recordLoginLatency({ method: 'google', action: 'oauth_start', durationMs: performance.now() - startedAt, ok: false, reason: error.message });
+      throw error;
+    }
+    recordLoginLatency({ method: 'google', action: 'oauth_start', durationMs: performance.now() - startedAt, ok: true });
   };
 
   const signInWithMagicLink = async (email) => {
+    const startedAt = performance.now();
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { shouldCreateUser: true },
     });
-    if (error) throw error;
+    if (error) {
+      recordLoginLatency({ method: 'magic', action: 'otp', durationMs: performance.now() - startedAt, ok: false, reason: error.message });
+      throw error;
+    }
+    recordLoginLatency({ method: 'magic', action: 'otp', durationMs: performance.now() - startedAt, ok: true });
   };
 
   const signOut = async () => {
@@ -111,7 +132,8 @@ export const useAuth = ({ enabled = true } = {}) => {
     localStorage.removeItem('mkd_slidea_user_data');
     try {
       await supabase.auth.signOut();
-    } catch {
+    } catch (err) {
+      debugWarn('signOut failed (non-blocking)', err?.message || err);
       // Keep local sign-out state even if remote sign-out races with another tab/request.
     }
   };

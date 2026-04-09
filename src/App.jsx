@@ -1,16 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import Nav from './components/Nav';
-import Landing from './views/Landing';
 import Join from './views/Join';
-import Host from './views/Host';
-import Dashboard from './views/Dashboard';
-import Pricing from './views/Pricing';
-import EventWrapper from './components/EventWrapper';
-import Embed from './views/Embed';
 import ErrorBoundary from './components/ErrorBoundary';
 import { useAuth } from './hooks/useAuth';
+
+const Landing = lazy(() => import('./views/Landing'));
+const Host = lazy(() => import('./views/Host'));
+const Dashboard = lazy(() => import('./views/Dashboard'));
+const Pricing = lazy(() => import('./views/Pricing'));
+const EventWrapper = lazy(() => import('./components/EventWrapper'));
+const Embed = lazy(() => import('./views/Embed'));
 
 const AppContent = () => {
   const navigate = useNavigate();
@@ -102,20 +103,29 @@ const AppContent = () => {
       <main className={isPublicRoute ? 'pt-16' : ''}>
         <AnimatePresence mode="wait">
           <ErrorBoundary>
-            <Routes>
-              <Route path="/" element={<Landing code={code} setCode={setCode} setView={setView} />} />
-              <Route path="/join" element={<Join code={code} setCode={setCode} handleJoin={handleJoin} setView={setView} />} />
-              <Route path="/host" element={<ProtectedRoute><Host setView={setView} user={user} /></ProtectedRoute>} />
-              <Route path="/dashboard" element={<ProtectedRoute><Dashboard setView={setView} user={user} onLogout={handleLogout} /></ProtectedRoute>} />
-              <Route path="/pricing" element={<Pricing setView={setView} />} />
-              <Route path="/event/:id/present" element={<EventWrapper type="present" />} />
-              <Route path="/event/:id/embed" element={<Embed />} />
-              <Route
-                path="/event/:id"
-                element={<EventWrapper type="participant" username={username} setUsername={updateUsername} />}
-              />
-              <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
+            <Suspense
+              fallback={
+                <div className="min-h-[50vh] bg-[#F8FAFC] flex flex-col items-center justify-center gap-3">
+                  <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-slate-400 font-bold text-sm">Се вчитува...</p>
+                </div>
+              }
+            >
+              <Routes>
+                <Route path="/" element={<Landing code={code} setCode={setCode} setView={setView} />} />
+                <Route path="/join" element={<Join code={code} setCode={setCode} handleJoin={handleJoin} setView={setView} />} />
+                <Route path="/host" element={<ProtectedRoute><Host setView={setView} user={user} /></ProtectedRoute>} />
+                <Route path="/dashboard" element={<ProtectedRoute><Dashboard setView={setView} user={user} onLogout={handleLogout} /></ProtectedRoute>} />
+                <Route path="/pricing" element={<Pricing setView={setView} />} />
+                <Route path="/event/:id/present" element={<EventWrapper type="present" />} />
+                <Route path="/event/:id/embed" element={<Embed />} />
+                <Route
+                  path="/event/:id"
+                  element={<EventWrapper type="participant" username={username} setUsername={updateUsername} />}
+                />
+                <Route path="*" element={<Navigate to="/" />} />
+              </Routes>
+            </Suspense>
           </ErrorBoundary>
         </AnimatePresence>
       </main>

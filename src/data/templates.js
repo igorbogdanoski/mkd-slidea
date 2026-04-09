@@ -32,7 +32,7 @@ export const templates = [
           { text: 'Кораб', is_correct: true },
           { text: 'Пелистер', is_correct: false },
           { text: 'Шар Планина', is_correct: false },
-          { text: 'Якупица', is_correct: false },
+          { text: 'Јакупица', is_correct: false },
         ],
       },
       {
@@ -65,12 +65,12 @@ export const templates = [
     category: 'Образование',
     img: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=400&h=250&auto=format&fit=crop',
     polls: [
-      { question: 'Kako би го оцениле денешниот час?', type: 'rating', is_quiz: false },
+      { question: 'Како би го оцениле денешниот час?', type: 'rating', is_quiz: false },
       { question: 'Што беше најинтересно денес?', type: 'wordcloud', is_quiz: false },
       { question: 'Дали темпото на предавањето беше соодветно?', type: 'poll', is_quiz: false,
         options: [
           { text: 'Премногу брзо', is_correct: false },
-          { text: 'Точно добро', is_correct: false },
+          { text: 'Токму соодветно', is_correct: false },
           { text: 'Можеше побавно', is_correct: false },
         ],
       },
@@ -238,17 +238,17 @@ export const templates = [
           { text: 'Google', is_correct: false },
           { text: 'OpenAI', is_correct: true },
           { text: 'Meta', is_correct: false },
-          { text: 'Microsoft', is_correct: false },
+          { text: 'Anthropic', is_correct: false },
         ],
       },
       {
         question: 'Што значи кратенката "AI"?',
         type: 'poll', is_quiz: true,
         options: [
-          { text: 'Automated Internet', is_correct: false },
-          { text: 'Artificial Intelligence', is_correct: true },
-          { text: 'Advanced Integration', is_correct: false },
-          { text: 'Automated Input', is_correct: false },
+          { text: 'Автоматизиран интернет', is_correct: false },
+          { text: 'Вештачка интелигенција', is_correct: true },
+          { text: 'Напредна интеграција', is_correct: false },
+          { text: 'Автоматски внес', is_correct: false },
         ],
       },
       {
@@ -262,7 +262,7 @@ export const templates = [
         ],
       },
       {
-        question: 'Во која година беше основана компанијата Apple?',
+        question: 'Во која година е основана компанијата Apple?',
         type: 'poll', is_quiz: true,
         options: [
           { text: '1972', is_correct: false },
@@ -272,7 +272,7 @@ export const templates = [
         ],
       },
       {
-        question: 'Кој програмски јазик е најпопуларен за ML/AI?',
+        question: 'Кој програмски јазик е најкористен во ML/AI проекти?',
         type: 'poll', is_quiz: true,
         options: [
           { text: 'Java', is_correct: false },
@@ -327,7 +327,7 @@ export const templates = [
           { text: '💻 Технологија', is_correct: false },
           { text: '📊 Маркетинг', is_correct: false },
           { text: '🎨 Дизајн', is_correct: false },
-          { text: '📚 Образование', is_correct: false },
+          { text: '🏫 Образование', is_correct: false },
           { text: '💰 Финансии', is_correct: false },
           { text: '🔬 Наука', is_correct: false },
         ],

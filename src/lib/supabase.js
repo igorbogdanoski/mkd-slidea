@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { debugWarn } from '../utils/observability';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -55,6 +56,9 @@ export const authGetSessionSafe = async () => {
         lastError = err;
         const msg = String(err?.message || err || '');
         const isLockError = msg.includes('lock:sb-') || msg.toLowerCase().includes('lock');
+        if (isLockError) {
+          debugWarn('auth session lock contention recovered', { attempt: attempt + 1, message: msg.slice(0, 140) });
+        }
         if (!isLockError || attempt === 2) break;
         await new Promise((r) => setTimeout(r, 250 + attempt * 350));
       }
