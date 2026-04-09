@@ -259,6 +259,16 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
     options: [], is_quiz: false, type: 'poll',
   };
 
+  // Filter to approved options when moderation is on
+  const visibleOptions = currentPoll.needs_moderation
+    ? (currentPoll.options || []).filter(o => o.is_approved !== false)
+    : (currentPoll.options || []);
+
+  const totalVotes = visibleOptions.reduce((a, b) => a + (b.votes || 0), 0) || 0;
+  const averageRating = totalVotes > 0
+    ? (visibleOptions.reduce((acc, opt) => acc + (parseInt(opt.text) * (opt.votes || 0)), 0) / totalVotes).toFixed(1)
+    : 0;
+
   // Reset chart mode when switching polls
   useEffect(() => { setChartMode('bars'); setConfettiFired(false); }, [activePollIndex]);
 
@@ -296,16 +306,6 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
       .subscribe();
     return () => ch.unsubscribe();
   }, [currentPoll.id, currentPoll.type]);
-
-  // Filter to approved options when moderation is on
-  const visibleOptions = currentPoll.needs_moderation
-    ? (currentPoll.options || []).filter(o => o.is_approved !== false)
-    : (currentPoll.options || []);
-
-  const totalVotes = visibleOptions.reduce((a, b) => a + (b.votes || 0), 0) || 0;
-  const averageRating = totalVotes > 0
-    ? (visibleOptions.reduce((acc, opt) => acc + (parseInt(opt.text) * (opt.votes || 0)), 0) / totalVotes).toFixed(1)
-    : 0;
 
   // Types that support chart mode switching
   const supportsChartSwitch = ['poll', 'ranking'].includes(currentPoll.type) || currentPoll.is_quiz;

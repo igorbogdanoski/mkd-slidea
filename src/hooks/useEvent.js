@@ -20,14 +20,27 @@ export const useEvent = (eventCode) => {
   }, []);
 
   const fetchQuestions = useCallback(async (eventId) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('questions')
       .select('*')
       .eq('event_id', eventId)
       .eq('is_answered', false)
       .eq('is_approved', true)
       .order('votes', { ascending: false });
-    setQuestions(data || []);
+
+    if (!error) {
+      setQuestions(data || []);
+      return;
+    }
+
+    // Legacy fallback: some older schemas may miss is_approved.
+    const { data: fallbackData } = await supabase
+      .from('questions')
+      .select('*')
+      .eq('event_id', eventId)
+      .eq('is_answered', false)
+      .order('votes', { ascending: false });
+    setQuestions(fallbackData || []);
   }, []);
 
   useEffect(() => {
