@@ -68,7 +68,7 @@ CREATE INDEX idx_options_poll ON options(poll_id);
 - [x] PWA manifest — учениците може да зачуваат на home screen
 - [x] Onboarding guided тур за нови наставници
 - [x] survey_responses табела за Формулар тип
-- [ ] Подобрен PDF извоз layout
+- [x] Подобрен PDF извоз layout
 
 ---
 
@@ -77,6 +77,8 @@ CREATE INDEX idx_options_poll ON options(poll_id);
 ### В.1 — Асинхрон/Homework режим
 - Настанот останува отворен 24-48h без наставникот онлајн
 - **Ова Mentimeter го нема на Free план**
+
+✅ MVP имплементација: `events.async_mode` + `events.async_deadline`, Host toggle и participant deadline gate/banner
 
 ### В.2 — AI Insights по часот
 - По завршување → AI анализира: „42% погрешиле на пр.3 — потребно повторување"

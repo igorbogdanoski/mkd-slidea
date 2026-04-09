@@ -42,6 +42,19 @@ const Host = ({ setView, user }) => {
   const [isRemoteMode, setIsRemoteMode] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
 
+  const toInputDateTime = (iso) => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    const tzOffset = d.getTimezoneOffset() * 60000;
+    return new Date(d.getTime() - tzOffset).toISOString().slice(0, 16);
+  };
+
+  const fromInputDateTime = (value) => {
+    if (!value) return null;
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+  };
+
   useEffect(() => {
     const initEvent = async () => {
       let eventCode = localStorage.getItem('active_event_code');
@@ -494,6 +507,49 @@ const Host = ({ setView, user }) => {
                     🔒 Настанот е заштитен со лозинка
                   </p>
                 )}
+              </div>
+
+              {/* Async / Homework mode */}
+              <div className="p-5 bg-slate-50 rounded-2xl">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <p className="font-black text-slate-900">Асинхрон (Homework) режим</p>
+                    <p className="text-sm text-slate-400 font-bold mt-0.5">Настанот останува отворен без наставник онлајн</p>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      const next = !event.async_mode;
+                      const deadline = next
+                        ? (event.async_deadline || new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString())
+                        : null;
+                      await supabase.from('events').update({ async_mode: next, async_deadline: deadline }).eq('id', event.id);
+                      setEvent(prev => ({ ...prev, async_mode: next, async_deadline: deadline }));
+                    }}
+                    className={`relative w-14 h-7 rounded-full transition-colors ${event.async_mode ? 'bg-emerald-600' : 'bg-slate-200'}`}
+                  >
+                    <span className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${event.async_mode ? 'translate-x-7' : 'translate-x-0.5'}`} />
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Краен рок</label>
+                  <input
+                    type="datetime-local"
+                    disabled={!event.async_mode}
+                    value={toInputDateTime(event.async_deadline)}
+                    onChange={async (e) => {
+                      const iso = fromInputDateTime(e.target.value);
+                      await supabase.from('events').update({ async_deadline: iso }).eq('id', event.id);
+                      setEvent(prev => ({ ...prev, async_deadline: iso }));
+                    }}
+                    className="w-full bg-white border-2 border-slate-100 rounded-xl px-4 py-3 font-bold focus:border-emerald-500 outline-none transition-all disabled:opacity-50"
+                  />
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">
+                    {event.async_mode
+                      ? 'Учесниците можат да одговараат до рокот.'
+                      : 'Вклучи го режимот за 24-48h homework сценарио.'}
+                  </p>
+                </div>
               </div>
 
               {/* Brand color */}

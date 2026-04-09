@@ -19,6 +19,8 @@ CREATE TABLE IF NOT EXISTS events (
   user_id    UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   is_locked  BOOLEAN DEFAULT false,
   password   TEXT,
+  async_mode BOOLEAN DEFAULT false,
+  async_deadline TIMESTAMP WITH TIME ZONE,
   cohost_code TEXT UNIQUE,
   questions_moderation BOOLEAN DEFAULT false,
   brand_color TEXT DEFAULT '#6366f1',

@@ -22,6 +22,8 @@ const Participant = ({
   setUsername,
   sendReaction,
   eventCode,
+  asyncMode,
+  asyncDeadline,
 }) => {
   const { activeParticipants } = useEventStore();
   const currentPoll = polls[activePollIndex] || { question: 'Чекаме настан...', options: [], type: 'poll' };
@@ -86,6 +88,11 @@ const Participant = ({
   }
 
   const isTextType = ['wordcloud', 'open'].includes(currentPoll.type);
+  const formattedDeadline = asyncDeadline
+    ? new Date(asyncDeadline).toLocaleString('mk-MK', {
+      day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    })
+    : null;
 
   const handleSurveySubmit = async () => {
     const qs = currentPoll.survey_questions || [];
@@ -130,6 +137,13 @@ const Participant = ({
         </div>
 
         <div className="space-y-8">
+          {asyncMode && formattedDeadline && (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-5 py-4">
+              <p className="text-emerald-700 font-black text-sm">📚 Homework режим е активен</p>
+              <p className="text-emerald-600 font-bold text-xs mt-1">Рок за одговор: {formattedDeadline}</p>
+            </div>
+          )}
+
           <div className="bg-white rounded-[2.5rem] p-8 shadow-2xl shadow-indigo-100/50 border border-slate-100 relative overflow-hidden">
             {currentPoll.is_quiz && (
               <div className="absolute top-0 right-0 bg-amber-100 text-amber-600 px-6 py-2 rounded-bl-3xl font-black text-xs tracking-widest">КВИЗ</div>

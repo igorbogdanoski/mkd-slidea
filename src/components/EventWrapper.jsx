@@ -140,6 +140,24 @@ const EventWrapper = ({ type, username, setUsername }) => {
     );
   }
 
+  const asyncDeadlineTs = event.async_deadline ? new Date(event.async_deadline).getTime() : null;
+  const isAsyncExpired = !!(event.async_mode && asyncDeadlineTs && Date.now() > asyncDeadlineTs);
+
+  if (isAsyncExpired) {
+    return (
+      <div className="flex items-center justify-center min-h-[80vh] px-4">
+        <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl p-10 max-w-md w-full text-center">
+          <div className="w-20 h-20 bg-amber-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+            <Lock className="w-10 h-10 text-amber-500" />
+          </div>
+          <h2 className="text-2xl font-black text-slate-900 mb-2">Homework сесијата е затворена</h2>
+          <p className="text-slate-400 font-bold text-sm">Рокот за овој настан е истечен. Контактирајте го наставникот за повторно отворање.</p>
+          <p className="mt-6 text-[10px] font-black text-slate-300 uppercase tracking-widest">#{event.code} · MKD Slidea</p>
+        </div>
+      </div>
+    );
+  }
+
   // Lock screen — host has locked voting
   if (event.is_locked) {
     return (
@@ -235,6 +253,8 @@ const EventWrapper = ({ type, username, setUsername }) => {
       resultsVisible={resultsVisible}
       timerRemaining={timerRemaining}
       eventCode={event.code}
+      asyncMode={!!event.async_mode}
+      asyncDeadline={event.async_deadline || null}
       handleSurvey={async (answers) => {
         const currentPoll = polls[activePollIndex];
         if (!currentPoll || userVoted) return;
