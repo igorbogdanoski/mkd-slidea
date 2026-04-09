@@ -36,7 +36,7 @@ export const templates = [
         ],
       },
       {
-        question: 'Во која година Македонија прогласи независност?',
+        question: 'Во која година Македонија ја прогласи независноста?',
         type: 'poll', is_quiz: true,
         options: [
           { text: '1989', is_correct: false },
@@ -74,7 +74,7 @@ export const templates = [
           { text: 'Можеше побавно', is_correct: false },
         ],
       },
-      { question: 'Рангирај ги темите по важност:', type: 'ranking', is_quiz: false,
+      { question: 'Рангирајте ги темите по важност:', type: 'ranking', is_quiz: false,
         options: [
           { text: 'Практични вежби', is_correct: false },
           { text: 'Теоретски дел', is_correct: false },
@@ -103,7 +103,7 @@ export const templates = [
       },
       { question: 'Каде би сакале да патувате следно?', type: 'wordcloud', is_quiz: false },
       { question: 'Опишете го вашиот тимски стил со еден збор:', type: 'wordcloud', is_quiz: false },
-      { question: 'Рангирај ги тимските вредности:', type: 'ranking', is_quiz: false,
+      { question: 'Рангирајте ги тимските вредности:', type: 'ranking', is_quiz: false,
         options: [
           { text: '🤝 Доверба', is_correct: false },
           { text: '💡 Креативност', is_correct: false },
@@ -123,7 +123,7 @@ export const templates = [
     img: 'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=400&h=250&auto=format&fit=crop',
     polls: [
       { question: 'Колку продуктивен беше денешниот состанок?', type: 'rating', is_quiz: false },
-      { question: 'Рангирај ги темите по приоритет:', type: 'ranking', is_quiz: false,
+      { question: 'Рангирајте ги темите по приоритет:', type: 'ranking', is_quiz: false,
         options: [
           { text: '📈 Раст и приходи', is_correct: false },
           { text: '👥 Тимски развој', is_correct: false },
@@ -139,7 +139,7 @@ export const templates = [
           { text: '❌ Требаше подобрување', is_correct: false },
         ],
       },
-      { question: 'Какви се вашите следни чекори/акции?', type: 'open', is_quiz: false },
+      { question: 'Кои се вашите следни чекори/акции?', type: 'open', is_quiz: false },
     ],
   },
 
@@ -151,8 +151,8 @@ export const templates = [
     img: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=400&h=250&auto=format&fit=crop',
     polls: [
       { question: 'Со колку ѕвезди би го оцениле настанот?', type: 'rating', is_quiz: false },
-      { question: 'Кој предавач / сесија ви беше најинтересна?', type: 'wordcloud', is_quiz: false },
-      { question: 'Рангирај ги аспектите на настанот:', type: 'ranking', is_quiz: false,
+      { question: 'Кој предавач/сесија ви беше најинтересна?', type: 'wordcloud', is_quiz: false },
+      { question: 'Рангирајте ги аспектите на настанот:', type: 'ranking', is_quiz: false,
         options: [
           { text: '🎤 Предавачи', is_correct: false },
           { text: '🗓️ Организација', is_correct: false },
@@ -182,7 +182,7 @@ export const templates = [
     polls: [
       { question: 'Колку сте задоволни од вашата тековна позиција?', type: 'rating', is_quiz: false },
       { question: 'Опишете ја компанијата со еден збор:', type: 'wordcloud', is_quiz: false },
-      { question: 'Рангирај ги работните бенефиции по важност:', type: 'ranking', is_quiz: false,
+      { question: 'Рангирајте ги работните бенефиции по важност:', type: 'ranking', is_quiz: false,
         options: [
           { text: '💰 Плата', is_correct: false },
           { text: '🏠 Флексибилна работа', is_correct: false },
@@ -211,7 +211,7 @@ export const templates = [
     polls: [
       { question: 'Кој е главниот предизвик со кој се соочувате?', type: 'wordcloud', is_quiz: false },
       { question: 'Предложете идеја за подобрување:', type: 'open', is_quiz: false },
-      { question: 'Рангирај ги пристапите за решение:', type: 'ranking', is_quiz: false,
+      { question: 'Рангирајте ги пристапите за решение:', type: 'ranking', is_quiz: false,
         options: [
           { text: '🔄 Промена на процеси', is_correct: false },
           { text: '🤖 Автоматизација', is_correct: false },
@@ -293,7 +293,7 @@ export const templates = [
     polls: [
       { question: 'Со колку ѕвезди би го оцениле нашиот производ?', type: 'rating', is_quiz: false },
       { question: 'Кои функции ги користите најчесто?', type: 'wordcloud', is_quiz: false },
-      { question: 'Рангирај ги функциите по важност:', type: 'ranking', is_quiz: false,
+      { question: 'Рангирајте ги функциите по важност:', type: 'ranking', is_quiz: false,
         options: [
           { text: '⚡ Брзина', is_correct: false },
           { text: '🎨 Дизајн', is_correct: false },
@@ -321,7 +321,7 @@ export const templates = [
     category: 'Онбординг',
     img: 'https://images.unsplash.com/photo-1529390079861-591de354faf5?q=80&w=400&h=250&auto=format&fit=crop',
     polls: [
-      { question: 'Од каде доаѓате / Кој е вашиот град?', type: 'wordcloud', is_quiz: false },
+      { question: 'Од каде доаѓате/кој е вашиот град?', type: 'wordcloud', is_quiz: false },
       { question: 'Кое е вашето поле на работа?', type: 'poll', is_quiz: false,
         options: [
           { text: '💻 Технологија', is_correct: false },
@@ -332,7 +332,7 @@ export const templates = [
           { text: '🔬 Наука', is_correct: false },
         ],
       },
-      { question: 'Рангирај ги вашите очекувања:', type: 'ranking', is_quiz: false,
+      { question: 'Рангирајте ги вашите очекувања:', type: 'ranking', is_quiz: false,
         options: [
           { text: '🧠 Ново знаење', is_correct: false },
           { text: '🤝 Нови контакти', is_correct: false },
