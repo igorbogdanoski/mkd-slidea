@@ -33,6 +33,7 @@ const EventWrapper = ({ type, username, setUsername }) => {
   const [dbVotedPolls, setDbVotedPolls] = useState([]);
   const [isVoting, setIsVoting] = useState(false);
   const [voteError, setVoteError] = useState(null);
+  const [newQuestion, setNewQuestion] = useState('');
   const [pwdInput, setPwdInput] = useState('');
   const [pwdError, setPwdError] = useState(false);
   const [pwdVisible, setPwdVisible] = useState(false);
@@ -249,6 +250,17 @@ const EventWrapper = ({ type, username, setUsername }) => {
   const currentPollForWrapper = polls[activePollIndex];
   const resultsVisible = currentPollForWrapper?.results_visible !== false;
 
+  const handleSubmitQuestion = async () => {
+    const clean = String(newQuestion || '').replace(/<[^>]+>/g, '').trim();
+    if (clean.length < 3) return;
+    try {
+      await submitQuestion(clean, username || 'Анонимен');
+      setNewQuestion('');
+    } catch (err) {
+      console.error('Question submit failed:', err);
+    }
+  };
+
   return (
     <Participant
       polls={polls.length > 0 ? polls : [{ question: "Чекаме домаќинот да активира анкета...", options: [], is_quiz: false }]}
@@ -358,9 +370,9 @@ const EventWrapper = ({ type, username, setUsername }) => {
       }}
       handleUpvote={(qid) => upvoteQuestion(qid)}
       sendReaction={sendReaction}
-      newQuestion=""
-      setNewQuestion={() => {}}
-      submitQuestion={(txt) => submitQuestion(txt, username)}
+      newQuestion={newQuestion}
+      setNewQuestion={setNewQuestion}
+      submitQuestion={handleSubmitQuestion}
       username={username}
       setUsername={setUsername}
     />

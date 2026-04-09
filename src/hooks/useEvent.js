@@ -128,11 +128,9 @@ export const useEvent = (eventCode) => {
       )
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'options' },
-        (payload) => {
-          // Always refetch polls on any option change to catch vote updates
-          if (payload?.new?.poll_id) {
-            fetchPolls(event.id);
-          }
+        () => {
+          // Always refetch polls on option changes to keep live results synced
+          fetchPolls(event.id);
         }
       )
       .subscribe();
@@ -277,8 +275,10 @@ export const useEvent = (eventCode) => {
 
   const submitQuestion = async (text, author = "Гостин") => {
     if (!event) return;
+    const clean = String(text || '').replace(/<[^>]+>/g, '').trim().slice(0, 300);
+    if (clean.length < 3) return;
     const isApproved = !event.questions_moderation;
-    return await supabase.from('questions').insert([{ event_id: event.id, text, author, votes: 0, is_approved: isApproved }]);
+    return await supabase.from('questions').insert([{ event_id: event.id, text: clean, author, votes: 0, is_approved: isApproved }]);
   };
 
   const upvoteQuestion = async (questionId) => {
