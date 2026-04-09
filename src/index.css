@@ -3,8 +3,30 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-slate-50 text-slate-900;
+    background-image:
+      radial-gradient(circle at top, rgba(99, 102, 241, 0.12), transparent 32%),
+      linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(248, 250, 252, 1));
+    min-height: 100vh;
+  }
+
+  ::selection {
+    @apply bg-indigo-600 text-white;
+  }
+
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  summary:focus-visible {
+    outline: 3px solid rgba(79, 70, 229, 0.35);
+    outline-offset: 3px;
   }
 }
 
