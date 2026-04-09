@@ -299,12 +299,15 @@ const EventWrapper = ({ type, username, setUsername }) => {
 
           if (typeof val === 'string') {
             answerText = val;
-            await vote(null, currentPoll.id, val, false);
+            const textVoteRes = await vote(null, currentPoll.id, val, false);
+            if (textVoteRes?.error) throw textVoteRes.error;
           } else {
             const option = currentPoll.options[val];
+            if (!option) throw new Error('Invalid option selected');
             answerText = option.text;
             isCorrect = option.is_correct ?? null;
-            await vote(option.id);
+            const optionVoteRes = await vote(option.id);
+            if (optionVoteRes?.error) throw optionVoteRes.error;
             if (currentPoll.is_quiz) {
               const correctIndex = currentPoll.options.findIndex(o => o.is_correct);
               setQuizResult({ isCorrect: !!option.is_correct, selectedIndex: val, correctIndex });

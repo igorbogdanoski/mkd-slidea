@@ -41,8 +41,10 @@ const Participant = ({
   }, [currentPoll.id, currentPoll.type]);
 
   const submitResponse = async () => {
-    if (!response.trim()) return;
-    handleVote(response.trim());
+    const clean = response.trim();
+    const minLen = currentPoll.type === 'wordcloud' ? 2 : 3;
+    if (clean.length < minLen) return;
+    handleVote(clean);
     setResponse('');
   };
 
@@ -396,6 +398,34 @@ const Participant = ({
                             <GripVertical className="w-5 h-5 text-slate-400" />
                             <span className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 font-black flex items-center justify-center text-sm">{rank + 1}</span>
                             <span className="font-bold text-slate-700 flex-1">{opt.text}</span>
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (rank === 0) return;
+                                  const next = [...rankingOrder];
+                                  [next[rank - 1], next[rank]] = [next[rank], next[rank - 1]];
+                                  setRankingOrder(next);
+                                }}
+                                className="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-500 font-black"
+                                aria-label="Помести нагоре"
+                              >
+                                ↑
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (rank === rankingOrder.length - 1) return;
+                                  const next = [...rankingOrder];
+                                  [next[rank], next[rank + 1]] = [next[rank + 1], next[rank]];
+                                  setRankingOrder(next);
+                                }}
+                                className="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-500 font-black"
+                                aria-label="Помести надолу"
+                              >
+                                ↓
+                              </button>
+                            </div>
                           </div>
                         );
                       })}
@@ -421,7 +451,7 @@ const Participant = ({
                     />
                     <button 
                       onClick={submitResponse}
-                      disabled={!response.trim()}
+                      disabled={response.trim().length < (currentPoll.type === 'wordcloud' ? 2 : 3)}
                       className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 disabled:opacity-50"
                     >
                       Испрати
