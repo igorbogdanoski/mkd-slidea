@@ -110,6 +110,7 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
         options: hasOptions ? options.map(text => ({ text: text.slice(0, 150), votes: 0 })) : scaleOptions,
         type,
         active: true,
+        needs_moderation: false,
         survey_questions: isSurvey ? surveyQuestions.map(q => ({
           id: q.id,
           text: q.text.slice(0, 300),

@@ -299,7 +299,7 @@ const EventWrapper = ({ type, username, setUsername }) => {
 
           if (typeof val === 'string') {
             answerText = val;
-            await vote(null, currentPoll.id, val, !!currentPoll.needs_moderation);
+            await vote(null, currentPoll.id, val, false);
           } else {
             const option = currentPoll.options[val];
             answerText = option.text;

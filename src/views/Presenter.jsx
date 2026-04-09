@@ -249,6 +249,7 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
   const [timerRemaining, setTimerRemaining] = useState(null);
   const [surveyResponses, setSurveyResponses] = useState([]);
   const [confettiFired, setConfettiFired] = useState(false);
+  const [pendingAnsweredId, setPendingAnsweredId] = useState(null);
 
   const eventCode = event?.code || '982341';
   const joinUrl = `${window.location.origin}/event/${eventCode}`;
@@ -259,9 +260,10 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
     options: [], is_quiz: false, type: 'poll',
   };
 
-  // Filter to approved options when moderation is on
+  // If moderation is on but nothing approved yet, fallback to all options to keep live view responsive
+  const approvedOptions = (currentPoll.options || []).filter(o => o.is_approved !== false);
   const visibleOptions = currentPoll.needs_moderation
-    ? (currentPoll.options || []).filter(o => o.is_approved !== false)
+    ? (approvedOptions.length > 0 ? approvedOptions : (currentPoll.options || []))
     : (currentPoll.options || []);
 
   const totalVotes = visibleOptions.reduce((a, b) => a + (b.votes || 0), 0) || 0;
@@ -705,10 +707,20 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
                     <div className="flex justify-between items-center">
                       <span className="text-xs font-black text-slate-500 uppercase tracking-widest">{q.author}</span>
                       <div className="flex items-center gap-4">
-                        <button onClick={() => markQuestionAnswered(q.id)}
+                        <button onClick={() => {
+                          if (pendingAnsweredId === q.id) {
+                            markQuestionAnswered(q.id);
+                            setPendingAnsweredId(null);
+                            return;
+                          }
+                          setPendingAnsweredId(q.id);
+                          setTimeout(() => {
+                            setPendingAnsweredId((prev) => (prev === q.id ? null : prev));
+                          }, 2500);
+                        }}
                           className="px-3 py-1 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 text-[10px] font-black uppercase rounded-lg border border-indigo-500/20 transition-all"
                         >
-                          Одговорено
+                          {pendingAnsweredId === q.id ? 'Потврди' : 'Одговорено'}
                         </button>
                         <div className="flex items-center gap-2 text-indigo-400 font-black">
                           <span className="text-2xl">{q.votes}</span>

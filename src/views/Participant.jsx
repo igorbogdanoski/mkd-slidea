@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Hash, PieChart, MessageSquare, Send, ThumbsUp, Trophy, CheckCircle2, XCircle, Star } from 'lucide-react';
+import { Hash, PieChart, MessageSquare, Send, ThumbsUp, Trophy, CheckCircle2, XCircle, Star, GripVertical } from 'lucide-react';
 import { useEventStore } from '../lib/store';
 
 const Participant = ({
@@ -31,6 +31,14 @@ const Participant = ({
   const [rating, setRating] = React.useState(0);
   const [surveyAnswers, setSurveyAnswers] = React.useState({});
   const [surveySubmitting, setSurveySubmitting] = React.useState(false);
+  const [rankingOrder, setRankingOrder] = React.useState([]);
+  const [dragIndex, setDragIndex] = React.useState(null);
+
+  React.useEffect(() => {
+    if (currentPoll.type === 'ranking') {
+      setRankingOrder((currentPoll.options || []).map((_, i) => i));
+    }
+  }, [currentPoll.id, currentPoll.type]);
 
   const submitResponse = async () => {
     if (!response.trim()) return;
@@ -361,6 +369,44 @@ const Participant = ({
                         />
                       </button>
                     ))}
+                  </div>
+                ) : currentPoll.type === 'ranking' ? (
+                  <div className="space-y-4">
+                    <p className="text-sm font-black text-slate-500">Повлечи за редослед, па притисни „Испрати рангирање".</p>
+                    <div className="space-y-2">
+                      {rankingOrder.map((optIdx, rank) => {
+                        const opt = currentPoll.options[optIdx];
+                        if (!opt) return null;
+                        return (
+                          <div
+                            key={opt.id || optIdx}
+                            draggable
+                            onDragStart={() => setDragIndex(rank)}
+                            onDragOver={(e) => e.preventDefault()}
+                            onDrop={() => {
+                              if (dragIndex === null || dragIndex === rank) return;
+                              const next = [...rankingOrder];
+                              const [moved] = next.splice(dragIndex, 1);
+                              next.splice(rank, 0, moved);
+                              setRankingOrder(next);
+                              setDragIndex(null);
+                            }}
+                            className="w-full p-4 rounded-2xl border-2 border-slate-100 bg-slate-50 flex items-center gap-3"
+                          >
+                            <GripVertical className="w-5 h-5 text-slate-400" />
+                            <span className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 font-black flex items-center justify-center text-sm">{rank + 1}</span>
+                            <span className="font-bold text-slate-700 flex-1">{opt.text}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <button
+                      onClick={() => handleVote(rankingOrder[0])}
+                      disabled={rankingOrder.length === 0}
+                      className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 disabled:opacity-50"
+                    >
+                      Испрати рангирање
+                    </button>
                   </div>
                 ) : isTextType ? (
                   <div className="space-y-4">

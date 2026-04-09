@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase, warmUp } from '../lib/supabase';
 
 export const useEvent = (eventCode) => {
@@ -8,6 +8,7 @@ export const useEvent = (eventCode) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [reactions, setReactions] = useState([]);
+  const lastRealtimeNavAtRef = useRef(0);
 
   const fetchPolls = useCallback(async (eventId) => {
     const { data } = await supabase
@@ -170,6 +171,7 @@ export const useEvent = (eventCode) => {
       .on('broadcast', { event: 'active-poll' }, ({ payload }) => {
         const nextPollId = payload?.active_poll_id;
         if (!nextPollId) return;
+        lastRealtimeNavAtRef.current = Date.now();
         setEvent((prev) => {
           if (!prev) return prev;
           if (String(prev.active_poll_id || '') === String(nextPollId)) return prev;
@@ -188,6 +190,7 @@ export const useEvent = (eventCode) => {
           .sort((a, b) => new Date(b.online_at || 0).getTime() - new Date(a.online_at || 0).getTime())[0];
 
         if (!hostMeta?.active_poll_id) return;
+        lastRealtimeNavAtRef.current = Date.now();
         setEvent((prev) => {
           if (!prev) return prev;
           if (String(prev.active_poll_id || '') === String(hostMeta.active_poll_id)) return prev;
@@ -196,10 +199,10 @@ export const useEvent = (eventCode) => {
       })
       .subscribe();
 
-    // Polling fallback — syncs active poll every 5s in case real-time misses it
-    // Use string comparison to avoid unnecessary updates
+    // Polling fallback — only when realtime has been quiet for a while
     const syncInterval = setInterval(async () => {
       try {
+        if (Date.now() - lastRealtimeNavAtRef.current < 12000) return;
         const { data } = await supabase.from('events').select('active_poll_id').eq('id', event.id).single();
         if (!data) return;
         
