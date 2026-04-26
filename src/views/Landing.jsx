@@ -814,17 +814,17 @@ const Landing = ({ code, setCode, setView }) => {
                   e.preventDefault();
                   setCoHostError('');
                   setCoHostLoading(true);
-                  const { data } = await supabase
-                    .from('events')
-                    .select('code')
-                    .eq('cohost_code', coHostCode.trim().toUpperCase())
-                    .single();
+                  // SECURITY: cohost_code column is no longer readable by anon.
+                  // Use SECURITY DEFINER RPC that returns only the matched event.
+                  const { data, error } = await supabase
+                    .rpc('find_event_by_cohost_code', { p_code: coHostCode.trim().toUpperCase() });
                   setCoHostLoading(false);
-                  if (!data) {
+                  const match = Array.isArray(data) && data.length > 0 ? data[0] : null;
+                  if (error || !match) {
                     setCoHostError('Погрешен код. Проверете го кодот кај домаќинот.');
                     return;
                   }
-                  localStorage.setItem('active_event_code', data.code);
+                  localStorage.setItem('active_event_code', match.code);
                   navigate('/host');
                 }}
                 className="space-y-4"

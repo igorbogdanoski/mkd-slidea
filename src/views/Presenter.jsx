@@ -3,16 +3,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import { Hash, Zap, Star, Activity, BarChart2, PieChart, Award, Hash as HashIcon, PartyPopper, Users } from 'lucide-react';
 import { PieChart as RechartsPie, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import confetti from 'canvas-confetti';
 import WordCloud from '../components/WordCloud';
 import { useEventStore } from '../lib/store';
 import { supabase } from '../lib/supabase';
 
-// Confetti — loaded via CDN in index.html as window.confetti
+// Confetti — bundled via npm so it works under strict CSP and offline.
 const fireConfetti = () => {
-  if (typeof window.confetti !== 'function') return;
-  window.confetti({ particleCount: 180, spread: 100, origin: { y: 0.6 }, colors: ['#6366f1','#8b5cf6','#10b981','#f59e0b','#ef4444','#ffffff'] });
-  setTimeout(() => window.confetti({ particleCount: 80, angle: 60, spread: 55, origin: { x: 0 } }), 300);
-  setTimeout(() => window.confetti({ particleCount: 80, angle: 120, spread: 55, origin: { x: 1 } }), 500);
+  try {
+    confetti({ particleCount: 180, spread: 100, origin: { y: 0.6 }, colors: ['#6366f1','#8b5cf6','#10b981','#f59e0b','#ef4444','#ffffff'] });
+    setTimeout(() => confetti({ particleCount: 80, angle: 60, spread: 55, origin: { x: 0 } }), 300);
+    setTimeout(() => confetti({ particleCount: 80, angle: 120, spread: 55, origin: { x: 1 } }), 500);
+  } catch { /* canvas unavailable */ }
 };
 
 // ─── Color palette shared across all chart modes ─────────────────────────────
@@ -244,7 +246,7 @@ const NumbersView = ({ options, totalVotes }) => {
 
 // ─── Main Presenter ───────────────────────────────────────────────────────────
 const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reactions = [], markQuestionAnswered }) => {
-  const { activeParticipants } = useEventStore();
+  const { activeParticipants, activeNow } = useEventStore();
   const [chartMode, setChartMode] = useState('bars');
   const [timerRemaining, setTimerRemaining] = useState(null);
   const [surveyResponses, setSurveyResponses] = useState([]);
@@ -660,6 +662,14 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
                     />
                   </div>
                   <span className="text-xl">{activeParticipants} во живо</span>
+                  {activeNow > 0 && (
+                    <span
+                      className="ml-2 text-xs font-black px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"
+                      title="Активни во последните 4 секунди"
+                    >
+                      🔥 {activeNow} активни сега
+                    </span>
+                  )}
                 </div>
                 {activeParticipants > 0 && ['poll','quiz','rating','ranking','scale'].includes(currentPoll.type) && (
                   <div className="flex items-center gap-2 px-4 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">

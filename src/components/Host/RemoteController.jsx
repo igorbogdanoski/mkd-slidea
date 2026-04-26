@@ -8,6 +8,18 @@ const RemoteController = ({ polls, activePollIndex, setActivePoll, eventCode, ev
   const currentPoll = polls[activePollIndex];
   const isLocked = !!event?.is_locked;
 
+  // Live response count derived from current poll's options/votes
+  const responseCount = (() => {
+    if (!currentPoll) return 0;
+    if (Array.isArray(currentPoll.options) && currentPoll.options.length > 0) {
+      return currentPoll.options.reduce((sum, o) => sum + (o.votes || 0), 0);
+    }
+    return currentPoll.response_count || 0;
+  })();
+  const responsePct = activeParticipants > 0
+    ? Math.min(100, Math.round((responseCount / activeParticipants) * 100))
+    : 0;
+
   const handleNext = () => {
     if (activePollIndex < polls.length - 1) {
       setActivePoll(activePollIndex + 1);
@@ -59,9 +71,22 @@ const RemoteController = ({ polls, activePollIndex, setActivePoll, eventCode, ev
             <h2 className="text-3xl md:text-5xl font-black leading-tight mb-8">
               {currentPoll.question}
             </h2>
-            <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">
-              {currentPoll.options?.length || 0} опции • 0 одговори
-            </p>
+            <div className="flex flex-col items-center gap-3">
+              <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">
+                {currentPoll.options?.length || 0} опции • <span className="text-indigo-400">{responseCount} одговори</span>
+                {activeParticipants > 0 && <> • {responsePct}%</>}
+              </p>
+              {activeParticipants > 0 && (
+                <div className="w-48 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-gradient-to-r from-indigo-500 to-purple-500"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${responsePct}%` }}
+                    transition={{ duration: 0.6, ease: 'easeOut' }}
+                  />
+                </div>
+              )}
+            </div>
           </motion.div>
         </AnimatePresence>
       </div>

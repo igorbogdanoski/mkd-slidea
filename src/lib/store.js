@@ -6,6 +6,8 @@ export const useEventStore = create((set, get) => ({
   polls: [],
   activePollId: null,
   activeParticipants: 0,
+  // Activity Heatmap: rolling count of participants who pinged "active" within last 4s.
+  activeNow: 0,
   loading: false,
 
   setEvent: (event) => set({ event, activePollId: event?.active_poll_id }),
@@ -31,6 +33,7 @@ export const useEventStore = create((set, get) => ({
   },
 
   setPresence: (count) => set({ activeParticipants: count }),
+  setActiveNow: (count) => set({ activeNow: count }),
 
   // Real-time subscriptions
   subscribeToEvent: (eventId) => {
@@ -63,23 +66,55 @@ export const useEventStore = create((set, get) => ({
     return () => supabase.removeChannel(channel);
   },
 
-  // Presence for Live Pulse
+  // Presence for Live Pulse + Activity Heatmap.
+  // activeParticipants = total online; activeNow = active within last 4s (heatbeat).
   subscribeToPresence: (eventId, username) => {
     const channel = supabase.channel(`presence_${eventId}`, {
       config: { presence: { key: username || 'anonymous' } }
     });
 
+    const computeActiveNow = () => {
+      const state = channel.presenceState();
+      const cutoff = Date.now() - 4000;
+      let active = 0;
+      Object.values(state).forEach((entries) => {
+        entries.forEach((entry) => {
+          const t = entry?.last_active ? new Date(entry.last_active).getTime() : 0;
+          if (t >= cutoff) active += 1;
+        });
+      });
+      set({ activeNow: active });
+    };
+
     channel
       .on('presence', { event: 'sync' }, () => {
         const state = channel.presenceState();
         set({ activeParticipants: Object.keys(state).length });
+        computeActiveNow();
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
-          await channel.track({ online_at: new Date().toISOString() });
+          await channel.track({
+            online_at: new Date().toISOString(),
+            last_active: new Date().toISOString(),
+          });
         }
       });
 
-    return () => supabase.removeChannel(channel);
+    // Heartbeat: re-track every 3s + recompute activeNow rolling window.
+    const heartbeat = setInterval(async () => {
+      try {
+        await channel.track({
+          online_at: new Date().toISOString(),
+          last_active: new Date().toISOString(),
+        });
+        computeActiveNow();
+      } catch { /* channel closed */ }
+    }, 3000);
+
+    return () => {
+      clearInterval(heartbeat);
+      supabase.removeChannel(channel);
+    };
   }
 }));

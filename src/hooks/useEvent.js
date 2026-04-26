@@ -67,9 +67,11 @@ export const useEvent = (eventCode) => {
         let eventData = null;
         let eventError = null;
         for (let attempt = 0; attempt < 4; attempt++) {
+          // SECURITY: explicit column list — password & cohost_code are
+          // revoked from the anon role and must not be requested here.
           const { data, error } = await supabase
             .from('events')
-            .select('*')
+            .select('id, code, title, created_at, active_poll_id, is_locked, async_mode, async_deadline, questions_moderation, brand_color, logo_url, user_id, has_password')
             .ilike('code', normalizedCode)
             .order('created_at', { ascending: false })
             .limit(1);

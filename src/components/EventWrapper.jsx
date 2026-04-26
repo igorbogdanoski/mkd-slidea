@@ -6,6 +6,7 @@ import Presenter from '../views/Presenter';
 import Participant from '../views/Participant';
 import { useEventStore } from '../lib/store';
 import { supabase } from '../lib/supabase';
+import { queueVote, flushQueue } from '../lib/offlineQueue';
 import { Lock, Eye, EyeOff } from 'lucide-react';
 
 // Get or create a persistent session ID — crypto.randomUUID polyfill for older browsers
@@ -182,15 +183,28 @@ const EventWrapper = ({ type, username, setUsername }) => {
     );
   }
 
-  // Password gate — participant only
-  if (event.password && !pwdAuth) {
-    const handlePwdSubmit = (e) => {
+  // Password gate — participant only.
+  // SECURITY: event.password is no longer leaked client-side. We only know
+  // a password is required when event.has_password === true (server-side flag)
+  // and we validate via verify_event_password RPC.
+  if (event.has_password && !pwdAuth) {
+    const handlePwdSubmit = async (e) => {
       e.preventDefault();
-      if (pwdInput.trim() === event.password) {
-        sessionStorage.setItem(`pwd_auth_${window.location.pathname}`, '1');
-        setPwdAuth(true);
-        setPwdError(false);
-      } else {
+      try {
+        const { data, error } = await supabase.rpc('verify_event_password', {
+          p_event_id: event.id,
+          p_password: pwdInput.trim(),
+        });
+        if (error) throw error;
+        if (data === true) {
+          sessionStorage.setItem(`pwd_auth_${window.location.pathname}`, '1');
+          setPwdAuth(true);
+          setPwdError(false);
+        } else {
+          setPwdError(true);
+          setPwdInput('');
+        }
+      } catch {
         setPwdError(true);
         setPwdInput('');
       }
@@ -360,8 +374,27 @@ const EventWrapper = ({ type, username, setUsername }) => {
         } catch (err) {
           const msg = String(err?.message || err || '');
           const isLockError = msg.includes('lock:sb-');
-          
-          if (!isLockError) {
+          const isOffline = (typeof navigator !== 'undefined' && navigator.onLine === false)
+            || /Failed to fetch|NetworkError|TypeError/i.test(msg);
+
+          if (isOffline) {
+            // Persist locally and replay when back online.
+            const currentPoll = polls[activePollIndex];
+            if (currentPoll) {
+              queueVote({
+                row: {
+                  poll_id: currentPoll.id,
+                  session_id: getSessionId(),
+                  username: username || 'Анонимен',
+                  answer_text: typeof val === 'string' ? val : currentPoll.options?.[val]?.text ?? null,
+                  is_correct: typeof val === 'string' ? null : (currentPoll.options?.[val]?.is_correct ?? null),
+                },
+              });
+              markVoted(currentPoll.id);
+              setVoteError('Офлајн сте — гласот е зачуван и ќе се испрати кога ќе се поврзете.');
+              if (typeof window !== 'undefined') window.addEventListener('online', flushQueue, { once: true });
+            }
+          } else if (!isLockError) {
             console.error('Vote failed:', err);
             setVoteError('Гласањето не успеа. Обидете се повторно.');
           } else {

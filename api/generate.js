@@ -7,8 +7,12 @@ import { kv } from '@vercel/kv';
 // Persistent distributed rate limiting (Vercel KV / Upstash).
 // Fallback to in-memory map only when KV is not configured/reachable.
 const rateLimitMap = new Map();
-const RATE_LIMIT = 10;       // max requests
-const RATE_WINDOW_MS = 60 * 1000; // per 1 minute
+const RATE_LIMIT = 10;       // max requests per user per minute
+const RATE_WINDOW_MS = 60 * 1000;
+
+// Global daily AI budget — prevents bill explosions from abuse or runaway loops.
+// Override via env: AI_DAILY_BUDGET (request count, not tokens).
+const DAILY_BUDGET = parseInt(process.env.AI_DAILY_BUDGET || '500', 10);
 
 function getClientIp(req) {
   const xff = req.headers.get('x-forwarded-for');
@@ -78,15 +82,39 @@ export default async function handler(req) {
     );
   }
 
+  // Global daily budget — admin-level circuit breaker.
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    const dayKey = `ai:daily:${today}`;
+    const dayCount = await kv.incr(dayKey);
+    if (dayCount === 1) await kv.expire(dayKey, 60 * 60 * 26); // ~26h
+    if (dayCount > DAILY_BUDGET) {
+      return new Response(
+        JSON.stringify({ error: 'Дневниот лимит на AI барања е достигнат. Обидете се утре.' }),
+        { status: 503, headers: { 'Content-Type': 'application/json', 'Retry-After': '3600' } }
+      );
+    }
+  } catch { /* KV missing — fall through, daily cap won't apply */ }
+
   let body;
   try { body = await req.json(); } catch {
     return new Response(JSON.stringify({ error: 'Invalid JSON body' }), { status: 400 });
   }
 
-  const { prompt, type, strategy = 'default' } = body;
+  const { prompt, type, strategy = 'default', bloom, gradeLevel, subject } = body;
 
   const VALID_TYPES = ['poll', 'quiz', 'wordcloud', 'open', 'rating', 'ranking'];
   const VALID_STRATEGIES = ['default', 'cot', 'tot'];
+  const VALID_BLOOM = ['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create'];
+
+  const BLOOM_GUIDE = {
+    remember:   'Bloom — Запомнување: фокус на факти, дефиниции, термини. Прашањата проверуваат препознавање.',
+    understand: 'Bloom — Разбирање: ученикот објаснува, парафразира или интерпретира концепт.',
+    apply:      'Bloom — Примена: ученикот применува знаење во нова ситуација или решава проблем.',
+    analyze:    'Bloom — Анализа: ученикот разложува информации, идентификува причини и врски.',
+    evaluate:   'Bloom — Евалуација: ученикот критички оценува тврдења, аргументи или решенија.',
+    create:     'Bloom — Создавање: ученикот синтетизира ново решение, идеја или продукт.',
+  };
 
   if (!prompt || typeof prompt !== 'string' || prompt.trim().length < 3 || prompt.length > 500) {
     return new Response(JSON.stringify({ error: 'Промптот мора да биде меѓу 3 и 500 знаци.' }), { status: 400 });
@@ -107,10 +135,23 @@ export default async function handler(req) {
 
   // Quota Saving Logic: Use Flash for simple tasks, Flash for complex too (2.0 is fast+capable)
   // Upgrade to gemini-2.5-pro for CoT/ToT when quota allows
+  // Tier 1 (paid) → use GA models. 2.5-flash is cheaper + better than 2.0-flash.
+  // 2.5-pro is reserved for advanced reasoning (CoT/ToT).
   const isAdvanced = strategy === 'cot' || strategy === 'tot';
   const modelToUse = isAdvanced
-    ? 'gemini-2.5-pro-preview-03-25'
-    : 'gemini-2.0-flash';
+    ? (process.env.GEMINI_PRO_MODEL || 'gemini-2.5-pro')
+    : (process.env.GEMINI_FLASH_MODEL || 'gemini-2.5-flash');
+
+  // Optional pedagogical context (sanitized lengths to prevent prompt injection bloat).
+  const safeBloom = VALID_BLOOM.includes(bloom) ? bloom : null;
+  const safeGrade = typeof gradeLevel === 'string' ? gradeLevel.slice(0, 40) : '';
+  const safeSubject = typeof subject === 'string' ? subject.slice(0, 60) : '';
+
+  const pedagogicalContext = [
+    safeBloom ? BLOOM_GUIDE[safeBloom] : '',
+    safeGrade ? `Возрасна група / одделение: ${safeGrade}.` : '',
+    safeSubject ? `Предмет: ${safeSubject}.` : '',
+  ].filter(Boolean).join(' ');
 
   let strategyInstructions = '';
   if (strategy === 'cot') {
@@ -121,6 +162,7 @@ export default async function handler(req) {
 
   const systemInstructions = `Ти си светски експерт за Prompt Engineering и EdTech за MKD Slidea.
 Креирај ${type === 'quiz' ? 'КВИЗ' : 'ИНТЕРАКТИВНА АКТИВНОСТ'} на тема: "${prompt}".
+${pedagogicalContext}
 ${strategyInstructions}
 
 ПРАВИЛА:

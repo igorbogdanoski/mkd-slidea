@@ -64,9 +64,30 @@ const HomeTab = ({ setView, setActiveTab, user, useTemplate }) => {
   useEffect(() => {
     if (!user?.id) return;
     const key = `mkd_slidea_onboarding_seen_${user.id}`;
-    if (!localStorage.getItem(key)) {
-      setOnboardingOpen(true);
-    }
+    let cancelled = false;
+
+    // Persist onboarding completion server-side (cross-device).
+    // Falls back gracefully to localStorage if column missing on legacy DBs.
+    (async () => {
+      if (localStorage.getItem(key)) return;
+      try {
+        const { data } = await supabase
+          .from('profiles')
+          .select('onboarded_at')
+          .eq('id', user.id)
+          .maybeSingle();
+        if (cancelled) return;
+        if (data?.onboarded_at) {
+          localStorage.setItem(key, '1');
+        } else {
+          setOnboardingOpen(true);
+        }
+      } catch {
+        setOnboardingOpen(true);
+      }
+    })();
+
+    return () => { cancelled = true; };
   }, [user?.id]);
 
   useEffect(() => {
@@ -95,6 +116,12 @@ const HomeTab = ({ setView, setActiveTab, user, useTemplate }) => {
   const closeOnboarding = () => {
     if (user?.id) {
       localStorage.setItem(`mkd_slidea_onboarding_seen_${user.id}`, '1');
+      // Persist server-side; ignore failure (column may not exist on legacy DB).
+      supabase
+        .from('profiles')
+        .update({ onboarded_at: new Date().toISOString() })
+        .eq('id', user.id)
+        .then(() => {}, () => {});
     }
     setOnboardingOpen(false);
     setOnboardingStep(0);
