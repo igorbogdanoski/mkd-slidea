@@ -30,3 +30,5 @@ yarn-error.log*
 # Temporary Word files
 ~$*
 .vercel
+.git_commit_msg.txt  
+.git_commit_msg.txt 
