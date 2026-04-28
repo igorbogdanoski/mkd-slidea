@@ -12,6 +12,7 @@ const Dashboard = lazy(() => import('./views/Dashboard'));
 const Pricing = lazy(() => import('./views/Pricing'));
 const EventWrapper = lazy(() => import('./components/EventWrapper'));
 const Embed = lazy(() => import('./views/Embed'));
+const Demo = lazy(() => import('./views/Demo'));
 
 // Suppress Supabase auth lock violations and permissions policy violations
 if (typeof window !== 'undefined') {
@@ -88,6 +89,7 @@ const AppContent = () => {
       host: '/host',
       dashboard: '/dashboard',
       pricing: '/pricing',
+      demo: '/demo',
     };
     if (routes[view]) {
       navigate(routes[view], view === 'host' ? { state: { initialType: type } } : {});
@@ -142,6 +144,7 @@ const AppContent = () => {
                 <Route path="/host" element={<ProtectedRoute><Host setView={setView} user={user} /></ProtectedRoute>} />
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard setView={setView} user={user} onLogout={handleLogout} /></ProtectedRoute>} />
                 <Route path="/pricing" element={<Pricing setView={setView} />} />
+                <Route path="/demo" element={<Demo />} />
                 <Route path="/event/:id/present" element={<EventWrapper type="present" />} />
                 <Route path="/event/:id/embed" element={<Embed />} />
                 <Route

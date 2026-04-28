@@ -442,3 +442,87 @@ Expansion loops:
 ✅ **#15 По-учесник статистика** — кој одговорил, точни одговори, поени, completion %
 ✅ **#16 Co-host** — генерирање код во Settings, ко-домаќинот влегува преку Landing modal
 ✅ **#17 Embed/iFrame** — `/event/:id/embed` route, минималистички poll view, iFrame код во Settings
+
+---
+
+# 🌍 ROADMAP КОН СВЕТСКО НИВО (Април 2026 → )
+
+**Принцип:** Сите фази изведливи со постоечки free/Tier 1 ресурси. Без paid services додека приходите не дозволат.
+
+## Free лимити кои ги имаме
+- Vercel Hobby: 100GB bandwidth → ~50,000 активни сесии/мес
+- Supabase Free: 500MB DB + 2GB transfer → ~5,000 настани/мес
+- Gemini Tier 1: ~$5/мес за 1000 наставници (DAILY_BUDGET=500)
+- KV: 30,000 реквести/ден
+- **Капацитет:** до ~1,000 активни наставници целосно бесплатно
+
+## ФАЗА 1 — Conversion & Activation (1-2 недели) 🟢
+*Цел: посетители → активни корисници*
+
+- [ ] **1.1 Demo Mode** — "Пробај без регистрација" копче на Landing → sandbox event со fake votes, корисникот пробува host UI
+- [ ] **1.2 Template Gallery (20 шаблони)** — JSON templates по предмет: математика, англиски, информатика, биологија, географија
+- [ ] **1.3 First-success wizard** — По регистрација: "Креирај прв квиз за 60 секунди"
+- [ ] **1.4 Empty-state CTAs** — Dashboard празен → "Импорт PowerPoint / AI генерирај"
+- [ ] **1.5 Welcome email** — Supabase Edge Function + 3-step onboarding link
+
+## ФАЗА 2 — Intelligence Layer (2-3 недели) 🟢
+*Цел: AI што конкуренти не можат да го реплицираат*
+
+- [ ] **2.1 AI Auto-grading** на отворени одговори по rubric (Gemini Flash)
+- [ ] **2.2 Adaptive difficulty** — клас точно >80% → следно прашање потешко (client-side логика)
+- [ ] **2.3 Misconception detector** — AI идентификува заеднички грешки → препорачува intervention
+- [ ] **2.4 Lesson generator од PDF/PPTX** — tesseract.js (веќе во deps) + Gemini → 5 активности
+- [ ] **2.5 Sentiment heatmap** — кога часот "губи енергија" базирано на reactions
+
+## ФАЗА 3 — Pro Polish (1 месец) 🟢
+*Цел: UI/UX како $50M startup*
+
+- [ ] **3.1 Dark mode** (Tailwind dark: класи)
+- [ ] **3.2 Keyboard shortcuts** (`?` помош, `Space` next, `R` reset, `F` fullscreen)
+- [ ] **3.3 Drag & drop reorder** на полови (framer-motion веќе во deps)
+- [ ] **3.4 Slide preview thumbnails** во host панел (canvas snapshot)
+- [ ] **3.5 Export to Notion / Markdown** (client-side)
+- [ ] **3.6 Animated backgrounds** — Mentimeter-style CSS animations
+- [ ] **3.7 Custom branding** на Pro: logo, color, font
+
+## ФАЗА 4 — Accessibility & Reach (2-3 недели) 🟢
+*Цел: WCAG AA + повеќе јазици*
+
+- [ ] **4.1 WCAG 2.1 AA** — ARIA, focus traps, screen reader, color contrast
+- [ ] **4.2 Voice control** за наставникот (Web Speech API, бесплатно)
+- [ ] **4.3 Live transcription** на час (Web Speech API → Supabase realtime)
+- [ ] **4.4 i18n: HR/SR/BG/AL/RO** (JSON, prv превод преку Gemini)
+- [ ] **4.5 Subtitles** во активности
+
+## ФАЗА 5 — Network Effects (1 месец) 🟢
+*Цел: вирален раст без маркетинг буџет*
+
+- [ ] **5.1 Public template gallery** — SEO-friendly URLs (`community_templates`)
+- [ ] **5.2 Embed widget** за блогови / WordPress (iframe + script)
+- [ ] **5.3 "Powered by Slidea" badge** на Free план
+- [ ] **5.4 Referral систем** "Покани наставник, добиј 1 месец Pro"
+- [ ] **5.5 Public scoreboard** за квиз шампиони во MK
+- [ ] **5.6 Open API** за интеграции со училишни системи (Edge Functions)
+
+## ФАЗА 6 — Data Moat (континуирано) 🟢
+*Цел: податоци кои конкуренти не можат да ги имаат*
+
+- [ ] **6.1 Curriculum mapping** — врзи активности со MK курикулум (основно/средно)
+- [ ] **6.2 Anonymous benchmark** — "вашиот клас е во 73-ти перцентил"
+- [ ] **6.3 MK education vocabulary corpus** (од сите AI генерации) — data flywheel
+- [ ] **6.4 Top teachers leaderboard** — retention boost
+
+---
+
+## Прозорец за следните 7 дена
+| Ден | Задача |
+|---|---|
+| Пон-Вт | Demo mode + Template gallery (Ф1) |
+| Сре-Чет | Dark mode + Keyboard shortcuts (Ф3 quick wins) |
+| Пет | Welcome email + onboarding flow (Ф1) |
+| Саб-Нед | AI auto-grading прототип (Ф2) |
+
+## Финансиски trigger-и
+- 1,000 free → 50 Pro (€20/год) = **€1,000/год** → break-even
+- 2,000 free → 100 Pro + 1 училиште (€200) = **€2,200/год** → reinvest
+- 5,000 free → почнува 5-цифрен годишен приход → upgrade Supabase Pro ($25/мес)

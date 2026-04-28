@@ -299,10 +299,10 @@ const Landing = ({ code, setCode, setView }) => {
                 Започни сега <ArrowRight className="group-hover:translate-x-1 transition-transform" />
               </button>
               <button 
-                onClick={() => scrollToSection('interactive-demo')}
+                onClick={() => setView('demo')}
                 className="px-10 py-5 bg-white text-slate-700 rounded-[2rem] font-black text-xl border-2 border-slate-100 hover:border-indigo-600 hover:text-indigo-600 transition-all active:scale-95"
               >
-                Погледни демо
+                Пробај без регистрација
               </button>
             </motion.div>
 
