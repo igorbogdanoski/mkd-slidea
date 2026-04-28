@@ -113,6 +113,17 @@ const Host = ({ setView, user }) => {
     initEvent();
   }, []);
 
+  // Honor pending intent from Dashboard empty-state CTAs.
+  useEffect(() => {
+    if (loading) return;
+    const action = localStorage.getItem('pending_host_action');
+    if (!action) return;
+    localStorage.removeItem('pending_host_action');
+    if (action === 'templates') setIsTemplateGalleryOpen(true);
+    else if (action === 'ai') setIsAIModalOpen(true);
+    else if (action === 'import') setIsImportOpen(true);
+  }, [loading]);
+
   useEffect(() => {
     if (!event) return;
     const fetchPolls = async () => {
@@ -525,6 +536,22 @@ const Host = ({ setView, user }) => {
   shortcutHandlersRef.current.goNext = goNext;
   shortcutHandlersRef.current.goPrev = goPrev;
 
+  // Adaptive difficulty: scan most recent finished quiz, compute % correct.
+  // Map accuracy → Bloom suggestion for next AI generation.
+  // ≥80% → analyze (harder), 40–79% → apply (same), <40% → understand (easier).
+  const adaptiveSuggestion = (() => {
+    const lastQuiz = [...polls].reverse().find(p => p.is_quiz && Array.isArray(p.options) && p.options.length);
+    if (!lastQuiz) return null;
+    const correctOpts = lastQuiz.options.filter(o => o.is_correct);
+    const totalVotes = lastQuiz.options.reduce((a, o) => a + (o.votes || 0), 0);
+    if (!totalVotes || !correctOpts.length) return null;
+    const correctVotes = correctOpts.reduce((a, o) => a + (o.votes || 0), 0);
+    const acc = correctVotes / totalVotes;
+    if (acc >= 0.8)  return { bloom: 'analyze',    accuracy: acc, label: 'Класот блеска — пробај потежок Bloom: Анализа' };
+    if (acc >= 0.4)  return { bloom: 'apply',      accuracy: acc, label: 'Стабилно знаење — задржи го Bloom: Примена' };
+    return                  { bloom: 'understand', accuracy: acc, label: 'Има простор за повторување — Bloom: Разбирање' };
+  })();
+
   // Sync host timer display when switching polls
   useEffect(() => {
     const poll = polls[activePollIndex];
@@ -931,6 +958,7 @@ const Host = ({ setView, user }) => {
         onClose={() => setIsAIModalOpen(false)}
         onGenerate={onSavePoll}
         user={user}
+        adaptiveSuggestion={adaptiveSuggestion}
       />
       <AIInsightsModal
         isOpen={isInsightsOpen}

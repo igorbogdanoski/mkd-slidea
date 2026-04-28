@@ -430,15 +430,41 @@ const HomeTab = ({ setView, setActiveTab, user, useTemplate }) => {
             ))}
           </div>
         ) : recentEvents.length === 0 ? (
-          <div className="bg-white rounded-[2.5rem] border-2 border-dashed border-slate-200 p-16 text-center">
+          <div className="bg-white rounded-[2.5rem] border-2 border-dashed border-slate-200 p-12 text-center">
             <div className="text-6xl mb-4">📭</div>
-            <h3 className="text-xl font-black text-slate-400 mb-2">Сè уште нема настани</h3>
-            <p className="text-slate-300 font-bold mb-6">Креирај ја твојата прва интерактивна презентација</p>
+            <h3 className="text-2xl font-black text-slate-700 mb-2">Започни за помалку од 60 секунди</h3>
+            <p className="text-slate-400 font-bold mb-8">Избери најбрз пат до твојот прв интерактивен час</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
+              <button
+                onClick={() => { localStorage.setItem('pending_host_action', 'templates'); setView('host'); }}
+                className="p-6 bg-white border-2 border-slate-100 hover:border-indigo-500 hover:bg-indigo-50/50 rounded-3xl text-left transition-all group"
+              >
+                <div className="text-3xl mb-3">📚</div>
+                <h4 className="font-black text-slate-900 mb-1">20 готови шаблони</h4>
+                <p className="text-xs text-slate-400 font-bold">Еден клик → готов час</p>
+              </button>
+              <button
+                onClick={() => { localStorage.setItem('pending_host_action', 'ai'); setView('host'); }}
+                className="p-6 bg-white border-2 border-slate-100 hover:border-violet-500 hover:bg-violet-50/50 rounded-3xl text-left transition-all group"
+              >
+                <div className="text-3xl mb-3">✨</div>
+                <h4 className="font-black text-slate-900 mb-1">AI генерација</h4>
+                <p className="text-xs text-slate-400 font-bold">Опиши тема → активност</p>
+              </button>
+              <button
+                onClick={() => { localStorage.setItem('pending_host_action', 'import'); setView('host'); }}
+                className="p-6 bg-white border-2 border-slate-100 hover:border-emerald-500 hover:bg-emerald-50/50 rounded-3xl text-left transition-all group"
+              >
+                <div className="text-3xl mb-3">📥</div>
+                <h4 className="font-black text-slate-900 mb-1">Увези PowerPoint</h4>
+                <p className="text-xs text-slate-400 font-bold">PPTX → активности</p>
+              </button>
+            </div>
             <button
               onClick={() => setView('host')}
-              className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
+              className="mt-8 px-8 py-3 text-slate-400 font-black text-sm hover:text-indigo-600 transition-all"
             >
-              + Нова презентација
+              или почни од празно →
             </button>
           </div>
         ) : (

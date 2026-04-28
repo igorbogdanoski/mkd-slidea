@@ -1,0 +1,8 @@
+feat: Phase 1.4 Empty-state CTAs + 2.2 Adaptive Difficulty
+
+- Dashboard empty state now shows 3 CTAs: Templates / AI / Import PPTX
+- Pending intent persists in localStorage; Host auto-opens matching modal
+- Adaptive difficulty: Host computes accuracy from last quiz votes
+- Maps accuracy to Bloom level (>=80% analyze, 40-79% apply, <40% understand)
+- AIAssistantModal renders adaptive recommendation banner + Bloom selector
+- Sends bloom param to /api/generate (already supported in api/generate.js)

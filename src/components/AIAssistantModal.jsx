@@ -1,12 +1,22 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles, Wand2, ArrowRight, Check, Loader2, Brain, ListTree, Lock } from 'lucide-react';
+import { X, Sparkles, Wand2, ArrowRight, Check, Loader2, Brain, ListTree, Lock, TrendingUp } from 'lucide-react';
 
-const AIAssistantModal = ({ isOpen, onClose, onGenerate, user }) => {
+const BLOOM_LEVELS = [
+  { id: 'remember',   label: 'Запомнување' },
+  { id: 'understand', label: 'Разбирање' },
+  { id: 'apply',      label: 'Примена' },
+  { id: 'analyze',    label: 'Анализа' },
+  { id: 'evaluate',   label: 'Евалуација' },
+  { id: 'create',     label: 'Создавање' },
+];
+
+const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestion = null }) => {
   const [prompt, setPrompt] = useState('');
   const [generating, setLoading] = useState(false);
   const [type, setType] = useState('quiz');
   const [strategy, setStrategy] = useState('default');
+  const [bloom, setBloom] = useState(adaptiveSuggestion?.bloom || '');
 
   const isPro = user?.plan === 'pro' || user?.plan === 'semester' || user?.role === 'admin';
 
@@ -20,7 +30,7 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ prompt, type, strategy }),
+        body: JSON.stringify({ prompt, type, strategy, bloom: bloom || undefined }),
       });
 
       if (!response.ok) {
@@ -124,6 +134,41 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user }) => {
                       }`}
                     >
                       {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {adaptiveSuggestion && (
+                <button
+                  type="button"
+                  onClick={() => setBloom(adaptiveSuggestion.bloom)}
+                  className="w-full text-left p-4 rounded-2xl border-2 border-emerald-100 bg-emerald-50/60 hover:border-emerald-400 transition-all flex items-center gap-3"
+                >
+                  <TrendingUp size={20} className="text-emerald-600 shrink-0" />
+                  <div>
+                    <p className="text-xs font-black text-emerald-700 uppercase tracking-widest mb-0.5">
+                      Адаптивна препорака · {Math.round(adaptiveSuggestion.accuracy * 100)}% точност
+                    </p>
+                    <p className="text-sm font-bold text-emerald-900">{adaptiveSuggestion.label}</p>
+                  </div>
+                </button>
+              )}
+
+              <div>
+                <label className="block text-sm font-black text-slate-700 mb-4">Bloom-ова таксономија (опционално)</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {BLOOM_LEVELS.map((b) => (
+                    <button
+                      key={b.id}
+                      onClick={() => setBloom(bloom === b.id ? '' : b.id)}
+                      className={`py-2 px-3 rounded-xl font-black text-xs transition-all border-2 ${
+                        bloom === b.id
+                          ? 'border-indigo-600 bg-indigo-50 text-indigo-600'
+                          : 'border-slate-100 text-slate-400 hover:border-indigo-200'
+                      }`}
+                    >
+                      {b.label}
                     </button>
                   ))}
                 </div>
