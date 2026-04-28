@@ -18,6 +18,8 @@ import PollCard from '../components/Host/PollCard';
 import RemoteController from '../components/Host/RemoteController';
 import ImportPPTXModal from '../components/ImportPPTXModal';
 import PublishTemplateModal from '../components/PublishTemplateModal';
+import TemplateGalleryModal from '../components/TemplateGalleryModal';
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 
 const getHostSessionId = () => {
   let sid = localStorage.getItem('mkd_host_session_id');
@@ -55,8 +57,24 @@ const Host = ({ setView, user }) => {
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isInsightsOpen, setIsInsightsOpen] = useState(false);
   const [isPublishTemplateOpen, setIsPublishTemplateOpen] = useState(false);
+  const [isTemplateGalleryOpen, setIsTemplateGalleryOpen] = useState(false);
   const navChannelRef = useRef(null);
   const presenceChannelRef = useRef(null);
+
+  const shortcutHandlersRef = useRef({});
+  useKeyboardShortcuts({
+    'T': () => setIsTemplateGalleryOpen(true),
+    't': () => setIsTemplateGalleryOpen(true),
+    'A': () => setIsAIModalOpen(true),
+    'a': () => setIsAIModalOpen(true),
+    'Q': () => { setSelectedType('quiz'); setIsCreateQuizOpen(true); },
+    'q': () => { setSelectedType('quiz'); setIsCreateQuizOpen(true); },
+    'P': () => { setSelectedType('poll'); setIsCreatePollOpen(true); },
+    'p': () => { setSelectedType('poll'); setIsCreatePollOpen(true); },
+    'ArrowRight': () => shortcutHandlersRef.current.goNext?.(),
+    'ArrowLeft':  () => shortcutHandlersRef.current.goPrev?.(),
+    'Space':      () => shortcutHandlersRef.current.goNext?.(),
+  });
 
   const toInputDateTime = (iso) => {
     if (!iso) return '';
@@ -238,6 +256,46 @@ const Host = ({ setView, user }) => {
     } catch (err) {
       console.error("Error saving poll:", err);
       alert("Настана грешка при зачувување на активноста. Ве молиме обидете се повторно.");
+    }
+  };
+
+  const applyStarterTemplate = async (template) => {
+    if (!event?.id) return;
+    setIsTemplateGalleryOpen(false);
+    try {
+      let basePosition = polls.length;
+      for (const p of template.polls) {
+        const { data: newPoll, error: pollError } = await supabase.from('polls').insert([{
+          event_id: event.id,
+          question: p.question,
+          is_quiz: !!p.is_quiz,
+          type: p.type || 'poll',
+          position: basePosition++,
+        }]).select().single();
+        if (pollError) throw pollError;
+        if (Array.isArray(p.options) && p.options.length > 0) {
+          let optionsToInsert = [];
+          if (p.type === 'rating') {
+            optionsToInsert = ['1','2','3','4','5'].map(val => ({ poll_id: newPoll.id, text: val }));
+          } else {
+            optionsToInsert = p.options.map(o => ({
+              poll_id: newPoll.id,
+              text: typeof o === 'string' ? o : o.text,
+              is_correct: o.is_correct || false,
+            }));
+          }
+          const { error: optError } = await supabase.from('options').insert(optionsToInsert);
+          if (optError) throw optError;
+        }
+      }
+      // Refresh polls list.
+      const { data } = await supabase
+        .from('polls').select('*, options(*)').eq('event_id', event.id)
+        .order('position', { ascending: true }).order('created_at', { ascending: true });
+      if (data) setPolls(data);
+    } catch (err) {
+      console.error('Apply template failed:', err);
+      alert('Грешка при применување на шаблонот.');
     }
   };
 
@@ -464,6 +522,8 @@ const Host = ({ setView, user }) => {
 
   const goNext = () => { if (activePollIndex < polls.length - 1) setActivePoll(activePollIndex + 1); };
   const goPrev = () => { if (activePollIndex > 0) setActivePoll(activePollIndex - 1); };
+  shortcutHandlersRef.current.goNext = goNext;
+  shortcutHandlersRef.current.goPrev = goPrev;
 
   // Sync host timer display when switching polls
   useEffect(() => {
@@ -901,6 +961,11 @@ const Host = ({ setView, user }) => {
         onPublish={publishTemplate}
         polls={polls}
       />
+      <TemplateGalleryModal
+        isOpen={isTemplateGalleryOpen}
+        onClose={() => setIsTemplateGalleryOpen(false)}
+        onApply={applyStarterTemplate}
+      />
 
       <HostHeader event={event} setIsQRModalOpen={setIsQRModalOpen} setView={setView} isRemoteMode={isRemoteMode} setIsRemoteMode={setIsRemoteMode} />
       {isRemoteMode && (
@@ -974,6 +1039,13 @@ const Host = ({ setView, user }) => {
                         className="flex items-center justify-center gap-3 px-8 py-4 bg-white border-2 border-slate-100 text-slate-900 rounded-2xl font-black text-lg hover:border-violet-600 hover:text-violet-600 transition-all shadow-sm active:scale-95"
                       >
                         <Upload className="w-6 h-6 text-violet-600" /> Увези PPTX
+                      </button>
+                      <button
+                        onClick={() => setIsTemplateGalleryOpen(true)}
+                        className="flex items-center justify-center gap-3 px-8 py-4 bg-white border-2 border-slate-100 text-slate-900 rounded-2xl font-black text-lg hover:border-amber-500 hover:text-amber-600 transition-all shadow-sm active:scale-95"
+                        title="Избери од 20 готови шаблони"
+                      >
+                        <Sparkles className="w-6 h-6 text-amber-500" /> Шаблони
                       </button>
                       {polls.length > 0 && (
                         <button

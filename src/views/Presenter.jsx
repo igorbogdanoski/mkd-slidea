@@ -7,6 +7,17 @@ import confetti from 'canvas-confetti';
 import WordCloud from '../components/WordCloud';
 import { useEventStore } from '../lib/store';
 import { supabase } from '../lib/supabase';
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+
+const toggleFullscreen = () => {
+  try {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen?.();
+    } else {
+      document.exitFullscreen?.();
+    }
+  } catch { /* unsupported */ }
+};
 
 // Confetti — bundled via npm so it works under strict CSP and offline.
 const fireConfetti = () => {
@@ -248,6 +259,12 @@ const NumbersView = ({ options, totalVotes }) => {
 const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reactions = [], markQuestionAnswered }) => {
   const { activeParticipants, activeNow } = useEventStore();
   const [chartMode, setChartMode] = useState('bars');
+
+  useKeyboardShortcuts({
+    'F': toggleFullscreen,
+    'f': toggleFullscreen,
+  });
+
   const [timerRemaining, setTimerRemaining] = useState(null);
   const [surveyResponses, setSurveyResponses] = useState([]);
   const [confettiFired, setConfettiFired] = useState(false);

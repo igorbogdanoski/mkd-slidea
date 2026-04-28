@@ -5,6 +5,8 @@ import Nav from './components/Nav';
 import Join from './views/Join';
 import ErrorBoundary from './components/ErrorBoundary';
 import { useAuth } from './hooks/useAuth';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 
 const Landing = lazy(() => import('./views/Landing'));
 const Host = lazy(() => import('./views/Host'));
@@ -44,6 +46,11 @@ const AppContent = () => {
   const location = useLocation();
   const [code, setCode] = useState('');
   const [username, setUsername] = useState(() => localStorage.getItem('mkd_slidea_user') || '');
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+
+  useKeyboardShortcuts({
+    '?': () => setShortcutsOpen((v) => !v),
+  });
   const isEventRoute = location.pathname.startsWith('/event/');
 
   const { user, loading, loadingMessage, signIn, signUp, signInWithGoogle, signInWithMagicLink, signOut } = useAuth({ enabled: !isEventRoute });
@@ -168,6 +175,8 @@ const AppContent = () => {
           <p className="font-bold">© 2026 MKD Slidea • Автор: Игор Богданоски</p>
         </footer>
       )}
+
+      <KeyboardShortcutsModal isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
     </div>
   );
 };
