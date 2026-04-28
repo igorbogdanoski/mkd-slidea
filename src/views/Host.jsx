@@ -20,6 +20,7 @@ import ImportPPTXModal from '../components/ImportPPTXModal';
 import PublishTemplateModal from '../components/PublishTemplateModal';
 import TemplateGalleryModal from '../components/TemplateGalleryModal';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import { STARTER_TEMPLATES } from '../lib/starterTemplates';
 
 const getHostSessionId = () => {
   let sid = localStorage.getItem('mkd_host_session_id');
@@ -113,16 +114,25 @@ const Host = ({ setView, user }) => {
     initEvent();
   }, []);
 
-  // Honor pending intent from Dashboard empty-state CTAs.
+  // Honor pending intent from Dashboard empty-state CTAs / First-success wizard.
   useEffect(() => {
-    if (loading) return;
+    if (loading || !event?.id) return;
     const action = localStorage.getItem('pending_host_action');
+    const starterId = localStorage.getItem('pending_starter_template_id');
+
+    if (starterId) {
+      localStorage.removeItem('pending_starter_template_id');
+      const tpl = STARTER_TEMPLATES.find((t) => t.id === starterId);
+      if (tpl) applyStarterTemplate(tpl);
+      return;
+    }
+
     if (!action) return;
     localStorage.removeItem('pending_host_action');
     if (action === 'templates') setIsTemplateGalleryOpen(true);
     else if (action === 'ai') setIsAIModalOpen(true);
     else if (action === 'import') setIsImportOpen(true);
-  }, [loading]);
+  }, [loading, event?.id]);
 
   useEffect(() => {
     if (!event) return;

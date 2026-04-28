@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { templates } from '../../data/templates';
+import FirstSuccessWizard, { shouldShowFirstSuccess } from '../FirstSuccessWizard';
 
 const cardColors = [
   'bg-indigo-600', 'bg-violet-600', 'bg-emerald-600',
@@ -36,6 +37,7 @@ const HomeTab = ({ setView, setActiveTab, user, useTemplate }) => {
   const [bellOpen, setBellOpen] = useState(false);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(0);
+  const [firstSuccessOpen, setFirstSuccessOpen] = useState(false);
   const bellRef = useRef(null);
   const featuredTemplates = templates.slice(0, 3);
   const onboardingSteps = [
@@ -142,8 +144,15 @@ const HomeTab = ({ setView, setActiveTab, user, useTemplate }) => {
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(6);
-    setRecentEvents(data || []);
+    const list = data || [];
+    setRecentEvents(list);
     setLoadingEvents(false);
+
+    // First-success wizard: brand-new user with zero events.
+    if (shouldShowFirstSuccess({ user, hasEvents: list.length > 0, loadingEvents: false })) {
+      // Defer slightly so onboarding modal (if shown first) takes precedence.
+      setTimeout(() => setFirstSuccessOpen(true), 600);
+    }
   };
 
   const loadPendingQuestions = async () => {
@@ -553,6 +562,18 @@ const HomeTab = ({ setView, setActiveTab, user, useTemplate }) => {
           ))}
         </div>
       </section>
+
+      {firstSuccessOpen && (
+        <FirstSuccessWizard
+          user={user}
+          onClose={() => setFirstSuccessOpen(false)}
+          onLaunch={(template) => {
+            localStorage.setItem('pending_starter_template_id', template.id);
+            setFirstSuccessOpen(false);
+            setView('host');
+          }}
+        />
+      )}
     </motion.div>
   );
 };

@@ -459,17 +459,17 @@ Expansion loops:
 ## ФАЗА 1 — Conversion & Activation (1-2 недели) 🟢
 *Цел: посетители → активни корисници*
 
-- [ ] **1.1 Demo Mode** — "Пробај без регистрација" копче на Landing → sandbox event со fake votes, корисникот пробува host UI
-- [ ] **1.2 Template Gallery (20 шаблони)** — JSON templates по предмет: математика, англиски, информатика, биологија, географија
-- [ ] **1.3 First-success wizard** — По регистрација: "Креирај прв квиз за 60 секунди"
-- [ ] **1.4 Empty-state CTAs** — Dashboard празен → "Импорт PowerPoint / AI генерирај"
+- [x] **1.1 Demo Mode** ✅ — `/demo` route, 4 simulated activities со auto-generated participants + CTA modal funnels кон `/host`
+- [x] **1.2 Template Gallery (20 шаблони)** ✅ — `starterTemplates.js` со search + subject filter, `T` shortcut, one-click bulk insert
+- [x] **1.3 First-success wizard** ✅ — `FirstSuccessWizard` со 3 чекори (предмет → шаблон → старт); auto-open за нови корисници без настани; intent се пренесува до Host кој автоматски го применува шаблонот
+- [x] **1.4 Empty-state CTAs** ✅ — Dashboard празен → 3 CTAs (Шаблони / AI / Импорт PPTX) + intent се пренесува преку localStorage
 - [ ] **1.5 Welcome email** — Supabase Edge Function + 3-step onboarding link
 
 ## ФАЗА 2 — Intelligence Layer (2-3 недели) 🟢
 *Цел: AI што конкуренти не можат да го реплицираат*
 
 - [ ] **2.1 AI Auto-grading** на отворени одговори по rubric (Gemini Flash)
-- [ ] **2.2 Adaptive difficulty** — клас точно >80% → следно прашање потешко (client-side логика)
+- [x] **2.2 Adaptive difficulty** ✅ — Host пресметува точност од последниот квиз → Bloom препорака (≥80% Анализа · 40-79% Примена · <40% Разбирање); banner + manual selector во AI modal; `bloom` се испраќа во `/api/generate`
 - [ ] **2.3 Misconception detector** — AI идентификува заеднички грешки → препорачува intervention
 - [ ] **2.4 Lesson generator од PDF/PPTX** — tesseract.js (веќе во deps) + Gemini → 5 активности
 - [ ] **2.5 Sentiment heatmap** — кога часот "губи енергија" базирано на reactions
@@ -478,8 +478,8 @@ Expansion loops:
 *Цел: UI/UX како $50M startup*
 
 - [ ] **3.1 Dark mode** (Tailwind dark: класи)
-- [ ] **3.2 Keyboard shortcuts** (`?` помош, `Space` next, `R` reset, `F` fullscreen)
-- [ ] **3.3 Drag & drop reorder** на полови (framer-motion веќе во deps)
+- [x] **3.2 Keyboard shortcuts** ✅ — `useKeyboardShortcuts` хук + `KeyboardShortcutsModal`; глобално `?` toggle; Host: T/A/Q/P + ←/→/Space; Presenter: F (fullscreen)
+- [x] **3.3 Drag & drop reorder** ✅ — implemented во Host со `position` persist во DB
 - [ ] **3.4 Slide preview thumbnails** во host панел (canvas snapshot)
 - [ ] **3.5 Export to Notion / Markdown** (client-side)
 - [ ] **3.6 Animated backgrounds** — Mentimeter-style CSS animations
