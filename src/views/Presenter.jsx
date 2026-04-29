@@ -5,6 +5,8 @@ import { Hash, Zap, Star, Activity, BarChart2, PieChart, Award, Hash as HashIcon
 import { PieChart as RechartsPie, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import confetti from 'canvas-confetti';
 import WordCloud from '../components/WordCloud';
+import AnimatedBackground from '../components/AnimatedBackground';
+import SentimentHeatmap from '../components/SentimentHeatmap';
 import { useEventStore } from '../lib/store';
 import { supabase } from '../lib/supabase';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
@@ -550,7 +552,9 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white flex flex-col p-12 overflow-hidden relative">
+    <div className="min-h-screen bg-slate-900 text-white flex flex-col p-12 overflow-hidden relative isolate">
+      <AnimatedBackground color={brandColor} variant={event?.bg_variant || 'aurora'} />
+      <SentimentHeatmap reactions={reactions} />
       {/* Floating Reactions */}
       <div className="absolute inset-0 pointer-events-none z-50 overflow-hidden">
         <AnimatePresence>
