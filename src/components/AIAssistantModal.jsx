@@ -54,7 +54,7 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
+        <div className="fixed inset-0 z-[110] flex items-start sm:items-center justify-center p-3 sm:p-6 overflow-y-auto">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -66,7 +66,7 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="relative bg-white rounded-[3rem] p-10 max-w-2xl w-full shadow-2xl overflow-hidden"
+            className="relative bg-white rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 max-w-2xl w-full shadow-2xl max-h-[92vh] overflow-y-auto my-auto"
           >
             {/* Background Sparkles */}
             <div className="absolute top-0 right-0 p-12 -z-10 opacity-10">
@@ -75,12 +75,13 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
 
             <button
               onClick={onClose}
-              className="absolute top-8 right-8 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all"
+              aria-label="Затвори AI Асистент"
+              className="sticky top-0 float-right -mt-2 -mr-2 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all z-10 bg-white"
             >
               <X className="w-6 h-6" />
             </button>
 
-            <div className="flex items-center gap-3 mb-8">
+            <div className="flex items-center gap-3 mb-6">
               <div className="bg-indigo-600 p-3 rounded-2xl shadow-lg shadow-indigo-100">
                 <Wand2 className="text-white w-6 h-6" />
               </div>
@@ -90,7 +91,7 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
               </div>
             </div>
 
-            <div className="space-y-8">
+            <div className="space-y-6">
               <div>
                 <label className="block text-sm font-black text-slate-700 mb-4">Избери Мод на Разум (Prompt Strategy)</label>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -180,11 +181,11 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
                   placeholder="Пр: Главни градови во Европа, Основи на вештачка интелигенција, Фидбек за состанок..."
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  className="w-full bg-slate-50 border-2 border-slate-100 rounded-[2rem] px-8 py-6 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all min-h-[150px] resize-none text-lg"
+                  className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-4 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all min-h-[110px] resize-none text-base"
                 />
               </div>
 
-              <div className="flex items-center gap-4 p-6 bg-slate-50 rounded-[2rem] border border-slate-100">
+              <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
                 <div className="bg-white p-2 rounded-xl shadow-sm text-indigo-600">
                   <Sparkles size={20} />
                 </div>
@@ -196,7 +197,7 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
               <button 
                 onClick={handleGenerate}
                 disabled={!prompt.trim() || generating}
-                className="w-full py-6 bg-indigo-600 text-white rounded-[2rem] font-black text-xl flex items-center justify-center gap-3 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-2xl shadow-indigo-200"
+                className="sticky bottom-0 w-full py-5 bg-indigo-600 text-white rounded-2xl font-black text-lg flex items-center justify-center gap-3 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-2xl shadow-indigo-200"
               >
                 {generating ? (
                   <>
