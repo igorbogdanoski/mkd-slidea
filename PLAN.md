@@ -468,7 +468,7 @@ Expansion loops:
 ## ФАЗА 2 — Intelligence Layer (2-3 недели) 🟢
 *Цел: AI што конкуренти не можат да го реплицираат*
 
-- [ ] **2.1 AI Auto-grading** на отворени одговори по rubric (Gemini Flash)
+- [x] **2.1 AI Auto-grading** ✅ — `api/grade.js` Edge function (Gemini Flash, KV rate-limit 4/min, шема со score+feedback+signal); `AutoGradeModal.jsx` со рубрика, max-score, breakdown (correct/partial/incorrect/offtopic), CSV извоз; Sparkles копче во `PollCard` за `type=open` со одговори (lazy-loaded)
 - [x] **2.2 Adaptive difficulty** ✅ — Host пресметува точност од последниот квиз → Bloom препорака (≥80% Анализа · 40-79% Примена · <40% Разбирање); banner + manual selector во AI modal; `bloom` се испраќа во `/api/generate`
 - [x] **2.3 Misconception detector** ✅ — `api/insights.js` пресметува `dominantWrong` (≥30% погрешен) + AI враќа `misconceptions[]` со explanation+intervention; UI рендерира rose-themed картички во `AIInsightsModal`
 - [ ] **2.4 Lesson generator од PDF/PPTX** — tesseract.js (веќе во deps) + Gemini → 5 активности

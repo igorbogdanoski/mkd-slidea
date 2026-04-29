@@ -9,6 +9,8 @@ import CreateQuizModal from '../components/CreateQuizModal';
 import InteractionTypeGrid from '../components/InteractionTypeGrid';
 import AIAssistantModal from '../components/AIAssistantModal';
 import AIInsightsModal from '../components/AIInsightsModal';
+import VoiceControlButton from '../components/VoiceControlButton';
+import SlideThumbnailStrip from '../components/SlideThumbnailStrip';
 import ExportPDFModal from '../components/ExportPDFModal';
 import ParticipantStatsModal from '../components/ParticipantStatsModal';
 import { supabase } from '../lib/supabase';
@@ -1218,6 +1220,24 @@ const Host = ({ setView, user }) => {
                           </div>
 
                           <div className="flex items-center gap-3">
+                            <VoiceControlButton
+                              handlers={{
+                                next: goNext,
+                                prev: goPrev,
+                                lock: async () => {
+                                  if (event.is_locked) return;
+                                  await supabase.from('events').update({ is_locked: true }).eq('id', event.id);
+                                  setEvent(prev => ({ ...prev, is_locked: true }));
+                                },
+                                unlock: async () => {
+                                  if (!event.is_locked) return;
+                                  await supabase.from('events').update({ is_locked: false }).eq('id', event.id);
+                                  setEvent(prev => ({ ...prev, is_locked: false }));
+                                },
+                                start: () => startTimer(60),
+                                stopCmd: () => stopTimer(),
+                              }}
+                            />
                             <button
                               onClick={async () => {
                                 const next = !event.is_locked;
@@ -1320,6 +1340,14 @@ const Host = ({ setView, user }) => {
                               ))}
                             </div>
                           </div>
+                        )}
+
+                        {polls.length > 1 && (
+                          <SlideThumbnailStrip
+                            polls={polls}
+                            activePollIndex={activePollIndex}
+                            onSelect={setActivePoll}
+                          />
                         )}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
