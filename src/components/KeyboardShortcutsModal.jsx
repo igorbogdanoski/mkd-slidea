@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Keyboard } from 'lucide-react';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 const SHORTCUTS = [
   { keys: ['?'], desc: 'Прикажи / сокриј помош за кратенки' },
@@ -16,12 +16,7 @@ const SHORTCUTS = [
 ];
 
 export default function KeyboardShortcutsModal({ isOpen, onClose }) {
-  useEffect(() => {
-    if (!isOpen) return;
-    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [isOpen, onClose]);
+  const trapRef = useFocusTrap(isOpen, { onEscape: onClose });
 
   return (
     <AnimatePresence>
@@ -34,6 +29,10 @@ export default function KeyboardShortcutsModal({ isOpen, onClose }) {
           onClick={onClose}
         >
           <motion.div
+            ref={trapRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="shortcuts-title"
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
@@ -45,7 +44,7 @@ export default function KeyboardShortcutsModal({ isOpen, onClose }) {
                 <div className="w-10 h-10 bg-indigo-100 rounded-2xl flex items-center justify-center">
                   <Keyboard className="w-5 h-5 text-indigo-600" />
                 </div>
-                <h2 className="text-xl font-black text-slate-900">Кратенки</h2>
+                <h2 id="shortcuts-title" className="text-xl font-black text-slate-900">Кратенки</h2>
               </div>
               <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl" aria-label="Затвори">
                 <X className="w-5 h-5 text-slate-500" />

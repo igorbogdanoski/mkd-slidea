@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Sparkles, Wand2, ArrowRight, Check, Loader2, Brain, ListTree, Lock, TrendingUp } from 'lucide-react';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 const BLOOM_LEVELS = [
   { id: 'remember',   label: 'Запомнување' },
@@ -19,6 +20,7 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
   const [bloom, setBloom] = useState(adaptiveSuggestion?.bloom || '');
 
   const isPro = user?.plan === 'pro' || user?.plan === 'semester' || user?.role === 'admin';
+  const trapRef = useFocusTrap(isOpen, { onEscape: onClose });
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -63,6 +65,10 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
             className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
           />
           <motion.div
+            ref={trapRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="ai-assistant-title"
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -86,7 +92,7 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
                 <Wand2 className="text-white w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-3xl font-black text-slate-900">AI Асистент</h3>
+                <h3 id="ai-assistant-title" className="text-3xl font-black text-slate-900">AI Асистент</h3>
                 <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Магија во една секунда</p>
               </div>
             </div>

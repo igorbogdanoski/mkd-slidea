@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Sparkles, Loader2, CheckCircle2, AlertCircle, Circle, HelpCircle, Download } from 'lucide-react';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 const SIGNAL_META = {
   correct:   { label: 'Точно',     cls: 'bg-emerald-100 text-emerald-700', Icon: CheckCircle2 },
@@ -50,6 +51,7 @@ const AutoGradeModal = ({ isOpen, onClose, poll }) => {
   const [summary, setSummary] = useState(null);
 
   const answers = useMemo(() => buildAnswers(poll), [poll]);
+  const trapRef = useFocusTrap(isOpen, { onEscape: onClose });
 
   useEffect(() => {
     if (!isOpen) {
@@ -107,6 +109,10 @@ const AutoGradeModal = ({ isOpen, onClose, poll }) => {
           className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
         />
         <motion.div
+          ref={trapRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="auto-grade-title"
           initial={{ scale: 0.95, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 20 }}
@@ -125,7 +131,7 @@ const AutoGradeModal = ({ isOpen, onClose, poll }) => {
               <Sparkles className="text-white w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-2xl font-black text-slate-900">AI Авто-оценување</h3>
+              <h3 id="auto-grade-title" className="text-2xl font-black text-slate-900">AI Авто-оценување</h3>
               <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Отворени одговори · Gemini</p>
             </div>
           </div>

@@ -480,7 +480,7 @@ Expansion loops:
 - [x] **3.1 Dark mode (foundation)** ✅ — `darkMode:'class'` во tailwind, `useDarkMode` хук со localStorage + `prefers-color-scheme`, toggle во Nav (Sun/Moon), html.dark body стилови, dark: класи на public shell + Nav
 - [x] **3.2 Keyboard shortcuts** ✅ — `useKeyboardShortcuts` хук + `KeyboardShortcutsModal`; глобално `?` toggle; Host: T/A/Q/P + ←/→/Space; Presenter: F (fullscreen)
 - [x] **3.3 Drag & drop reorder** ✅ — implemented во Host со `position` persist во DB
-- [ ] **3.4 Slide preview thumbnails** во host панел (canvas snapshot)
+- [x] **3.4 Slide preview thumbnails** ✅ — `SlideThumbnailStrip.jsx` хоризонтален навигатор со per-type иконки (poll/wordcloud/open/rating/ranking/survey/scale/quiz), бројач на гласови, активен индикатор, role=tablist + aria-selected; рендериран кога polls.length > 1
 - [x] **3.5 Export to Markdown** ✅ — `src/lib/exportMarkdown.js` (zero-dep blob, `mk-MK` locale) + `FileText` копче во Host toolbar (помеѓу PDF и AI Insights); извезува наслов, код, прашања, опции, гласови, проценти, точност
 - [x] **3.6 Animated backgrounds** ✅ — `AnimatedBackground.jsx` (aurora/grid/mesh варијанти, pure CSS keyframes, GPU-accelerated, `prefers-reduced-motion` aware); инжектиран во Presenter shell со brandColor; варијанта читана од `event.bg_variant`
 - [ ] **3.7 Custom branding** на Pro: logo, color, font
@@ -488,8 +488,8 @@ Expansion loops:
 ## ФАЗА 4 — Accessibility & Reach (2-3 недели) 🟢
 *Цел: WCAG AA + повеќе јазици*
 
-- [~] **4.1 WCAG 2.1 AA (foundation)** ⏳ — `<html lang="mk">`, skip-to-content link во App.jsx (sr-only focus:not-sr-only), `<main id="main-content">`, aria-label на Nav dark toggle и сите icon-only Host toolbar копчиња (Stats/CSV/PDF/Markdown/AI Insights/Settings); фокус-видливи стилови во `index.css`. Останува: focus traps во модали, screen-reader live regions, contrast audit
-- [ ] **4.2 Voice control** за наставникот (Web Speech API, бесплатно)
+- [~] **4.1 WCAG 2.1 AA (foundation)** ⏳ — `<html lang="mk">`, skip-to-content link во App.jsx (sr-only focus:not-sr-only), `<main id="main-content">`, aria-label на Nav dark toggle и сите icon-only Host toolbar копчиња (Stats/CSV/PDF/Markdown/AI Insights/Settings); фокус-видливи стилови во `index.css`; **`useFocusTrap` хук + `role="dialog"` + `aria-modal` + `aria-labelledby` на AIAssistantModal, AutoGradeModal, KeyboardShortcutsModal** (ESC + Tab/Shift+Tab cycle + restore focus). Останува: screen-reader live regions, contrast audit
+- [x] **4.2 Voice control** ✅ — `useVoiceCommands` хук (Web Speech API, mk-MK, continuous mode со auto-restart) + `VoiceControlButton` (mic toggle); MK+EN keyword sets за следна/претходна/заклучи/отклучи/почни/стоп; интегриран во Host nav bar со handlers за goNext/goPrev/lock/unlock/timer
 - [ ] **4.3 Live transcription** на час (Web Speech API → Supabase realtime)
 - [ ] **4.4 i18n: HR/SR/BG/AL/RO** (JSON, prv превод преку Gemini)
 - [ ] **4.5 Subtitles** во активности
