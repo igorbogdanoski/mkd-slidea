@@ -470,14 +470,14 @@ Expansion loops:
 
 - [ ] **2.1 AI Auto-grading** на отворени одговори по rubric (Gemini Flash)
 - [x] **2.2 Adaptive difficulty** ✅ — Host пресметува точност од последниот квиз → Bloom препорака (≥80% Анализа · 40-79% Примена · <40% Разбирање); banner + manual selector во AI modal; `bloom` се испраќа во `/api/generate`
-- [ ] **2.3 Misconception detector** — AI идентификува заеднички грешки → препорачува intervention
+- [x] **2.3 Misconception detector** ✅ — `api/insights.js` пресметува `dominantWrong` (≥30% погрешен) + AI враќа `misconceptions[]` со explanation+intervention; UI рендерира rose-themed картички во `AIInsightsModal`
 - [ ] **2.4 Lesson generator од PDF/PPTX** — tesseract.js (веќе во deps) + Gemini → 5 активности
 - [ ] **2.5 Sentiment heatmap** — кога часот "губи енергија" базирано на reactions
 
 ## ФАЗА 3 — Pro Polish (1 месец) 🟢
 *Цел: UI/UX како $50M startup*
 
-- [ ] **3.1 Dark mode** (Tailwind dark: класи)
+- [x] **3.1 Dark mode (foundation)** ✅ — `darkMode:'class'` во tailwind, `useDarkMode` хук со localStorage + `prefers-color-scheme`, toggle во Nav (Sun/Moon), html.dark body стилови, dark: класи на public shell + Nav
 - [x] **3.2 Keyboard shortcuts** ✅ — `useKeyboardShortcuts` хук + `KeyboardShortcutsModal`; глобално `?` toggle; Host: T/A/Q/P + ←/→/Space; Presenter: F (fullscreen)
 - [x] **3.3 Drag & drop reorder** ✅ — implemented во Host со `position` persist во DB
 - [ ] **3.4 Slide preview thumbnails** во host панел (canvas snapshot)

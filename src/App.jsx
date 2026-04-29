@@ -6,6 +6,7 @@ import Join from './views/Join';
 import ErrorBoundary from './components/ErrorBoundary';
 import { useAuth } from './hooks/useAuth';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { useDarkMode } from './hooks/useDarkMode';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 
 const Landing = lazy(() => import('./views/Landing'));
@@ -51,6 +52,10 @@ const AppContent = () => {
   useKeyboardShortcuts({
     '?': () => setShortcutsOpen((v) => !v),
   });
+
+  // Apply persisted theme on every route (Nav only mounts on public routes).
+  useDarkMode();
+
   const isEventRoute = location.pathname.startsWith('/event/');
 
   const { user, loading, loadingMessage, signIn, signUp, signInWithGoogle, signInWithMagicLink, signOut } = useAuth({ enabled: !isEventRoute });
@@ -129,7 +134,7 @@ const AppContent = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-700">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans selection:bg-indigo-100 selection:text-indigo-700 transition-colors">
       {isPublicRoute && (
         <Nav setView={setView} onLogin={handleLogin} onGoogleLogin={handleGoogleLogin} user={user} onLogout={handleLogout} />
       )}

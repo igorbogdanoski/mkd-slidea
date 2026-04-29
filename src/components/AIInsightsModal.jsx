@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Brain, Lightbulb, ListChecks, Loader2, Sparkles, X } from 'lucide-react';
+import { AlertTriangle, Brain, Lightbulb, ListChecks, Loader2, Sparkles, X } from 'lucide-react';
 
 const safePercent = (value) => {
   if (value === null || value === undefined || Number.isNaN(Number(value))) return null;
@@ -24,7 +24,7 @@ const buildPayload = (event, polls) => {
       const sortedAnswers = [...visibleOptions]
         .sort((a, b) => (b.votes || 0) - (a.votes || 0))
         .slice(0, 4)
-        .map((option) => ({ text: option.text, votes: option.votes || 0 }));
+        .map((option) => ({ text: option.text, votes: option.votes || 0, isCorrect: !!option.is_correct }));
 
       const correctOption = visibleOptions.find((option) => option.is_correct);
       const quizAccuracy = poll.is_quiz
@@ -186,6 +186,43 @@ const AIInsightsModal = ({ isOpen, onClose, event, polls }) => {
                       </ol>
                     </div>
                   </div>
+
+                  {(insights.misconceptions || []).length > 0 && (
+                    <div className="bg-rose-50 border border-rose-100 rounded-3xl p-6">
+                      <div className="flex items-center gap-2 mb-4">
+                        <AlertTriangle className="w-5 h-5 text-rose-600" />
+                        <p className="text-xs font-black text-rose-700 uppercase tracking-widest">Заеднички недоразбирања</p>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {insights.misconceptions.map((m, index) => (
+                          <div key={index} className="bg-white/80 border border-rose-100 rounded-2xl p-4">
+                            <div className="flex items-start justify-between gap-3 mb-2">
+                              <p className="font-black text-slate-900 text-sm flex-1">{m.question}</p>
+                              {m.share > 0 && (
+                                <span className="px-2 py-1 bg-rose-100 text-rose-700 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
+                                  {m.share}%
+                                </span>
+                              )}
+                            </div>
+                            {m.wrongAnswer && (
+                              <p className="text-xs font-bold text-rose-600 mb-2">
+                                ✗ Избрале: <span className="font-black">{m.wrongAnswer}</span>
+                              </p>
+                            )}
+                            {m.explanation && (
+                              <p className="text-xs font-bold text-slate-600 mb-2 leading-relaxed">{m.explanation}</p>
+                            )}
+                            {m.intervention && (
+                              <div className="mt-3 p-3 bg-rose-100/60 rounded-xl">
+                                <p className="text-[10px] font-black text-rose-700 uppercase tracking-widest mb-1">Интервенција</p>
+                                <p className="text-xs font-black text-slate-800 leading-relaxed">{m.intervention}</p>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="bg-indigo-50 border border-indigo-100 rounded-3xl p-6">
                     <p className="text-xs font-black text-indigo-700 uppercase tracking-widest mb-3">Брзи акции за утре</p>
