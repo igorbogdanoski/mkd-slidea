@@ -472,7 +472,7 @@ Expansion loops:
 - [x] **2.2 Adaptive difficulty** ✅ — Host пресметува точност од последниот квиз → Bloom препорака (≥80% Анализа · 40-79% Примена · <40% Разбирање); banner + manual selector во AI modal; `bloom` се испраќа во `/api/generate`
 - [x] **2.3 Misconception detector** ✅ — `api/insights.js` пресметува `dominantWrong` (≥30% погрешен) + AI враќа `misconceptions[]` со explanation+intervention; UI рендерира rose-themed картички во `AIInsightsModal`
 - [ ] **2.4 Lesson generator од PDF/PPTX** — tesseract.js (веќе во deps) + Gemini → 5 активности
-- [ ] **2.5 Sentiment heatmap** — кога часот "губи енергија" базирано на reactions
+- [x] **2.5 Sentiment heatmap** ✅ — `useSentimentBuffer` хук + `SentimentHeatmap` (live sparkline 5 мин, бин-15s); класифицира енергија (idle/low/medium/high) и расположение (positive/neutral/negative) преку емоџи мапа; pinned bottom-left на Presenter
 
 ## ФАЗА 3 — Pro Polish (1 месец) 🟢
 *Цел: UI/UX како $50M startup*
@@ -482,7 +482,7 @@ Expansion loops:
 - [x] **3.3 Drag & drop reorder** ✅ — implemented во Host со `position` persist во DB
 - [ ] **3.4 Slide preview thumbnails** во host панел (canvas snapshot)
 - [x] **3.5 Export to Markdown** ✅ — `src/lib/exportMarkdown.js` (zero-dep blob, `mk-MK` locale) + `FileText` копче во Host toolbar (помеѓу PDF и AI Insights); извезува наслов, код, прашања, опции, гласови, проценти, точност
-- [ ] **3.6 Animated backgrounds** — Mentimeter-style CSS animations
+- [x] **3.6 Animated backgrounds** ✅ — `AnimatedBackground.jsx` (aurora/grid/mesh варијанти, pure CSS keyframes, GPU-accelerated, `prefers-reduced-motion` aware); инжектиран во Presenter shell со brandColor; варијанта читана од `event.bg_variant`
 - [ ] **3.7 Custom branding** на Pro: logo, color, font
 
 ## ФАЗА 4 — Accessibility & Reach (2-3 недели) 🟢

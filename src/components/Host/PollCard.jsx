@@ -1,12 +1,17 @@
-import React from 'react';
-import { GripVertical, Eye, EyeOff, RotateCcw, Pencil, Trash2, Copy, ShieldCheck } from 'lucide-react';
+import React, { useState, lazy, Suspense } from 'react';
+import { GripVertical, Eye, EyeOff, RotateCcw, Pencil, Trash2, Copy, ShieldCheck, Sparkles } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+
+const AutoGradeModal = lazy(() => import('../AutoGradeModal'));
 
 const PollCard = ({ poll, index, activePollIndex, setActivePoll, onEdit, onDelete, onDuplicate, onPollUpdated }) => {
   const isActive = activePollIndex === index;
   const resultsVisible = poll.results_visible !== false;
   const needsModeration = !!poll.needs_moderation;
   const isTextPoll = ['wordcloud', 'open'].includes(poll.type);
+  const isOpen = poll.type === 'open';
+  const hasAnswers = (poll.options || []).some((o) => o?.text && o.is_approved !== false);
+  const [gradeOpen, setGradeOpen] = useState(false);
 
   const toggleResultsVisible = async (e) => {
     e.stopPropagation();
@@ -80,7 +85,23 @@ const PollCard = ({ poll, index, activePollIndex, setActivePoll, onEdit, onDelet
             </button>
           </>
         )}
+        {isOpen && hasAnswers && (
+          <button
+            onClick={(e) => { e.stopPropagation(); setGradeOpen(true); }}
+            title="AI авто-оценување на одговори"
+            aria-label="AI авто-оценување"
+            className="p-2 hover:bg-white rounded-xl text-slate-400 hover:text-violet-600 transition-all"
+          >
+            <Sparkles size={18} />
+          </button>
+        )}
       </div>
+
+      {gradeOpen && (
+        <Suspense fallback={null}>
+          <AutoGradeModal isOpen={gradeOpen} onClose={() => setGradeOpen(false)} poll={poll} />
+        </Suspense>
+      )}
 
       <div className="absolute top-1/2 -translate-y-1/2 left-3 text-slate-200 cursor-grab active:cursor-grabbing">
         <GripVertical className="w-5 h-5" />
