@@ -483,7 +483,7 @@ Expansion loops:
 - [x] **3.4 Slide preview thumbnails** ✅ — `SlideThumbnailStrip.jsx` хоризонтален навигатор со per-type иконки (poll/wordcloud/open/rating/ranking/survey/scale/quiz), бројач на гласови, активен индикатор, role=tablist + aria-selected; рендериран кога polls.length > 1
 - [x] **3.5 Export to Markdown** ✅ — `src/lib/exportMarkdown.js` (zero-dep blob, `mk-MK` locale) + `FileText` копче во Host toolbar (помеѓу PDF и AI Insights); извезува наслов, код, прашања, опции, гласови, проценти, точност
 - [x] **3.6 Animated backgrounds** ✅ — `AnimatedBackground.jsx` (aurora/grid/mesh варијанти, pure CSS keyframes, GPU-accelerated, `prefers-reduced-motion` aware); инжектиран во Presenter shell со brandColor; варијанта читана од `event.bg_variant`
-- [ ] **3.7 Custom branding** на Pro: logo, color, font
+- [x] **3.7 Custom branding (Pro)** ✅ — boja (`brand_color`) + лого (`logo_url`, Supabase Storage `event-logos` bucket) + фонт (`brand_font`, системски — Стандарден/Сериф/Заоблен/Моноспејс, без external requests); сите три секции gated со `isPro(user)` Pro badge + `pointer-events-none`/aria-disabled за бесплатни; `Presenter` применува `fontFamily` inline на root + `brandColor` веќе во AnimatedBackground/QR/донати; миграција `SUPABASE_BRAND_FONT.sql`
 
 ## ФАЗА 4 — Accessibility & Reach (2-3 недели) 🟢
 *Цел: WCAG AA + повеќе јазици*

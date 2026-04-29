@@ -71,7 +71,7 @@ export const useEvent = (eventCode) => {
           // revoked from the anon role and must not be requested here.
           const { data, error } = await supabase
             .from('events')
-            .select('id, code, title, created_at, active_poll_id, is_locked, async_mode, async_deadline, questions_moderation, brand_color, logo_url, user_id, has_password')
+            .select('id, code, title, created_at, active_poll_id, is_locked, async_mode, async_deadline, questions_moderation, brand_color, brand_font, logo_url, user_id, has_password')
             .ilike('code', normalizedCode)
             .order('created_at', { ascending: false })
             .limit(1);

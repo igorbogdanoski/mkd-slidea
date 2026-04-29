@@ -276,6 +276,7 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
   const joinUrl = `${window.location.origin}/event/${eventCode}`;
   const brandColor = event?.brand_color || '#6366f1';
   const logoUrl = event?.logo_url || null;
+  const brandFont = event?.brand_font || null;
   const currentPoll = polls[activePollIndex] || {
     question: 'Чекаме да започне првата анкета...',
     options: [], is_quiz: false, type: 'poll',
@@ -552,7 +553,10 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white flex flex-col p-12 overflow-hidden relative isolate">
+    <div
+      className="min-h-screen bg-slate-900 text-white flex flex-col p-12 overflow-hidden relative isolate"
+      style={brandFont ? { fontFamily: brandFont } : undefined}
+    >
       <AnimatedBackground color={brandColor} variant={event?.bg_variant || 'aurora'} />
       <SentimentHeatmap reactions={reactions} />
       {/* Floating Reactions */}

@@ -806,15 +806,21 @@ const Host = ({ setView, user }) => {
                 </div>
               </div>
 
-              {/* Brand color */}
-              <div className="p-5 bg-slate-50 rounded-2xl">
-                <p className="font-black text-slate-900 mb-1">Брендирачка боја</p>
+              {/* Brand color (Pro) */}
+              <div className={`p-5 bg-slate-50 rounded-2xl relative ${!isPro(user) ? 'opacity-70' : ''}`}>
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="font-black text-slate-900">Брендирачка боја</p>
+                  {!isPro(user) && (
+                    <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-400 text-white uppercase tracking-widest">Pro</span>
+                  )}
+                </div>
                 <p className="text-sm text-slate-400 font-bold mb-4">Акцентна боја во Презентерот</p>
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className={`flex items-center gap-2 flex-wrap ${!isPro(user) ? 'pointer-events-none' : ''}`} aria-disabled={!isPro(user)}>
                   {['#6366f1','#8b5cf6','#10b981','#f59e0b','#ef4444','#06b6d4','#ec4899','#0ea5e9'].map(c => (
                     <button
                       key={c}
                       onClick={async () => {
+                        if (!isPro(user)) return;
                         await supabase.from('events').update({ brand_color: c }).eq('id', event.id);
                         setEvent(prev => ({ ...prev, brand_color: c }));
                       }}
@@ -833,11 +839,48 @@ const Host = ({ setView, user }) => {
                       className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                       value={event.brand_color || '#6366f1'}
                       onChange={async (e) => {
+                        if (!isPro(user)) return;
                         await supabase.from('events').update({ brand_color: e.target.value }).eq('id', event.id);
                         setEvent(prev => ({ ...prev, brand_color: e.target.value }));
                       }}
                     />
                   </label>
+                </div>
+              </div>
+
+              {/* Brand font (Pro) */}
+              <div className={`p-5 bg-slate-50 rounded-2xl relative ${!isPro(user) ? 'opacity-70' : ''}`}>
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="font-black text-slate-900">Брендирачки фонт</p>
+                  {!isPro(user) && (
+                    <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-400 text-white uppercase tracking-widest">Pro</span>
+                  )}
+                </div>
+                <p className="text-sm text-slate-400 font-bold mb-4">Стилот на букви во Презентерот (системски — без додатни барања)</p>
+                <div className={`grid grid-cols-2 gap-2 ${!isPro(user) ? 'pointer-events-none' : ''}`} aria-disabled={!isPro(user)}>
+                  {[
+                    { id: '',                                                                  label: 'Стандарден' },
+                    { id: '"Georgia", "Times New Roman", serif',                               label: 'Сериф' },
+                    { id: 'ui-rounded, "SF Pro Rounded", "Hiragino Sans", system-ui, sans-serif', label: 'Заоблен' },
+                    { id: 'ui-monospace, "SF Mono", Menlo, "Roboto Mono", monospace',          label: 'Моноспејс' },
+                  ].map(f => {
+                    const isSelected = (event.brand_font || '') === f.id;
+                    return (
+                      <button
+                        key={f.label}
+                        onClick={async () => {
+                          if (!isPro(user)) return;
+                          const next = f.id || null;
+                          await supabase.from('events').update({ brand_font: next }).eq('id', event.id);
+                          setEvent(prev => ({ ...prev, brand_font: next }));
+                        }}
+                        className={`px-3 py-2 rounded-xl border-2 text-sm font-black transition-all text-left ${isSelected ? 'border-indigo-600 bg-white text-indigo-700 shadow-sm' : 'border-slate-200 bg-white text-slate-500 hover:border-indigo-300'}`}
+                        style={f.id ? { fontFamily: f.id } : undefined}
+                      >
+                        {f.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -865,11 +908,16 @@ const Host = ({ setView, user }) => {
                 </button>
               </div>
 
-              {/* Logo upload */}
-              <div className="p-5 bg-slate-50 rounded-2xl">
-                <p className="font-black text-slate-900 mb-1">Лого</p>
+              {/* Logo upload (Pro) */}
+              <div className={`p-5 bg-slate-50 rounded-2xl ${!isPro(user) ? 'opacity-70' : ''}`}>
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="font-black text-slate-900">Лого</p>
+                  {!isPro(user) && (
+                    <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-400 text-white uppercase tracking-widest">Pro</span>
+                  )}
+                </div>
                 <p className="text-sm text-slate-400 font-bold mb-4">Се прикажува во Презентерот наместо MKD Slidea</p>
-                <div className="flex items-center gap-4">
+                <div className={`flex items-center gap-4 ${!isPro(user) ? 'pointer-events-none' : ''}`} aria-disabled={!isPro(user)}>
                   {event.logo_url ? (
                     <div className="relative group">
                       <img src={event.logo_url} alt="Лого" className="h-14 w-auto max-w-[120px] object-contain rounded-xl bg-white border border-slate-200 p-1" />
