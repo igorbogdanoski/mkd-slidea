@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Plus, ArrowLeft, Sparkles, ChevronLeft, ChevronRight, Settings, X, Timer, Square, ShieldCheck, Check, Trash2, MessageSquare, FileDown, Eye, EyeOff, BarChart2, Copy, UserPlus, RotateCcw, Sheet, Lock, Unlock, Upload
+  Plus, ArrowLeft, Sparkles, ChevronLeft, ChevronRight, Settings, X, Timer, Square, ShieldCheck, Check, Trash2, MessageSquare, FileDown, Eye, EyeOff, BarChart2, Copy, UserPlus, RotateCcw, Sheet, Lock, Unlock, Upload, FileText
 } from 'lucide-react';
 import QRCodeModal from '../components/QRCodeModal';
 import CreatePollModal from '../components/CreatePollModal';
@@ -21,6 +21,7 @@ import PublishTemplateModal from '../components/PublishTemplateModal';
 import TemplateGalleryModal from '../components/TemplateGalleryModal';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { STARTER_TEMPLATES } from '../lib/starterTemplates';
+import { downloadMarkdown } from '../lib/exportMarkdown';
 
 const getHostSessionId = () => {
   let sid = localStorage.getItem('mkd_host_session_id');
@@ -1100,6 +1101,7 @@ const Host = ({ setView, user }) => {
                             onClick={() => setIsStatsOpen(true)}
                             className="flex items-center justify-center gap-2 px-5 py-4 bg-white border-2 border-slate-100 text-slate-500 rounded-2xl font-black hover:border-indigo-200 hover:text-indigo-600 transition-all shadow-sm active:scale-95"
                             title="Статистики по учесник"
+                            aria-label="Статистики по учесник"
                           >
                             <BarChart2 className="w-5 h-5" />
                           </button>
@@ -1108,6 +1110,7 @@ const Host = ({ setView, user }) => {
                               onClick={exportToCSV}
                               className="flex items-center justify-center gap-2 px-5 py-4 bg-white border-2 border-slate-100 text-slate-500 rounded-2xl font-black hover:border-emerald-200 hover:text-emerald-600 transition-all shadow-sm active:scale-95"
                               title="Извоз CSV/Excel"
+                              aria-label="Извоз во CSV / Excel"
                             >
                               <Sheet className="w-5 h-5" />
                             </button>
@@ -1118,16 +1121,26 @@ const Host = ({ setView, user }) => {
                               onClick={() => setIsExportOpen(true)}
                               className="flex items-center justify-center gap-2 px-5 py-4 bg-white border-2 border-slate-100 text-slate-500 rounded-2xl font-black hover:border-indigo-200 hover:text-indigo-600 transition-all shadow-sm active:scale-95"
                               title="Извоз PDF"
+                              aria-label="Извоз во PDF"
                             >
                               <FileDown className="w-5 h-5" />
                             </button>
                             {!isPro(user) && <span className="absolute -top-2 -right-2 bg-amber-400 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wide pointer-events-none">Pro</span>}
                           </div>
+                          <button
+                            onClick={() => downloadMarkdown(event, polls)}
+                            className="flex items-center justify-center gap-2 px-5 py-4 bg-white border-2 border-slate-100 text-slate-500 rounded-2xl font-black hover:border-slate-300 hover:text-slate-700 transition-all shadow-sm active:scale-95"
+                            title="Извоз во Markdown"
+                            aria-label="Извоз во Markdown"
+                          >
+                            <FileText className="w-5 h-5" />
+                          </button>
                           <div className="relative">
                             <button
                               onClick={() => setIsInsightsOpen(true)}
                               className="flex items-center justify-center gap-2 px-5 py-4 bg-white border-2 border-slate-100 text-slate-500 rounded-2xl font-black hover:border-violet-200 hover:text-violet-600 transition-all shadow-sm active:scale-95"
                               title="AI Insights по час"
+                              aria-label="AI Insights — анализа по час"
                             >
                               <Sparkles className="w-5 h-5" />
                             </button>
@@ -1139,6 +1152,7 @@ const Host = ({ setView, user }) => {
                         onClick={() => setIsSettingsOpen(true)}
                         className="flex items-center justify-center gap-2 px-5 py-4 bg-white border-2 border-slate-100 text-slate-500 rounded-2xl font-black hover:border-slate-300 hover:text-slate-700 transition-all shadow-sm active:scale-95"
                         title="Поставки"
+                        aria-label="Отвори поставки на настан"
                       >
                         <Settings className="w-5 h-5" />
                       </button>

@@ -481,14 +481,14 @@ Expansion loops:
 - [x] **3.2 Keyboard shortcuts** ✅ — `useKeyboardShortcuts` хук + `KeyboardShortcutsModal`; глобално `?` toggle; Host: T/A/Q/P + ←/→/Space; Presenter: F (fullscreen)
 - [x] **3.3 Drag & drop reorder** ✅ — implemented во Host со `position` persist во DB
 - [ ] **3.4 Slide preview thumbnails** во host панел (canvas snapshot)
-- [ ] **3.5 Export to Notion / Markdown** (client-side)
+- [x] **3.5 Export to Markdown** ✅ — `src/lib/exportMarkdown.js` (zero-dep blob, `mk-MK` locale) + `FileText` копче во Host toolbar (помеѓу PDF и AI Insights); извезува наслов, код, прашања, опции, гласови, проценти, точност
 - [ ] **3.6 Animated backgrounds** — Mentimeter-style CSS animations
 - [ ] **3.7 Custom branding** на Pro: logo, color, font
 
 ## ФАЗА 4 — Accessibility & Reach (2-3 недели) 🟢
 *Цел: WCAG AA + повеќе јазици*
 
-- [ ] **4.1 WCAG 2.1 AA** — ARIA, focus traps, screen reader, color contrast
+- [~] **4.1 WCAG 2.1 AA (foundation)** ⏳ — `<html lang="mk">`, skip-to-content link во App.jsx (sr-only focus:not-sr-only), `<main id="main-content">`, aria-label на Nav dark toggle и сите icon-only Host toolbar копчиња (Stats/CSV/PDF/Markdown/AI Insights/Settings); фокус-видливи стилови во `index.css`. Останува: focus traps во модали, screen-reader live regions, contrast audit
 - [ ] **4.2 Voice control** за наставникот (Web Speech API, бесплатно)
 - [ ] **4.3 Live transcription** на час (Web Speech API → Supabase realtime)
 - [ ] **4.4 i18n: HR/SR/BG/AL/RO** (JSON, prv превод преку Gemini)
@@ -499,7 +499,7 @@ Expansion loops:
 
 - [ ] **5.1 Public template gallery** — SEO-friendly URLs (`community_templates`)
 - [ ] **5.2 Embed widget** за блогови / WordPress (iframe + script)
-- [ ] **5.3 "Powered by Slidea" badge** на Free план
+- [x] **5.3 "Powered by Slidea" badge** ✅ — `PoweredByBadge.jsx` со UTM source/medium tracking (light/dark variants); поставен на Participant footer + сите EventWrapper gates (homework expired, locked, password)
 - [ ] **5.4 Referral систем** "Покани наставник, добиј 1 месец Pro"
 - [ ] **5.5 Public scoreboard** за квиз шампиони во MK
 - [ ] **5.6 Open API** за интеграции со училишни системи (Edge Functions)

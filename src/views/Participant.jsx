@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Hash, PieChart, MessageSquare, Send, ThumbsUp, Trophy, CheckCircle2, XCircle, Star, GripVertical } from 'lucide-react';
 import { useEventStore } from '../lib/store';
+import PoweredByBadge from '../components/PoweredByBadge';
 
 const Participant = ({
   polls,
@@ -534,6 +535,10 @@ const Participant = ({
             {emoji}
           </button>
         ))}
+      </div>
+
+      <div className="mt-12 mb-24 flex justify-center">
+        <PoweredByBadge utm="participant" />
       </div>
     </div>
   );

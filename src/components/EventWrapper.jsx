@@ -8,6 +8,7 @@ import { useEventStore } from '../lib/store';
 import { supabase } from '../lib/supabase';
 import { queueVote, flushQueue } from '../lib/offlineQueue';
 import { Lock, Eye, EyeOff } from 'lucide-react';
+import PoweredByBadge from './PoweredByBadge';
 
 // Get or create a persistent session ID — crypto.randomUUID polyfill for older browsers
 const getSessionId = () => {
@@ -161,7 +162,7 @@ const EventWrapper = ({ type, username, setUsername }) => {
           </div>
           <h2 className="text-2xl font-black text-slate-900 mb-2">Homework сесијата е затворена</h2>
           <p className="text-slate-400 font-bold text-sm">Рокот за овој настан е истечен. Контактирајте го наставникот за повторно отворање.</p>
-          <p className="mt-6 text-[10px] font-black text-slate-300 uppercase tracking-widest">#{event.code} · MKD Slidea</p>
+          <div className="mt-6"><PoweredByBadge code={event.code} utm="homework" /></div>
         </div>
       </div>
     );
@@ -177,7 +178,7 @@ const EventWrapper = ({ type, username, setUsername }) => {
           </div>
           <h2 className="text-2xl font-black text-slate-900 mb-2">Гласањето е заклучено</h2>
           <p className="text-slate-400 font-bold text-sm">Домаќинот привремено го оневозможи гласањето. Почекајте малку.</p>
-          <p className="mt-6 text-[10px] font-black text-slate-300 uppercase tracking-widest">#{event.code} · MKD Slidea</p>
+          <div className="mt-6"><PoweredByBadge code={event.code} utm="locked" /></div>
         </div>
       </div>
     );
@@ -247,9 +248,7 @@ const EventWrapper = ({ type, username, setUsername }) => {
             </button>
           </form>
 
-          <p className="mt-6 text-[10px] font-black text-slate-300 uppercase tracking-widest">
-            #{event.code} · MKD Slidea
-          </p>
+          <div className="mt-6"><PoweredByBadge code={event.code} utm="password" /></div>
         </div>
       </div>
     );

@@ -135,11 +135,19 @@ const AppContent = () => {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans selection:bg-indigo-100 selection:text-indigo-700 transition-colors">
+      {/* Skip-to-content link for keyboard / screen-reader users (WCAG 2.4.1). */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[1000] focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-xl focus:font-black focus:shadow-2xl"
+      >
+        Прескокни до содржината
+      </a>
+
       {isPublicRoute && (
         <Nav setView={setView} onLogin={handleLogin} onGoogleLogin={handleGoogleLogin} user={user} onLogout={handleLogout} />
       )}
 
-      <main className={isPublicRoute ? 'pt-16' : ''}>
+      <main id="main-content" className={isPublicRoute ? 'pt-16' : ''}>
         <AnimatePresence mode="wait">
           <ErrorBoundary>
             <Suspense
