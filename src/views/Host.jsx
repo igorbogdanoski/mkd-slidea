@@ -374,6 +374,29 @@ const Host = ({ setView, user }) => {
 
   const handlePPTXImport = async (slides, pollType) => {
     for (const slide of slides) {
+      // AI mode: each slide carries a fully-formed poll from /api/generate
+      if (pollType === 'ai' && slide._aiPoll) {
+        const ai = slide._aiPoll;
+        const { data: newPoll, error: pollError } = await supabase.from('polls').insert([{
+          event_id: event.id,
+          question: ai.question,
+          type: ai.type || 'quiz',
+          is_quiz: !!ai.is_quiz,
+        }]).select().single();
+        if (pollError) continue;
+        const opts = (ai.options || [])
+          .filter((o) => o && typeof o.text === 'string' && o.text.trim())
+          .slice(0, 8);
+        if (opts.length > 0) {
+          await supabase.from('options').insert(opts.map((o) => ({
+            poll_id: newPoll.id,
+            text: o.text.trim().slice(0, 300),
+            is_correct: !!o.is_correct,
+          })));
+        }
+        continue;
+      }
+
       const { data: newPoll, error: pollError } = await supabase.from('polls').insert([{
         event_id: event.id,
         question: slide.title,
