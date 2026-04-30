@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   Home, Presentation, LayoutGrid, Users, 
-  CreditCard, Share2, Trash2, LogOut, BarChart2, Lock, Shield, Gift
+  CreditCard, Share2, Trash2, LogOut, BarChart2, Lock, Shield, Gift, KeyRound
 } from 'lucide-react';
 
 const Sidebar = ({ activeTab, setActiveTab, user, onLogout }) => {
@@ -17,6 +17,7 @@ const Sidebar = ({ activeTab, setActiveTab, user, onLogout }) => {
     { id: 'referrals', label: 'Препорачај', icon: <Gift size={20} /> },
     ...(user?.role === 'admin' ? [{ id: 'admin', label: 'Админ панел', icon: <Shield size={20} /> }] : []),
     { id: 'integrations', label: 'Интеграции', icon: <Share2 size={20} /> },
+    { id: 'api', label: 'API клучеви', icon: <KeyRound size={20} /> },
     { id: 'trash', label: 'Корпа', icon: <Trash2 size={20} /> },
   ];
 
