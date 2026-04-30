@@ -198,8 +198,8 @@ const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout }) => {
               <MegaMenu isOpen={activeMenu === 'resources'} items={resources} setView={setView} setActiveMenu={setActiveMenu} />
             </div>
 
-            <button 
-              onClick={() => setView('dashboard')}
+            <button
+              onClick={() => navigate('/templates')}
               className="px-4 py-2 rounded-xl text-sm font-bold text-slate-500 hover:text-indigo-600 hover:bg-slate-50 transition-colors"
             >
               Шаблони

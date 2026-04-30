@@ -126,7 +126,23 @@ const Host = ({ setView, user }) => {
     if (starterId) {
       localStorage.removeItem('pending_starter_template_id');
       const tpl = STARTER_TEMPLATES.find((t) => t.id === starterId);
-      if (tpl) applyStarterTemplate(tpl);
+      if (tpl) {
+        applyStarterTemplate(tpl);
+        try { localStorage.removeItem('pending_community_template'); } catch { /* ignore */ }
+        return;
+      }
+      // Fallback: community template payload from /templates/:slug
+      try {
+        const raw = localStorage.getItem('pending_community_template');
+        if (raw) {
+          const cTpl = JSON.parse(raw);
+          localStorage.removeItem('pending_community_template');
+          if (cTpl && Array.isArray(cTpl.polls) && cTpl.polls.length > 0) {
+            applyStarterTemplate({ title: cTpl.title, polls: cTpl.polls });
+            return;
+          }
+        }
+      } catch { /* ignore malformed payload */ }
       return;
     }
 
