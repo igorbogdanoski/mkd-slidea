@@ -463,7 +463,7 @@ Expansion loops:
 - [x] **1.2 Template Gallery (20 шаблони)** ✅ — `starterTemplates.js` со search + subject filter, `T` shortcut, one-click bulk insert
 - [x] **1.3 First-success wizard** ✅ — `FirstSuccessWizard` со 3 чекори (предмет → шаблон → старт); auto-open за нови корисници без настани; intent се пренесува до Host кој автоматски го применува шаблонот
 - [x] **1.4 Empty-state CTAs** ✅ — Dashboard празен → 3 CTAs (Шаблони / AI / Импорт PPTX) + intent се пренесува преку localStorage
-- [ ] **1.5 Welcome email** — Supabase Edge Function + 3-step onboarding link
+- [x] **1.5 Welcome email** ✅ — `api/welcome-email.js` Edge function (Resend free tier 3k/мес), branded HTML template на МК со 3-step onboarding (Создај квиз → Покани ученици → Сподели препорака), fire-and-forget повик од `useAuth.signUp` со `keepalive`, graceful degrade ако `RESEND_API_KEY` не е поставен (никогаш не блокира регистрација); env: `RESEND_API_KEY`, `EMAIL_FROM`, `APP_URL`
 
 ## ФАЗА 2 — Intelligence Layer (2-3 недели) 🟢
 *Цел: AI што конкуренти не можат да го реплицираат*

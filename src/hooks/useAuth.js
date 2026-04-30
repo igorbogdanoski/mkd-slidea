@@ -110,16 +110,26 @@ export const useAuth = ({ enabled = true } = {}) => {
 
   const signUp = async (email, password, name = '') => {
     const startedAt = performance.now();
+    const finalName = name || email.split('@')[0];
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { name: name || email.split('@')[0] } },
+      options: { data: { name: finalName } },
     });
     if (error) {
       recordLoginLatency({ method: 'password', action: 'signUp', durationMs: performance.now() - startedAt, ok: false, reason: error.message });
       throw error;
     }
     recordLoginLatency({ method: 'password', action: 'signUp', durationMs: performance.now() - startedAt, ok: true });
+    // Sprint 1.5 — fire-and-forget welcome email (graceful degrade if not configured).
+    try {
+      fetch('/api/welcome-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name: finalName }),
+        keepalive: true,
+      }).catch(() => {});
+    } catch { /* non-blocking */ }
   };
 
   const signInWithGoogle = async (redirectPath = '/dashboard') => {
