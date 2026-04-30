@@ -62,6 +62,8 @@ const Host = ({ setView, user }) => {
   const [isInsightsOpen, setIsInsightsOpen] = useState(false);
   const [isPublishTemplateOpen, setIsPublishTemplateOpen] = useState(false);
   const [isTemplateGalleryOpen, setIsTemplateGalleryOpen] = useState(false);
+  const [embedTab, setEmbedTab] = useState('iframe');
+  const [embedCopied, setEmbedCopied] = useState(false);
   const navChannelRef = useRef(null);
   const presenceChannelRef = useRef(null);
 
@@ -923,29 +925,74 @@ const Host = ({ setView, user }) => {
                 </div>
               </div>
 
-              {/* Embed code */}
-              <div className="p-5 bg-slate-50 rounded-2xl">
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="font-black text-slate-900">Embed / iFrame</p>
-                </div>
-                <p className="text-sm text-slate-400 font-bold mb-3">Вградете ги анкетите на вашата веб-страница</p>
-                <div className="relative">
-                  <textarea
-                    readOnly
-                    rows={3}
-                    value={`<iframe src="${window.location.origin}/event/${event.code}/embed" width="100%" height="480" frameborder="0" style="border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.08)"></iframe>`}
-                    className="w-full bg-white border-2 border-slate-100 rounded-xl px-4 py-3 font-mono text-xs text-slate-600 resize-none focus:outline-none"
-                  />
-                </div>
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(`<iframe src="${window.location.origin}/event/${event.code}/embed" width="100%" height="480" frameborder="0" style="border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.08)"></iframe>`);
-                  }}
-                  className="mt-2 flex items-center gap-2 px-4 py-2 bg-white border-2 border-slate-100 text-slate-500 rounded-xl font-black text-xs hover:border-indigo-300 hover:text-indigo-600 transition-all"
-                >
-                  <Copy className="w-3.5 h-3.5" /> Копирај iFrame код
-                </button>
-              </div>
+              {/* Embed code (5.2 — iframe / script / WordPress) */}
+              {(() => {
+                const origin = window.location.origin;
+                const code = event.code;
+                const snippets = {
+                  iframe: `<iframe src="${origin}/event/${code}/embed?utm_source=embed&utm_medium=iframe" width="100%" height="480" frameborder="0" loading="lazy" style="border:0;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.08)"></iframe>`,
+                  script: `<div data-mkd-slidea="${code}" data-height="480"></div>\n<script async src="${origin}/embed.js"></script>`,
+                  wordpress: `[mkd_slidea code="${code}" height="480"]\n\n<!-- Note: WordPress site administrators must add this shortcode to functions.php (a 10-line snippet documented in the Slidea help center). -->`,
+                };
+                const labels = { iframe: 'iFrame', script: 'Script', wordpress: 'WordPress' };
+                const value = snippets[embedTab];
+                const copy = async () => {
+                  try {
+                    await navigator.clipboard.writeText(value);
+                    setEmbedCopied(true);
+                    setTimeout(() => setEmbedCopied(false), 1800);
+                  } catch { /* ignore */ }
+                };
+                return (
+                  <div className="p-5 bg-slate-50 rounded-2xl">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="font-black text-slate-900">Embed на вашата страница</p>
+                    </div>
+                    <p className="text-sm text-slate-400 font-bold mb-3">
+                      Вградете ги анкетите на блог, веб-страница или WordPress
+                    </p>
+                    <div className="flex gap-1 mb-3 p-1 bg-white border-2 border-slate-100 rounded-xl">
+                      {Object.keys(snippets).map((key) => (
+                        <button
+                          key={key}
+                          onClick={() => setEmbedTab(key)}
+                          className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${
+                            embedTab === key
+                              ? 'bg-indigo-600 text-white shadow-sm'
+                              : 'text-slate-400 hover:text-indigo-600'
+                          }`}
+                        >
+                          {labels[key]}
+                        </button>
+                      ))}
+                    </div>
+                    <textarea
+                      readOnly
+                      rows={embedTab === 'wordpress' ? 4 : 3}
+                      value={value}
+                      onFocus={(e) => e.target.select()}
+                      className="w-full bg-white border-2 border-slate-100 rounded-xl px-4 py-3 font-mono text-xs text-slate-600 resize-none focus:outline-none focus:border-indigo-300"
+                    />
+                    <div className="mt-2 flex items-center justify-between gap-2">
+                      <button
+                        onClick={copy}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl font-black text-xs transition-all ${
+                          embedCopied
+                            ? 'bg-emerald-600 text-white border-2 border-emerald-600'
+                            : 'bg-white border-2 border-slate-100 text-slate-500 hover:border-indigo-300 hover:text-indigo-600'
+                        }`}
+                      >
+                        <Copy className="w-3.5 h-3.5" /> {embedCopied ? 'Копирано!' : `Копирај ${labels[embedTab]}`}
+                      </button>
+                      {embedTab === 'script' && (
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                          Auto-resize · Lazy load
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Logo upload (Pro) */}
               <div className={`p-5 bg-slate-50 rounded-2xl ${!isPro(user) ? 'opacity-70' : ''}`}>

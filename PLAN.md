@@ -497,8 +497,8 @@ Expansion loops:
 ## ФАЗА 5 — Network Effects (1 месец) 🟢
 *Цел: вирален раст без маркетинг буџет*
 
-- [ ] **5.1 Public template gallery** — SEO-friendly URLs (`community_templates`)
-- [ ] **5.2 Embed widget** за блогови / WordPress (iframe + script)
+- [x] **5.1 Public template gallery** ✅ — `/templates` индекс + `/templates/:slug` SEO-friendly детал (`PublicTemplates.jsx` lazy chunk 3.88KB gzip); прикажува сите `STARTER_TEMPLATES` + community DB шаблони merged; пребарување + филтер по предмет; preview на сите активности + опции (тачни истакнати); JSON-LD `LearningResource` за rich snippets; canonical + meta description per slug; `pending_community_template` localStorage flow до `Host` (no auth required to browse, redirect-to-login само при Користи); миграција `SUPABASE_COMMUNITY_TEMPLATES.sql` (slug unique, auto-trigger од title, RLS public read published, anon-callable `increment_template_views` RPC); 21 URL-а додадени во `sitemap.xml`; Nav „Шаблони" сега води на `/templates`
+- [x] **5.2 Embed widget** ✅ — `public/embed.js` (vanilla, без deps, ~3KB) auto-mount-а сите `<div data-mkd-slidea="CODE">` со lazy-loaded iframe + auto-resize преку `postMessage('mkd-slidea-resize')`; чита `data-height/radius/shadow/utm`, валидира code regex, exposes `MKDSlidea.mount()` API за SPA. Host settings tab со 3 snippets (iFrame / Script / WordPress shortcode) + copy-to-clipboard со „Копирано!" feedback. Сите embed-и носат UTM tracking (`utm_source=embed&utm_medium=iframe|widget`)
 - [x] **5.3 "Powered by Slidea" badge** ✅ — `PoweredByBadge.jsx` со UTM source/medium tracking (light/dark variants); поставен на Participant footer + сите EventWrapper gates (homework expired, locked, password)
 - [ ] **5.4 Referral систем** "Покани наставник, добиј 1 месец Pro"
 - [ ] **5.5 Public scoreboard** за квиз шампиони во MK

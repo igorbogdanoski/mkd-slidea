@@ -1,0 +1,19 @@
+feat(5.2): embed widget — script loader + multi-snippet picker
+
+New public/embed.js (vanilla, dependency-free, ~3KB) auto-mounts every
+<div data-mkd-slidea="CODE"> with a lazy-loaded iframe. Listens for
+"mkd-slidea-resize" postMessage from the embedded page (Embed.jsx
+already emits it via ResizeObserver) and resizes the host iframe to
+match content height.
+
+Configurable via data-* attrs: height, radius, shadow, utm.
+Validates the event-code regex; renders an inline error if invalid.
+Idempotent (guards against double load); exposes window.MKDSlidea.mount()
+for SPAs that inject markers after initial load.
+
+Host settings: replaced the single iframe textarea with a 3-tab snippet
+picker (iFrame / Script / WordPress shortcode) + copy-to-clipboard with
+"Копирано!" feedback. All embeds now carry UTM tracking
+(utm_source=embed, utm_medium=iframe|widget) for growth attribution.
+
+Build: Host 34.20KB gzip (+0.50KB). Zero new deps.
