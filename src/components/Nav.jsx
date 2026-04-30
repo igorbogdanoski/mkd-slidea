@@ -204,6 +204,12 @@ const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout }) => {
             >
               Шаблони
             </button>
+            <button
+              onClick={() => navigate('/scoreboard')}
+              className="px-4 py-2 rounded-xl text-sm font-bold text-slate-500 hover:text-indigo-600 hover:bg-slate-50 transition-colors"
+            >
+              Скорборд
+            </button>
           </div>
         </div>
 

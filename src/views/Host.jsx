@@ -1062,6 +1062,31 @@ const Host = ({ setView, user }) => {
               </button>
             </div>
 
+            {/* Public scoreboard opt-in (Sprint 5.5) */}
+            <div className="mt-5 p-5 bg-slate-50 rounded-2xl flex items-center justify-between">
+              <div className="flex-1 pr-4">
+                <p className="font-black text-slate-900 flex items-center gap-2">
+                  Јавен скорборд 🏆
+                </p>
+                <p className="text-sm text-slate-400 font-bold mt-0.5">
+                  {event.is_public_scoreboard
+                    ? 'Победниците се прикажуваат на /scoreboard'
+                    : 'Резултатите се приватни (стандардно)'}
+                </p>
+              </div>
+              <button
+                onClick={async () => {
+                  const next = !event.is_public_scoreboard;
+                  await supabase.from('events').update({ is_public_scoreboard: next }).eq('id', event.id);
+                  setEvent(prev => ({ ...prev, is_public_scoreboard: next }));
+                }}
+                className={`relative w-14 h-7 rounded-full transition-colors ${event.is_public_scoreboard ? 'bg-amber-500' : 'bg-slate-200'}`}
+                aria-label="Јавен скорборд"
+              >
+                <span className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${event.is_public_scoreboard ? 'translate-x-7' : 'translate-x-0.5'}`} />
+              </button>
+            </div>
+
             {/* Danger zone */}
             {polls.length > 0 && (
               <div className="mt-5 p-5 bg-red-50 border border-red-100 rounded-2xl">

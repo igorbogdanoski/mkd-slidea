@@ -22,6 +22,7 @@ const PublicTemplates = lazy(() =>
 const PublicTemplateDetail = lazy(() =>
   import('./views/PublicTemplates').then((m) => ({ default: m.PublicTemplateDetail }))
 );
+const PublicScoreboard = lazy(() => import('./views/PublicScoreboard'));
 
 // Suppress Supabase auth lock violations and permissions policy violations
 if (typeof window !== 'undefined') {
@@ -136,7 +137,7 @@ const AppContent = () => {
   };
 
   const isPublicRoute =
-    ['/', '/join', '/pricing'].includes(location.pathname) ||
+    ['/', '/join', '/pricing', '/scoreboard'].includes(location.pathname) ||
     location.pathname === '/templates' ||
     location.pathname.startsWith('/templates/');
   const showPublicShellWhileLoading = loading && isPublicRoute && !user;
@@ -191,6 +192,7 @@ const AppContent = () => {
                 <Route path="/demo" element={<Demo />} />
                 <Route path="/templates" element={<PublicTemplates />} />
                 <Route path="/templates/:slug" element={<PublicTemplateDetail />} />
+                <Route path="/scoreboard" element={<PublicScoreboard />} />
                 <Route path="/event/:id/present" element={<EventWrapper type="present" />} />
                 <Route path="/event/:id/embed" element={<Embed />} />
                 <Route
