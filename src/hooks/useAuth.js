@@ -14,7 +14,24 @@ const buildUserProfile = (supabaseUser, profile = null) => {
     name: profile?.name || supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'Корисник',
     role: profile?.role || 'user',
     plan: profile?.plan || 'free',
+    pro_until: profile?.pro_until || null,
   };
+};
+
+const claimPendingReferral = async (currentUserId) => {
+  if (!currentUserId) return;
+  let referrer = null;
+  try { referrer = localStorage.getItem('mkd_referrer'); } catch { /* ignore */ }
+  if (!referrer || referrer === currentUserId) return;
+  try {
+    const { error } = await supabase.rpc('claim_referral', { p_referrer: referrer });
+    if (!error) {
+      try {
+        localStorage.removeItem('mkd_referrer');
+        localStorage.removeItem('mkd_referrer_ts');
+      } catch { /* ignore */ }
+    }
+  } catch { /* non-blocking */ }
 };
 
 export const useAuth = ({ enabled = true } = {}) => {
@@ -50,9 +67,13 @@ export const useAuth = ({ enabled = true } = {}) => {
     });
 
     // Auth state changes (SIGNED_IN fires after signInWithPassword resolves)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       try {
         if (session?.user) {
+          if (event === 'SIGNED_IN') {
+            // Best-effort referral claim — needs auth.uid() so must run after sign-in.
+            claimPendingReferral(session.user.id);
+          }
           const profile = await fetchProfile(session.user.id);
           setUser(buildUserProfile(session.user, profile));
         } else {
@@ -69,7 +90,7 @@ export const useAuth = ({ enabled = true } = {}) => {
   const fetchProfile = async (userId) => {
     const { data } = await supabase
       .from('profiles')
-      .select('name, role, plan')
+      .select('name, role, plan, pro_until')
       .eq('id', userId)
       .single();
     return data;

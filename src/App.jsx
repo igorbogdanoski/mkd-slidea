@@ -62,6 +62,21 @@ const AppContent = () => {
   // Apply persisted theme on every route (Nav only mounts on public routes).
   useDarkMode();
 
+  // Capture ?ref=USERID for Sprint 5.4 referral attribution (persists 90 days).
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(location.search);
+      const ref = params.get('ref');
+      if (ref && /^[0-9a-f-]{8,40}$/i.test(ref)) {
+        const existing = localStorage.getItem('mkd_referrer');
+        if (!existing) {
+          localStorage.setItem('mkd_referrer', ref);
+          localStorage.setItem('mkd_referrer_ts', String(Date.now()));
+        }
+      }
+    } catch { /* ignore */ }
+  }, [location.search]);
+
   const isEventRoute = location.pathname.startsWith('/event/');
 
   const { user, loading, loadingMessage, signIn, signUp, signInWithGoogle, signInWithMagicLink, signOut } = useAuth({ enabled: !isEventRoute });

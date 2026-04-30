@@ -114,5 +114,11 @@ export const planLimit = (user, key) => {
 
 export const isPro = (user) => {
   const paidPlans = ['pro', 'monthly', 'quarterly', 'semester', 'yearly', 'admin'];
-  return paidPlans.includes(user?.plan) || user?.role === 'admin';
+  if (paidPlans.includes(user?.plan) || user?.role === 'admin') return true;
+  // Sprint 5.4 — referral-earned Pro window.
+  if (user?.pro_until) {
+    const t = Date.parse(user.pro_until);
+    if (!Number.isNaN(t) && t > Date.now()) return true;
+  }
+  return false;
 };
