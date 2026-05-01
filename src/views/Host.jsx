@@ -1221,7 +1221,7 @@ const Host = ({ setView, user }) => {
                       <h3 className="text-3xl font-black mb-2">Сите активности</h3>
                       <p className="text-slate-400 font-bold">Управувај со прашањата за твојата публика.</p>
                     </div>
-                    <div className="flex gap-4">
+                    <div className="flex flex-wrap gap-4 justify-end">
                       <button
                         onClick={() => setShowInteractionGrid(true)}
                         className="flex items-center justify-center gap-3 px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black text-lg hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 active:scale-95"
