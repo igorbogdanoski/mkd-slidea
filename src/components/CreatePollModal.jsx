@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, Plus, Trash2, Save, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MathSymbolPicker from './MathSymbolPicker';
+import { applyInsertion } from '../lib/insertAtCursor';
 
 const SURVEY_Q_TYPES = [
   { value: 'open',   label: 'Отворен текст' },
@@ -15,6 +16,8 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
   const [question, setQuestion] = useState('');
   const [options, setOptions] = useState(['', '']);
   const questionRef = useRef(null);
+  const optionRefs = useRef({});
+  const activeFieldRef = useRef({ kind: 'question' });
 
   useEffect(() => {
     if (initialData) {
@@ -129,21 +132,25 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
   };
 
   const insertSymbol = (symbol) => {
-    const input = questionRef.current;
-    if (!input) {
-      setQuestion((current) => `${current}${symbol}`);
+    const target = activeFieldRef.current || { kind: 'question' };
+    if (target.kind === 'option' && typeof target.index === 'number') {
+      const idx = target.index;
+      const input = optionRefs.current[idx];
+      const current = options[idx] ?? '';
+      const { next, caret } = applyInsertion(current, symbol, input);
+      const newOpts = [...options];
+      newOpts[idx] = next;
+      setOptions(newOpts);
+      requestAnimationFrame(() => {
+        try { input?.focus(); input?.setSelectionRange(caret, caret); } catch { /* ignore */ }
+      });
       return;
     }
-
-    const start = input.selectionStart ?? question.length;
-    const end = input.selectionEnd ?? question.length;
-    const next = `${question.slice(0, start)}${symbol}${question.slice(end)}`;
+    const input = questionRef.current;
+    const { next, caret } = applyInsertion(question, symbol, input);
     setQuestion(next);
-
     requestAnimationFrame(() => {
-      input.focus();
-      const cursor = start + symbol.length;
-      input.setSelectionRange(cursor, cursor);
+      try { input?.focus(); input?.setSelectionRange(caret, caret); } catch { /* ignore */ }
     });
   };
 
@@ -182,6 +189,7 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
                   placeholder="Што сакате да прашате? Можете и: x² + y² = r²"
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
+                  onFocus={() => { activeFieldRef.current = { kind: 'question' }; }}
                   maxLength={300}
                   className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all resize-none"
                 />
@@ -299,9 +307,11 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
                       <div key={i} className="flex gap-2">
                         <input 
                           type="text" 
+                          ref={(el) => { if (el) optionRefs.current[i] = el; else delete optionRefs.current[i]; }}
                           placeholder={`Опција ${i + 1}`}
                           value={opt}
                           onChange={(e) => handleOptionChange(i, e.target.value)}
+                          onFocus={() => { activeFieldRef.current = { kind: 'option', index: i }; }}
                           maxLength={150}
                           className="flex-1 bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-3 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all"
                         />

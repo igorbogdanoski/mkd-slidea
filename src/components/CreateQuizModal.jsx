@@ -2,10 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, Plus, Trash2, Save, CheckCircle2, Trophy } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MathSymbolPicker from './MathSymbolPicker';
+import { applyInsertion } from '../lib/insertAtCursor';
 
 const CreateQuizModal = ({ isOpen, onClose, onSave, initialData = null }) => {
   const [question, setQuestion] = useState('');
   const questionRef = useRef(null);
+  const optionRefs = useRef({});
+  const activeFieldRef = useRef({ kind: 'question' });
   const [options, setOptions] = useState([
     { text: '', isCorrect: true },
     { text: '', isCorrect: false }
@@ -79,21 +82,25 @@ const CreateQuizModal = ({ isOpen, onClose, onSave, initialData = null }) => {
   };
 
   const insertSymbol = (symbol) => {
-    const input = questionRef.current;
-    if (!input) {
-      setQuestion((current) => `${current}${symbol}`);
+    const target = activeFieldRef.current || { kind: 'question' };
+    if (target.kind === 'option' && typeof target.index === 'number') {
+      const idx = target.index;
+      const input = optionRefs.current[idx];
+      const current = options[idx]?.text ?? '';
+      const { next, caret } = applyInsertion(current, symbol, input);
+      const newOpts = [...options];
+      newOpts[idx] = { ...newOpts[idx], text: next };
+      setOptions(newOpts);
+      requestAnimationFrame(() => {
+        try { input?.focus(); input?.setSelectionRange(caret, caret); } catch { /* ignore */ }
+      });
       return;
     }
-
-    const start = input.selectionStart ?? question.length;
-    const end = input.selectionEnd ?? question.length;
-    const next = `${question.slice(0, start)}${symbol}${question.slice(end)}`;
+    const input = questionRef.current;
+    const { next, caret } = applyInsertion(question, symbol, input);
     setQuestion(next);
-
     requestAnimationFrame(() => {
-      input.focus();
-      const cursor = start + symbol.length;
-      input.setSelectionRange(cursor, cursor);
+      try { input?.focus(); input?.setSelectionRange(caret, caret); } catch { /* ignore */ }
     });
   };
 
@@ -137,6 +144,7 @@ const CreateQuizModal = ({ isOpen, onClose, onSave, initialData = null }) => {
                   placeholder="Пр. Ако x² + 4 = 13, колку е x?"
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
+                  onFocus={() => { activeFieldRef.current = { kind: 'question' }; }}
                   className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all resize-none"
                 />
                 <div className="mt-3">
@@ -157,9 +165,11 @@ const CreateQuizModal = ({ isOpen, onClose, onSave, initialData = null }) => {
                       </button>
                       <input 
                         type="text" 
+                        ref={(el) => { if (el) optionRefs.current[i] = el; else delete optionRefs.current[i]; }}
                         placeholder={`Опција ${i + 1}`}
                         value={opt.text}
                         onChange={(e) => handleOptionChange(i, e.target.value)}
+                        onFocus={() => { activeFieldRef.current = { kind: 'option', index: i }; }}
                         className={`flex-1 border-2 rounded-2xl px-6 py-3 font-bold outline-none transition-all ${opt.isCorrect ? 'border-emerald-200 bg-emerald-50/30' : 'bg-slate-50 border-slate-100 focus:border-indigo-600 focus:bg-white'}`}
                       />
                       {options.length > 2 && (

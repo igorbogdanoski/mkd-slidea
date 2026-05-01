@@ -4,6 +4,8 @@ import { Hash, PieChart, MessageSquare, Send, ThumbsUp, Trophy, CheckCircle2, XC
 import { useEventStore } from '../lib/store';
 import PoweredByBadge from '../components/PoweredByBadge';
 import ParticipantCaptions from '../components/ParticipantCaptions';
+import MathSymbolPicker from '../components/MathSymbolPicker';
+import { applyInsertion } from '../lib/insertAtCursor';
 
 const Participant = ({
   polls,
@@ -30,6 +32,15 @@ const Participant = ({
   const { activeParticipants } = useEventStore();
   const currentPoll = polls[activePollIndex] || { question: 'Чекаме настан...', options: [], type: 'poll' };
   const [response, setResponse] = React.useState('');
+  const responseRef = React.useRef(null);
+  const insertResponseSymbol = (symbol) => {
+    const input = responseRef.current;
+    const { next, caret } = applyInsertion(response, symbol, input);
+    setResponse(next);
+    requestAnimationFrame(() => {
+      try { input?.focus(); input?.setSelectionRange(caret, caret); } catch { /* ignore */ }
+    });
+  };
   const [rating, setRating] = React.useState(0);
   const [surveyAnswers, setSurveyAnswers] = React.useState({});
   const [surveySubmitting, setSurveySubmitting] = React.useState(false);
@@ -443,6 +454,7 @@ const Participant = ({
                 ) : isTextType ? (
                   <div className="space-y-4">
                     <input 
+                      ref={responseRef}
                       type="text"
                       placeholder={currentPoll.type === 'wordcloud' ? "Внесете збор..." : "Вашиот одговор..."}
                       value={response}
@@ -451,6 +463,9 @@ const Participant = ({
                       className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all"
                       onKeyDown={(e) => e.key === 'Enter' && submitResponse()}
                     />
+                    {currentPoll.type === 'open' && (
+                      <MathSymbolPicker onInsert={insertResponseSymbol} compact />
+                    )}
                     <button 
                       onClick={submitResponse}
                       disabled={response.trim().length < (currentPoll.type === 'wordcloud' ? 2 : 3)}

@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
+import { useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Sparkles, Wand2, ArrowRight, Check, Loader2, Brain, ListTree, Lock, TrendingUp } from 'lucide-react';
 import { useFocusTrap } from '../hooks/useFocusTrap';
+import MathSymbolPicker from './MathSymbolPicker';
+import { applyInsertion } from '../lib/insertAtCursor';
 
 const BLOOM_LEVELS = [
   { id: 'remember',   label: 'Запомнување' },
@@ -18,9 +21,19 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
   const [type, setType] = useState('quiz');
   const [strategy, setStrategy] = useState('default');
   const [bloom, setBloom] = useState(adaptiveSuggestion?.bloom || '');
+  const promptRef = useRef(null);
 
   const isPro = user?.plan === 'pro' || user?.plan === 'semester' || user?.role === 'admin';
   const trapRef = useFocusTrap(isOpen, { onEscape: onClose });
+
+  const insertSymbol = (symbol) => {
+    const input = promptRef.current;
+    const { next, caret } = applyInsertion(prompt, symbol, input);
+    setPrompt(next);
+    requestAnimationFrame(() => {
+      try { input?.focus(); input?.setSelectionRange(caret, caret); } catch { /* ignore */ }
+    });
+  };
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -184,11 +197,15 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
               <div>
                 <label className="block text-sm font-black text-slate-700 mb-4">Внесете тема или концепт</label>
                 <textarea 
-                  placeholder="Пр: Главни градови во Европа, Основи на вештачка интелигенција, Фидбек за состанок..."
+                  ref={promptRef}
+                  placeholder="Пр: Питагорова теорема со x² + y² = z², Сончев систем, Фидбек..."
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-4 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all min-h-[110px] resize-none text-base"
                 />
+                <div className="mt-3">
+                  <MathSymbolPicker onInsert={insertSymbol} compact />
+                </div>
               </div>
 
               <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
