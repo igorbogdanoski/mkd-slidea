@@ -7,6 +7,7 @@ import EventResultsModal from '../components/Dashboard/EventResultsModal';
 import AdminTab from '../components/Dashboard/AdminTab';
 import ReferralsTab from '../components/Dashboard/ReferralsTab';
 import ApiKeysTab from '../components/Dashboard/ApiKeysTab';
+import ProfileTab from '../components/Dashboard/ProfileTab';
 import { Download, ExternalLink, Presentation, GraduationCap, FileSpreadsheet, CheckCircle2 } from 'lucide-react';
 import { templates } from '../data/templates';
 import { supabase } from '../lib/supabase';
@@ -303,6 +304,8 @@ const Dashboard = ({ setView, user, onLogout }) => {
         return <ReferralsTab user={user} />;
       case 'api':
         return <ApiKeysTab user={user} />;
+      case 'profile':
+        return <ProfileTab user={user} />;
       case 'plan':
         const planInfo = {
           free:      { name: 'Бесплатен',    price: '€0',  period: 'Засекогаш',  participants: '200', polls: '3', events: '5' },

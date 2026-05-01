@@ -560,7 +560,7 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
     >
       <AnimatedBackground color={brandColor} variant={event?.bg_variant || 'aurora'} />
       <SentimentHeatmap reactions={reactions} />
-      <LiveCaptions lang="mk-MK" />
+      <LiveCaptions lang="mk-MK" broadcastChannel={eventCode} />
       {/* Floating Reactions */}
       <div className="absolute inset-0 pointer-events-none z-50 overflow-hidden">
         <AnimatePresence>

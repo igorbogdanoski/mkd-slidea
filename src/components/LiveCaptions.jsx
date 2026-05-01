@@ -1,14 +1,33 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Captions, CaptionsOff, X, AlertCircle } from 'lucide-react';
+import { Captions, CaptionsOff, AlertCircle } from 'lucide-react';
 import { useLiveCaptions } from '../hooks/useLiveCaptions';
+import { supabase } from '../lib/supabase';
 
 // High-contrast WCAG AA subtitle bar pinned to bottom of screen.
 // Accessible: role="status" + aria-live="polite" so screen readers
 // announce final transcripts without spamming on interim updates.
-const LiveCaptions = ({ lang = 'mk-MK', defaultEnabled = false, onTranscript }) => {
+//
+// Sprint 4.3 — when `broadcastChannel` (event code) is provided, the final
+// transcripts are broadcast over Supabase Realtime so participant devices
+// can render their own caption bar.
+const LiveCaptions = ({ lang = 'mk-MK', defaultEnabled = false, onTranscript, broadcastChannel }) => {
   const [enabled, setEnabled] = useState(defaultEnabled);
   const [history, setHistory] = useState([]);
   const containerRef = useRef(null);
+  const channelRef = useRef(null);
+
+  // Lazily create a broadcast channel only while captions are active.
+  useEffect(() => {
+    if (!enabled || !broadcastChannel) return undefined;
+    const code = String(broadcastChannel).toUpperCase();
+    const ch = supabase.channel(`captions:${code}`, { config: { broadcast: { self: false, ack: false } } });
+    ch.subscribe();
+    channelRef.current = ch;
+    return () => {
+      try { supabase.removeChannel(ch); } catch { /* ignore */ }
+      channelRef.current = null;
+    };
+  }, [enabled, broadcastChannel]);
 
   const { supported, active, interim, error, reset } = useLiveCaptions({
     lang,
@@ -18,6 +37,17 @@ const LiveCaptions = ({ lang = 'mk-MK', defaultEnabled = false, onTranscript }) 
         const next = [...prev, text];
         return next.length > 6 ? next.slice(next.length - 6) : next;
       });
+      // Broadcast to participants (Sprint 4.3).
+      const ch = channelRef.current;
+      if (ch) {
+        try {
+          ch.send({
+            type: 'broadcast',
+            event: 'caption',
+            payload: { text, ts: Date.now(), lang },
+          });
+        } catch { /* ignore */ }
+      }
       if (typeof onTranscript === 'function') {
         try { onTranscript(text); } catch { /* ignore */ }
       }

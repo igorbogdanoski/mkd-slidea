@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, Crown, Medal, Sparkles, Calendar, ArrowRight } from 'lucide-react';
+import { Trophy, Crown, Medal, Sparkles, Calendar, ArrowRight, GraduationCap, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
@@ -43,6 +43,8 @@ const rankBadge = (rank) => {
 const PublicScoreboard = () => {
   const [top, setTop] = useState([]);
   const [recent, setRecent] = useState([]);
+  const [teachers, setTeachers] = useState([]);
+  const [tab, setTab] = useState('players'); // 'players' | 'teachers'
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -57,13 +59,15 @@ const PublicScoreboard = () => {
     let cancelled = false;
     (async () => {
       try {
-        const [{ data: t }, { data: r }] = await Promise.all([
+        const [{ data: t }, { data: r }, teachersRes] = await Promise.all([
           supabase.rpc('public_top_scorers', { p_limit: 50 }),
           supabase.rpc('public_recent_champions', { p_limit: 30 }),
+          supabase.rpc('public_top_teachers', { p_limit: 50 }).then((res) => res, () => ({ data: [] })),
         ]);
         if (!cancelled) {
           setTop(Array.isArray(t) ? t : []);
           setRecent(Array.isArray(r) ? r : []);
+          setTeachers(Array.isArray(teachersRes?.data) ? teachersRes.data : []);
         }
       } catch { /* ignore */ }
       if (!cancelled) setLoading(false);
@@ -90,11 +94,94 @@ const PublicScoreboard = () => {
         </p>
       </motion.div>
 
+      <div className="flex justify-center mb-8">
+        <div className="inline-flex bg-white border-2 border-slate-100 rounded-2xl p-1 shadow-sm" role="tablist" aria-label="Скорборд категории">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'players'}
+            onClick={() => setTab('players')}
+            className={`px-5 py-2.5 rounded-xl text-sm font-black transition-all flex items-center gap-2 ${
+              tab === 'players' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-slate-500 hover:text-indigo-600'
+            }`}
+          >
+            <Crown className="w-4 h-4" /> Топ играчи
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'teachers'}
+            onClick={() => setTab('teachers')}
+            className={`px-5 py-2.5 rounded-xl text-sm font-black transition-all flex items-center gap-2 ${
+              tab === 'teachers' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-slate-500 hover:text-indigo-600'
+            }`}
+          >
+            <GraduationCap className="w-4 h-4" /> Топ наставници
+          </button>
+        </div>
+      </div>
+
       {loading && (
         <p className="text-center text-slate-400 font-bold py-12">Се вчитува скорбордот...</p>
       )}
 
-      {!loading && top.length === 0 && (
+      {!loading && tab === 'teachers' && (
+        teachers.length === 0 ? (
+          <div className="bg-white rounded-3xl border-2 border-slate-100 p-12 text-center">
+            <GraduationCap className="w-12 h-12 text-slate-200 mx-auto mb-4" />
+            <p className="font-black text-slate-700 text-lg mb-2">Сè уште нема јавни наставници.</p>
+            <p className="text-sm font-bold text-slate-400 mb-6">
+              Во Профил → „Јавен наставник" вклучи го преклопот за да се појавиш овде.
+            </p>
+            <Link
+              to="/dashboard"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-700 transition-all"
+            >
+              <Sparkles className="w-4 h-4" /> Кон профил <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        ) : (
+          <section className="bg-white rounded-3xl border-2 border-slate-100 p-6 md:p-8 shadow-sm">
+            <h2 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">
+              <GraduationCap className="w-5 h-5 text-indigo-500" /> Топ 50 наставници
+            </h2>
+            <ol className="space-y-2">
+              {teachers.map((row) => {
+                const b = rankBadge(Number(row.rank));
+                return (
+                  <li
+                    key={`${row.rank}-${row.teacher_id}`}
+                    className={`flex items-center gap-4 p-4 rounded-2xl transition-all ${
+                      Number(row.rank) <= 3
+                        ? 'bg-gradient-to-r from-indigo-50 to-white border-2 border-indigo-100'
+                        : 'bg-slate-50 hover:bg-slate-100'
+                    }`}
+                  >
+                    <span className={`flex-shrink-0 w-10 h-10 rounded-xl font-black text-sm flex items-center justify-center gap-1 ${b.color}`}>
+                      {b.icon || `#${row.rank}`}
+                      {b.icon && <span>{row.rank}</span>}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-black text-slate-900 truncate">{row.teacher_name}</p>
+                      <p className="text-xs font-bold text-slate-400 flex flex-wrap gap-x-2">
+                        <span className="inline-flex items-center gap-1"><Calendar className="w-3 h-3" />{row.events_held} {row.events_held === 1 ? 'настан' : 'настани'}</span>
+                        <span className="inline-flex items-center gap-1"><Users className="w-3 h-3" />{row.total_players} играчи</span>
+                        <span>· Просек: {row.avg_points} поени/играч</span>
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-black text-indigo-600">{row.events_held}</p>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">настани</p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+        )
+      )}
+
+      {!loading && tab === 'players' && top.length === 0 && (
         <div className="bg-white rounded-3xl border-2 border-slate-100 p-12 text-center">
           <Trophy className="w-12 h-12 text-slate-200 mx-auto mb-4" />
           <p className="font-black text-slate-700 text-lg mb-2">Сè уште нема јавни шампиони.</p>
@@ -110,7 +197,7 @@ const PublicScoreboard = () => {
         </div>
       )}
 
-      {!loading && top.length > 0 && (
+      {!loading && tab === 'players' && top.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <section className="lg:col-span-2 bg-white rounded-3xl border-2 border-slate-100 p-6 md:p-8 shadow-sm">
             <h2 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Hash, PieChart, MessageSquare, Send, ThumbsUp, Trophy, CheckCircle2, XCircle, Star, GripVertical } from 'lucide-react';
 import { useEventStore } from '../lib/store';
 import PoweredByBadge from '../components/PoweredByBadge';
+import ParticipantCaptions from '../components/ParticipantCaptions';
 
 const Participant = ({
   polls,
@@ -540,6 +541,8 @@ const Participant = ({
       <div className="mt-12 mb-24 flex justify-center">
         <PoweredByBadge utm="participant" />
       </div>
+
+      <ParticipantCaptions eventCode={eventCode} />
     </div>
   );
 };
