@@ -34,3 +34,4 @@ yarn-error.log*
 .git_commit_msg.txt 
 .commitmsg.tmp
 .git_commit_msg.txt
+.commitmsg 
