@@ -491,7 +491,7 @@ Expansion loops:
 - [~] **4.1 WCAG 2.1 AA (foundation)** ⏳ — `<html lang="mk">`, skip-to-content link во App.jsx (sr-only focus:not-sr-only), `<main id="main-content">`, aria-label на Nav dark toggle и сите icon-only Host toolbar копчиња (Stats/CSV/PDF/Markdown/AI Insights/Settings); фокус-видливи стилови во `index.css`; **`useFocusTrap` хук + `role="dialog"` + `aria-modal` + `aria-labelledby` на AIAssistantModal, AutoGradeModal, KeyboardShortcutsModal** (ESC + Tab/Shift+Tab cycle + restore focus). Останува: screen-reader live regions, contrast audit
 - [x] **4.2 Voice control** ✅ — `useVoiceCommands` хук (Web Speech API, mk-MK, continuous mode со auto-restart) + `VoiceControlButton` (mic toggle); MK+EN keyword sets за следна/претходна/заклучи/отклучи/почни/стоп; интегриран во Host nav bar со handlers за goNext/goPrev/lock/unlock/timer
 - [ ] **4.3 Live transcription** на час (Web Speech API → Supabase realtime)
-- [ ] **4.4 i18n: HR/SR/BG/AL/RO** (JSON, prv превод преку Gemini)
+- [x] **4.4 i18n: HR/SR/BG/AL/RO (foundation)** ✅ — `src/i18n/index.js` lightweight context + `useI18n()` hook со auto-detect (browser language → localStorage `mkd_locale` → fallback MK); 6 locale dictionaries (`mk/hr/sr/bg/sq/ro`) — Nav (Производ/Решенија/Цени/Ресурси/Шаблони/Скорборд/Приклучи се/Најави/Регистрирај/Профил/Одјави/Админ), Footer (privacy/terms/copyright), common (skip-to-content/loading/cancel/save/close/next/back); `<LanguageSwitcher />` со flags + dropdown во Nav; `document.documentElement.lang` се ажурира на промена. Page-level body content (Landing, Pricing, Dashboard) останува за наредни преводи преку истиот t() слој
 - [ ] **4.5 Subtitles** во активности
 
 ## ФАЗА 5 — Network Effects (1 месец) 🟢

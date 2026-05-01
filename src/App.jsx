@@ -8,6 +8,7 @@ import { useAuth } from './hooks/useAuth';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useDarkMode } from './hooks/useDarkMode';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
+import { I18nProvider, useI18n } from './i18n';
 
 const Landing = lazy(() => import('./views/Landing'));
 const Host = lazy(() => import('./views/Host'));
@@ -52,6 +53,7 @@ if (typeof window !== 'undefined') {
 const AppContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useI18n();
   const [code, setCode] = useState('');
   const [username, setUsername] = useState(() => localStorage.getItem('mkd_slidea_user') || '');
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
@@ -165,7 +167,7 @@ const AppContent = () => {
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[1000] focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-xl focus:font-black focus:shadow-2xl"
       >
-        Прескокни до содржината
+        {t('common.skipToContent')}
       </a>
 
       {isPublicRoute && (
@@ -209,11 +211,11 @@ const AppContent = () => {
       {isPublicRoute && (
         <footer className="py-12 text-center text-slate-400 text-sm font-medium border-t border-slate-100 mt-20">
           <div className="flex items-center justify-center gap-6 mb-4">
-            <a href="#" className="hover:text-indigo-600 transition-colors">Политика на приватност</a>
-            <a href="#" className="hover:text-indigo-600 transition-colors">Услови за користење</a>
-            <a href="#" className="hover:text-indigo-600 transition-colors text-indigo-600">Направено со ❤️ во МК</a>
+            <a href="#" className="hover:text-indigo-600 transition-colors">{t('footer.privacy')}</a>
+            <a href="#" className="hover:text-indigo-600 transition-colors">{t('footer.terms')}</a>
+            <a href="#" className="hover:text-indigo-600 transition-colors text-indigo-600">{t('footer.madeIn')}</a>
           </div>
-          <p className="font-bold">© 2026 MKD Slidea • Автор: Игор Богданоски</p>
+          <p className="font-bold">{t('footer.copyright')}</p>
         </footer>
       )}
 
@@ -224,7 +226,9 @@ const AppContent = () => {
 
 const App = () => (
   <Router>
-    <AppContent />
+    <I18nProvider>
+      <AppContent />
+    </I18nProvider>
   </Router>
 );
 

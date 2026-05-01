@@ -8,8 +8,10 @@ import {
   Sun, Moon
 } from 'lucide-react';
 import LoginModal from './LoginModal';
+import LanguageSwitcher from './LanguageSwitcher';
 import { warmUp } from '../lib/supabase';
 import { useDarkMode } from '../hooks/useDarkMode';
+import { useI18n } from '../i18n';
 
 const MegaMenu = ({ isOpen, items, setView, setActiveMenu }) => (
   <AnimatePresence>
@@ -64,6 +66,7 @@ const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout }) => {
   const [activeMenu, setActiveMenu] = useState(null);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const { isDark, toggle: toggleDark } = useDarkMode();
+  const { t } = useI18n();
 
   useEffect(() => {
     warmUp().catch(() => {});
@@ -172,14 +175,14 @@ const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout }) => {
           <div className="hidden lg:flex items-center gap-2">
             <div className="relative" onMouseEnter={() => setActiveMenu('features')} onMouseLeave={() => setActiveMenu(null)}>
               <button className={`px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1 transition-colors ${activeMenu === 'features' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-50'}`}>
-                Производ <ChevronDown size={14} className={`transition-transform duration-300 ${activeMenu === 'features' ? 'rotate-180' : ''}`} />
+                {t('nav.product')} <ChevronDown size={14} className={`transition-transform duration-300 ${activeMenu === 'features' ? 'rotate-180' : ''}`} />
               </button>
               <MegaMenu isOpen={activeMenu === 'features'} items={features} setView={setView} setActiveMenu={setActiveMenu} />
             </div>
 
             <div className="relative" onMouseEnter={() => setActiveMenu('solutions')} onMouseLeave={() => setActiveMenu(null)}>
               <button className={`px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1 transition-colors ${activeMenu === 'solutions' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-50'}`}>
-                Решенија <ChevronDown size={14} className={`transition-transform duration-300 ${activeMenu === 'solutions' ? 'rotate-180' : ''}`} />
+                {t('nav.solutions')} <ChevronDown size={14} className={`transition-transform duration-300 ${activeMenu === 'solutions' ? 'rotate-180' : ''}`} />
               </button>
               <MegaMenu isOpen={activeMenu === 'solutions'} items={solutions} setView={setView} setActiveMenu={setActiveMenu} />
             </div>
@@ -188,12 +191,12 @@ const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout }) => {
               onClick={() => setView('pricing')}
               className="px-4 py-2 rounded-xl text-sm font-bold text-slate-500 hover:text-indigo-600 hover:bg-slate-50 transition-colors"
             >
-              Цени
+              {t('nav.pricing')}
             </button>
             
             <div className="relative" onMouseEnter={() => setActiveMenu('resources')} onMouseLeave={() => setActiveMenu(null)}>
               <button className={`px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1 transition-colors ${activeMenu === 'resources' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-50'}`}>
-                Ресурси <ChevronDown size={14} className={`transition-transform duration-300 ${activeMenu === 'resources' ? 'rotate-180' : ''}`} />
+                {t('nav.resources')} <ChevronDown size={14} className={`transition-transform duration-300 ${activeMenu === 'resources' ? 'rotate-180' : ''}`} />
               </button>
               <MegaMenu isOpen={activeMenu === 'resources'} items={resources} setView={setView} setActiveMenu={setActiveMenu} />
             </div>
@@ -202,22 +205,23 @@ const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout }) => {
               onClick={() => navigate('/templates')}
               className="px-4 py-2 rounded-xl text-sm font-bold text-slate-500 hover:text-indigo-600 hover:bg-slate-50 transition-colors"
             >
-              Шаблони
+              {t('nav.templates')}
             </button>
             <button
               onClick={() => navigate('/scoreboard')}
               className="px-4 py-2 rounded-xl text-sm font-bold text-slate-500 hover:text-indigo-600 hover:bg-slate-50 transition-colors"
             >
-              Скорборд
+              {t('nav.scoreboard')}
             </button>
           </div>
         </div>
 
         <div className="flex items-center gap-4">
+          <LanguageSwitcher />
           <button
             onClick={toggleDark}
-            aria-label={isDark ? 'Светла тема' : 'Темна тема'}
-            title={isDark ? 'Светла тема' : 'Темна тема'}
+            aria-label={isDark ? t('nav.lightMode') : t('nav.darkMode')}
+            title={isDark ? t('nav.lightMode') : t('nav.darkMode')}
             className="p-2.5 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:text-indigo-300 dark:hover:bg-slate-800 transition-all"
           >
             {isDark ? <Sun size={18} /> : <Moon size={18} />}
@@ -226,7 +230,7 @@ const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout }) => {
             onClick={() => setView('join')}
             className="text-sm font-black text-slate-500 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all px-4 py-2 uppercase tracking-widest"
           >
-            Приклучи се
+            {t('nav.join')}
           </button>
           <div className="w-px h-6 bg-slate-100 dark:bg-slate-700 mx-2" />
           {user ? (
@@ -236,20 +240,20 @@ const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout }) => {
                   onClick={() => setView('dashboard')}
                   className="bg-slate-900 text-white px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center gap-2"
                 >
-                  <LayoutGrid size={14} /> Админ Панел
+                  <LayoutGrid size={14} /> {t('nav.adminPanel')}
                 </button>
               )}
               <button 
                 onClick={() => setView('dashboard')}
                 className="text-sm font-black text-slate-900 hover:text-indigo-600"
               >
-                Мој Профил
+                {t('nav.myProfile')}
               </button>
               <button 
                 onClick={onLogout}
                 className="text-sm font-black text-red-500 hover:text-red-600"
               >
-                Одјави се
+                {t('nav.logout')}
               </button>
             </div>
           ) : (
@@ -258,13 +262,13 @@ const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout }) => {
                 onClick={openLogin}
                 className="text-sm font-black text-slate-900 hover:text-indigo-600 transition-all px-6 py-2"
               >
-                Најави се
+                {t('nav.login')}
               </button>
               <button 
                 onClick={openLogin}
                 className="bg-indigo-600 text-white px-8 py-3.5 rounded-2xl text-sm font-black hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 active:scale-95 flex items-center gap-2"
               >
-                Регистрирај се
+                {t('nav.register')}
               </button>
             </>
           )}
