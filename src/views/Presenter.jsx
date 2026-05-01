@@ -7,6 +7,7 @@ import confetti from 'canvas-confetti';
 import WordCloud from '../components/WordCloud';
 import AnimatedBackground from '../components/AnimatedBackground';
 import SentimentHeatmap from '../components/SentimentHeatmap';
+import LiveCaptions from '../components/LiveCaptions';
 import { useEventStore } from '../lib/store';
 import { supabase } from '../lib/supabase';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
@@ -559,6 +560,7 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
     >
       <AnimatedBackground color={brandColor} variant={event?.bg_variant || 'aurora'} />
       <SentimentHeatmap reactions={reactions} />
+      <LiveCaptions lang="mk-MK" />
       {/* Floating Reactions */}
       <div className="absolute inset-0 pointer-events-none z-50 overflow-hidden">
         <AnimatePresence>
