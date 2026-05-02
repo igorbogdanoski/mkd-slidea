@@ -32,8 +32,32 @@
   textarea:focus-visible,
   select:focus-visible,
   summary:focus-visible {
-    outline: 3px solid rgba(79, 70, 229, 0.35);
+    /* WCAG 2.4.7 — focus indicator min 3:1 contrast against adjacent colors. */
+    outline: 3px solid #4338ca;
     outline-offset: 3px;
+  }
+
+  /* Sprint 4.1 — Honor user's OS-level reduced-motion preference. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Sprint 4.1 WCAG contrast audit:
+     `text-slate-300` on white = 1.95:1 (fail) and `text-slate-400` = 3.32:1 (fail
+     for body text, passes for large/bold). When the user requests higher contrast
+     (`prefers-contrast: more`) we bump these tones to AA-compliant slate-600. */
+  @media (prefers-contrast: more) {
+    .text-slate-300 { color: #475569 !important; } /* slate-600 — 7.6:1 on white */
+    .text-slate-400 { color: #334155 !important; } /* slate-700 — 9.7:1 on white */
+    .border-slate-100 { border-color: #cbd5e1 !important; }
+    .border-slate-50  { border-color: #cbd5e1 !important; }
+    html.dark .text-slate-400 { color: #cbd5e1 !important; }
+    html.dark .text-slate-500 { color: #e2e8f0 !important; }
   }
 }
 

@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Plus, Trash2, Save, ChevronDown } from 'lucide-react';
+import { X, Plus, Trash2, Save, ChevronDown, Image as ImageIcon, Trash } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MathSymbolPicker from './MathSymbolPicker';
+import IllustrationPickerModal from './IllustrationPickerModal';
+import CurriculumTagPicker from './CurriculumTagPicker';
 import { applyInsertion } from '../lib/insertAtCursor';
 
 const SURVEY_Q_TYPES = [
@@ -15,6 +17,10 @@ const newSurveyQ = () => ({ id: crypto.randomUUID(), text: '', type: 'open', opt
 const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData = null }) => {
   const [question, setQuestion] = useState('');
   const [options, setOptions] = useState(['', '']);
+  const [coverUrl, setCoverUrl] = useState('');
+  const [coverMeta, setCoverMeta] = useState(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [curriculumTags, setCurriculumTags] = useState([]);
   const questionRef = useRef(null);
   const optionRefs = useRef({});
   const activeFieldRef = useRef({ kind: 'question' });
@@ -27,9 +33,15 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
       } else {
         setOptions(['', '']);
       }
+      setCoverUrl(initialData.cover_url || '');
+      setCoverMeta(initialData.cover_meta || null);
+      setCurriculumTags(Array.isArray(initialData.curriculum_tags) ? initialData.curriculum_tags : []);
     } else {
       setQuestion('');
       setOptions(['', '']);
+      setCoverUrl('');
+      setCoverMeta(null);
+      setCurriculumTags([]);
     }
   }, [initialData, isOpen]);
 
@@ -114,6 +126,9 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
         type,
         active: true,
         needs_moderation: false,
+        cover_url: coverUrl || null,
+        cover_meta: coverMeta || null,
+        curriculum_tags: curriculumTags && curriculumTags.length ? curriculumTags : null,
         survey_questions: isSurvey ? surveyQuestions.map(q => ({
           id: q.id,
           text: q.text.slice(0, 300),
@@ -128,6 +143,9 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
       setQuestion('');
       setOptions(['', '']);
       setSurveyQuestions([newSurveyQ()]);
+      setCoverUrl('');
+      setCoverMeta(null);
+      setCurriculumTags([]);
     }
   };
 
@@ -195,6 +213,13 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
                 />
                 <div className="mt-3">
                   <MathSymbolPicker onInsert={insertSymbol} />
+                </div>
+                <div className="mt-4">
+                  <CurriculumTagPicker
+                    questionText={question}
+                    value={curriculumTags}
+                    onChange={setCurriculumTags}
+                  />
                 </div>
               </div>
 

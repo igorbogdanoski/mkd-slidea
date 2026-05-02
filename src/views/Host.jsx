@@ -22,6 +22,7 @@ import ImportPPTXModal from '../components/ImportPPTXModal';
 import PublishTemplateModal from '../components/PublishTemplateModal';
 import TemplateGalleryModal from '../components/TemplateGalleryModal';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import { useLiveAnnouncer } from '../hooks/useLiveAnnouncer';
 import { STARTER_TEMPLATES } from '../lib/starterTemplates';
 import { downloadMarkdown } from '../lib/exportMarkdown';
 
@@ -35,6 +36,7 @@ const getHostSessionId = () => {
 };
 
 const Host = ({ setView, user }) => {
+  const { announce } = useLiveAnnouncer();
   const [event, setEvent] = useState(null);
   const [polls, setPolls] = useState([]);
   const [activePollIndex, setActivePollIndex] = useState(0);
@@ -526,6 +528,7 @@ const Host = ({ setView, user }) => {
 
     setActivePollIndex(index);
     setEvent((prev) => (prev ? { ...prev, active_poll_id: nextPoll.id } : prev));
+    announce(`Активна активност ${index + 1} од ${polls.length}: ${nextPoll.question || 'без наслов'}`);
 
     // Broadcast to participants (fallback sync channel)
     if (navChannelRef.current) {
@@ -1055,6 +1058,7 @@ const Host = ({ setView, user }) => {
                   const next = !event.is_locked;
                   await supabase.from('events').update({ is_locked: next }).eq('id', event.id);
                   setEvent(prev => ({ ...prev, is_locked: next }));
+                  announce(next ? 'Гласањето е заклучено.' : 'Гласањето е отклучено.', { assertive: true });
                 }}
                 className={`relative w-14 h-7 rounded-full transition-colors ${event.is_locked ? 'bg-red-500' : 'bg-slate-200'}`}
               >
@@ -1179,6 +1183,7 @@ const Host = ({ setView, user }) => {
             const next = !event.is_locked;
             await supabase.from('events').update({ is_locked: next }).eq('id', event.id);
             setEvent(prev => ({ ...prev, is_locked: next }));
+            announce(next ? 'Гласањето е заклучено.' : 'Гласањето е отклучено.', { assertive: true });
           }}
           onReset={resetAllResults}
         />
@@ -1402,6 +1407,7 @@ const Host = ({ setView, user }) => {
                                 const next = !event.is_locked;
                                 await supabase.from('events').update({ is_locked: next }).eq('id', event.id);
                                 setEvent(prev => ({ ...prev, is_locked: next }));
+                                announce(next ? 'Гласањето е заклучено за публиката.' : 'Гласањето е отклучено за публиката.', { assertive: true });
                               }}
                               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-black text-xs transition-all ${
                                 event.is_locked

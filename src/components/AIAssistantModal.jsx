@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles, Wand2, ArrowRight, Check, Loader2, Brain, ListTree, Lock, TrendingUp } from 'lucide-react';
+import { X, Sparkles, Wand2, ArrowRight, Check, Loader2, Brain, ListTree, Lock, TrendingUp, ImagePlus, Trash2 } from 'lucide-react';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import MathSymbolPicker from './MathSymbolPicker';
+import DictateButton from './DictateButton';
 import { applyInsertion } from '../lib/insertAtCursor';
 
 const BLOOM_LEVELS = [
@@ -21,7 +22,10 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
   const [type, setType] = useState('quiz');
   const [strategy, setStrategy] = useState('default');
   const [bloom, setBloom] = useState(adaptiveSuggestion?.bloom || '');
+  const [image, setImage] = useState(null); // { base64, mime, preview, sizeKB }
+  const [imageError, setImageError] = useState('');
   const promptRef = useRef(null);
+  const fileRef = useRef(null);
 
   const isPro = user?.plan === 'pro' || user?.plan === 'semester' || user?.role === 'admin';
   const trapRef = useFocusTrap(isOpen, { onEscape: onClose });
@@ -35,8 +39,69 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
     });
   };
 
+  const appendDictation = (text) => {
+    if (!text) return;
+    setPrompt((current) => {
+      const sep = current && !/\s$/.test(current) ? ' ' : '';
+      return `${current}${sep}${text}`;
+    });
+  };
+
+  const readImageFile = (file) => {
+    if (!file) return;
+    if (!/^image\/(png|jpe?g|webp|gif)$/i.test(file.type)) {
+      setImageError('Поддржани се PNG, JPG, WEBP или GIF.');
+      return;
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      setImageError('Сликата е поголема од 3MB.');
+      return;
+    }
+    setImageError('');
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = String(reader.result || '');
+      const base64 = dataUrl.split(',')[1] || '';
+      setImage({
+        base64,
+        mime: file.type || 'image/png',
+        preview: dataUrl,
+        sizeKB: Math.round(file.size / 1024),
+      });
+    };
+    reader.onerror = () => setImageError('Не успеа читање на сликата.');
+    reader.readAsDataURL(file);
+  };
+
+  const onPickFile = (e) => {
+    const f = e.target.files?.[0];
+    if (f) readImageFile(f);
+    e.target.value = '';
+  };
+
+  const onPaste = (e) => {
+    const items = e.clipboardData?.items || [];
+    for (const it of items) {
+      if (it.type?.startsWith('image/')) {
+        const f = it.getAsFile();
+        if (f) {
+          e.preventDefault();
+          readImageFile(f);
+          return;
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (!isOpen) {
+      setImage(null);
+      setImageError('');
+    }
+  }, [isOpen]);
+
   const handleGenerate = async () => {
-    if (!prompt.trim()) return;
+    if (!prompt.trim() && !image) return;
     setLoading(true);
     
     try {
@@ -45,7 +110,14 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ prompt, type, strategy, bloom: bloom || undefined }),
+        body: JSON.stringify({
+          prompt,
+          type,
+          strategy,
+          bloom: bloom || undefined,
+          imageBase64: image?.base64,
+          imageMime: image?.mime,
+        }),
       });
 
       if (!response.ok) {
@@ -58,6 +130,7 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
       onGenerate(result);
       setLoading(false);
       setPrompt('');
+      setImage(null);
       onClose();
     } catch (err) {
       console.error("AI Generation failed:", err);
@@ -195,14 +268,65 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
               </div>
 
               <div>
-                <label className="block text-sm font-black text-slate-700 mb-4">Внесете тема или концепт</label>
+                <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
+                  <label className="block text-sm font-black text-slate-700">Внесете тема или концепт</label>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <DictateButton onTranscript={appendDictation} />
+                    <button
+                      type="button"
+                      onClick={() => fileRef.current?.click()}
+                      className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border-2 border-slate-200 text-slate-600 font-black text-xs hover:border-indigo-400 hover:text-indigo-600 transition-all"
+                      aria-label="Прикачи слика како контекст за AI"
+                      title="Прикачи слика (или Ctrl+V)"
+                    >
+                      <ImagePlus className="w-4 h-4" />
+                      Слика
+                    </button>
+                    <input
+                      ref={fileRef}
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,image/gif"
+                      className="hidden"
+                      onChange={onPickFile}
+                    />
+                  </div>
+                </div>
                 <textarea 
                   ref={promptRef}
-                  placeholder="Пр: Питагорова теорема со x² + y² = z², Сончев систем, Фидбек..."
+                  placeholder="Пр: Питагорова теорема со x² + y² = z², Сончев систем, Фидбек... (можете да залепите слика со Ctrl+V)"
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
+                  onPaste={onPaste}
                   className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-4 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all min-h-[110px] resize-none text-base"
                 />
+                {image && (
+                  <div className="mt-3 flex items-start gap-3 p-3 rounded-2xl bg-indigo-50/60 border-2 border-indigo-100">
+                    <img
+                      src={image.preview}
+                      alt="Прикачена слика"
+                      className="w-20 h-20 object-cover rounded-xl border border-indigo-200"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-black text-indigo-700 uppercase tracking-widest mb-1">
+                        Vision активен · {image.sizeKB} KB
+                      </p>
+                      <p className="text-xs font-bold text-slate-600 leading-relaxed">
+                        AI ќе ја прочита сликата (OCR + анализа) и ќе генерира прашање врз основа на содржината.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setImage(null)}
+                      aria-label="Отстрани слика"
+                      className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all shrink-0"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+                {imageError && (
+                  <p className="mt-2 text-xs font-bold text-rose-600">{imageError}</p>
+                )}
                 <div className="mt-3">
                   <MathSymbolPicker onInsert={insertSymbol} compact />
                 </div>
@@ -219,7 +343,7 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
 
               <button 
                 onClick={handleGenerate}
-                disabled={!prompt.trim() || generating}
+                disabled={(!prompt.trim() && !image) || generating}
                 className="sticky bottom-0 w-full py-5 bg-indigo-600 text-white rounded-2xl font-black text-lg flex items-center justify-center gap-3 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-2xl shadow-indigo-200"
               >
                 {generating ? (

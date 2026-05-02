@@ -8,9 +8,11 @@ import WordCloud from '../components/WordCloud';
 import AnimatedBackground from '../components/AnimatedBackground';
 import SentimentHeatmap from '../components/SentimentHeatmap';
 import LiveCaptions from '../components/LiveCaptions';
+import CurriculumBenchmarkBadge from '../components/CurriculumBenchmarkBadge';
 import { useEventStore } from '../lib/store';
 import { supabase } from '../lib/supabase';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import { useLiveAnnouncer } from '../hooks/useLiveAnnouncer';
 
 const toggleFullscreen = () => {
   try {
@@ -296,6 +298,19 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
 
   // Reset chart mode when switching polls
   useEffect(() => { setChartMode('bars'); setConfettiFired(false); }, [activePollIndex]);
+
+  // Sprint 4.1 WCAG — announce poll changes & key state to screen readers.
+  const { announce } = useLiveAnnouncer();
+  useEffect(() => {
+    if (currentPoll && currentPoll.question) {
+      announce(`Активност ${activePollIndex + 1} од ${polls.length || 1}: ${currentPoll.question}`);
+    }
+  }, [activePollIndex, currentPoll?.id]);
+  useEffect(() => {
+    if (event?.is_locked) {
+      announce('Гласањето е заклучено.', { assertive: true });
+    }
+  }, [event?.is_locked]);
 
   // Auto-confetti: when a quiz has responses from all (or most) participants
   useEffect(() => {
@@ -632,6 +647,16 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
       <div className="flex-1 grid grid-cols-12 gap-14">
         {/* Left: Poll results */}
         <div className="col-span-8 space-y-10">
+          {currentPoll.cover_url && (
+            <motion.img
+              key={currentPoll.cover_url}
+              src={currentPoll.cover_url}
+              alt=""
+              initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}
+              className="rounded-3xl shadow-2xl shadow-slate-900/10 max-h-[280px] object-cover w-auto border border-slate-100"
+              loading="lazy"
+            />
+          )}
           <motion.h2
             key={currentPoll.question}
             initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }}
@@ -639,6 +664,8 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
           >
             {currentPoll.question}
           </motion.h2>
+
+          <CurriculumBenchmarkBadge poll={currentPoll} />
 
           <AnimatePresence mode="wait">
             <motion.div key={chartMode + activePollIndex}

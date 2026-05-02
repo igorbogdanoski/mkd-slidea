@@ -19,6 +19,41 @@ const extractSlideText = (xmlStr) => {
   return { title, body, allText: texts };
 };
 
+// Sprint 7.D — PDF: lazy-load pdfjs-dist (~700KB) only when a .pdf is selected.
+const parsePdfFile = async (file, { maxPages = 50 } = {}) => {
+  const pdfjs = await import('pdfjs-dist');
+  // Use bundled worker (Vite handles ?url import).
+  const workerSrc = (await import('pdfjs-dist/build/pdf.worker.min.mjs?url')).default;
+  pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjs.getDocument({ data: buf }).promise;
+  const total = Math.min(pdf.numPages, maxPages);
+  const slides = [];
+  for (let p = 1; p <= total; p++) {
+    const page = await pdf.getPage(p);
+    const txt = await page.getTextContent();
+    const lines = [];
+    let line = '';
+    let lastY = null;
+    for (const item of txt.items) {
+      const y = Math.round(item.transform?.[5] ?? 0);
+      if (lastY !== null && Math.abs(lastY - y) > 4) {
+        if (line.trim()) lines.push(line.trim());
+        line = '';
+      }
+      line += item.str + ' ';
+      lastY = y;
+    }
+    if (line.trim()) lines.push(line.trim());
+    const cleaned = lines.filter((l) => l.length > 1);
+    if (!cleaned.length) continue;
+    const title = cleaned[0].slice(0, 120);
+    const body = cleaned.slice(1).join(' · ').slice(0, 200);
+    slides.push({ index: p, title, body, allText: cleaned });
+  }
+  return slides;
+};
+
 // Split plain text / markdown into "slides" using blank lines or markdown headings.
 const parsePlainText = (raw) => {
   const cleaned = raw.replace(/\r\n/g, '\n').trim();
@@ -70,9 +105,10 @@ const ImportPPTXModal = ({ isOpen, onClose, onImport }) => {
     if (!file) return;
     const lower = file.name.toLowerCase();
     const isPptx = lower.endsWith('.pptx');
+    const isPdf = lower.endsWith('.pdf');
     const isText = lower.endsWith('.txt') || lower.endsWith('.md') || lower.endsWith('.markdown');
-    if (!isPptx && !isText) {
-      setError('Поддржани се .pptx, .txt и .md датотеки.');
+    if (!isPptx && !isPdf && !isText) {
+      setError('Поддржани се .pptx, .pdf, .txt и .md датотеки.');
       return;
     }
     if (file.size > 8 * 1024 * 1024) {
@@ -108,6 +144,20 @@ const ImportPPTXModal = ({ isOpen, onClose, onImport }) => {
             return { index: i + 1, title: title || `Слајд ${i + 1}`, body, allText };
           })
         );
+      } else if (isPdf) {
+        try {
+          parsed = await parsePdfFile(file, { maxPages: 50 });
+        } catch (err) {
+          console.warn('PDF parse failed', err);
+          setError('Не можам да го прочитам PDF-от. Можеби е скениран (без текст).');
+          setLoading(false);
+          return;
+        }
+        if (!parsed.length) {
+          setError('PDF-от не содржи текст за извлекување (можеби е скениран).');
+          setLoading(false);
+          return;
+        }
       } else {
         const raw = await file.text();
         parsed = parsePlainText(raw);
@@ -238,7 +288,7 @@ const ImportPPTXModal = ({ isOpen, onClose, onImport }) => {
                   onDrop={e => { e.preventDefault(); handleFile(e.dataTransfer.files[0]); }}
                   className="border-2 border-dashed border-slate-200 rounded-3xl p-16 text-center cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/30 transition-all"
                 >
-                  <input ref={inputRef} type="file" accept=".pptx,.txt,.md,.markdown" className="hidden"
+                  <input ref={inputRef} type="file" accept=".pptx,.pdf,.txt,.md,.markdown" className="hidden"
                     onChange={e => handleFile(e.target.files[0])} />
                   {loading ? (
                     <div className="flex flex-col items-center gap-4">
@@ -248,7 +298,7 @@ const ImportPPTXModal = ({ isOpen, onClose, onImport }) => {
                   ) : (
                     <>
                       <Upload size={48} className="text-slate-300 mx-auto mb-4" />
-                      <p className="font-black text-slate-700 text-lg mb-2">Повлечи .pptx · .txt · .md овде</p>
+                      <p className="font-black text-slate-700 text-lg mb-2">Повлечи .pptx · .pdf · .txt · .md овде</p>
                       <p className="font-bold text-slate-400 text-sm mb-6">или кликни за да изберeш</p>
                       <span className="px-6 py-3 bg-indigo-600 text-white rounded-2xl font-black text-sm hover:bg-indigo-700 transition-all">
                         Избери датотека

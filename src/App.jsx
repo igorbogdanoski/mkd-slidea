@@ -9,6 +9,7 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useDarkMode } from './hooks/useDarkMode';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import { I18nProvider, useI18n } from './i18n';
+import { LiveAnnouncerProvider } from './hooks/useLiveAnnouncer';
 
 const Landing = lazy(() => import('./views/Landing'));
 const Host = lazy(() => import('./views/Host'));
@@ -156,7 +157,7 @@ const AppContent = () => {
   if (loading && !showPublicShellWhileLoading && !isEventRoute) return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center gap-4">
       <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-      <p className="text-slate-400 font-bold text-sm animate-pulse">{loadingMessage}</p>
+      <p className="text-slate-500 font-bold text-sm animate-pulse">{loadingMessage}</p>
     </div>
   );
 
@@ -181,7 +182,7 @@ const AppContent = () => {
               fallback={
                 <div className="min-h-[50vh] bg-[#F8FAFC] flex flex-col items-center justify-center gap-3">
                   <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-                  <p className="text-slate-400 font-bold text-sm">Се вчитува...</p>
+                  <p className="text-slate-500 font-bold text-sm">Се вчитува...</p>
                 </div>
               }
             >
@@ -209,7 +210,7 @@ const AppContent = () => {
       </main>
 
       {isPublicRoute && (
-        <footer className="py-12 text-center text-slate-400 text-sm font-medium border-t border-slate-100 mt-20">
+        <footer className="py-12 text-center text-slate-500 text-sm font-medium border-t border-slate-100 mt-20">
           <div className="flex items-center justify-center gap-6 mb-4">
             <a href="#" className="hover:text-indigo-600 transition-colors">{t('footer.privacy')}</a>
             <a href="#" className="hover:text-indigo-600 transition-colors">{t('footer.terms')}</a>
@@ -227,7 +228,9 @@ const AppContent = () => {
 const App = () => (
   <Router>
     <I18nProvider>
-      <AppContent />
+      <LiveAnnouncerProvider>
+        <AppContent />
+      </LiveAnnouncerProvider>
     </I18nProvider>
   </Router>
 );
