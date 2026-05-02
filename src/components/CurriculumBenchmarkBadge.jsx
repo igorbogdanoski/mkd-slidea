@@ -9,13 +9,15 @@ import { getCurriculumById } from '../data/mkMathCurriculum';
 // a small inline badge. Fully anonymous via SECURITY DEFINER RPC; no event_id
 // is sent. Hidden when the sample is too small (<3 events).
 const cache = new Map();
+const TTL_MS = 5 * 60 * 1000; // 5 min — keeps presenter sessions fresh.
 
 const fetchBenchmark = async (tag) => {
-  if (cache.has(tag)) return cache.get(tag);
+  const hit = cache.get(tag);
+  if (hit && Date.now() - hit.t < TTL_MS) return hit.row;
   const { data, error } = await supabase.rpc('curriculum_tag_benchmark', { p_tag: tag });
   if (error) return null;
   const row = Array.isArray(data) ? data[0] : data;
-  cache.set(tag, row);
+  cache.set(tag, { row, t: Date.now() });
   return row;
 };
 

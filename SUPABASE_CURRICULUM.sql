@@ -47,13 +47,16 @@ AS $$
       SUM(poll_correct) AS total_correct
     FROM per_poll
   )
+  -- Privacy hardening: when fewer than 3 events exist, return only the tag
+  -- and zero counters so the client cannot infer per-class data from small
+  -- samples (k-anonymity for raw counts AND accuracy).
   SELECT
     p_tag,
-    COALESCE(events_count, 0)::int,
-    COALESCE(total_votes, 0)::int,
-    COALESCE(total_correct, 0)::int,
+    CASE WHEN COALESCE(events_count, 0) >= 3 THEN events_count::int ELSE 0 END,
+    CASE WHEN COALESCE(events_count, 0) >= 3 THEN COALESCE(total_votes, 0)::int ELSE 0 END,
+    CASE WHEN COALESCE(events_count, 0) >= 3 THEN COALESCE(total_correct, 0)::int ELSE 0 END,
     CASE
-      WHEN events_count >= 3 AND total_votes > 0
+      WHEN COALESCE(events_count, 0) >= 3 AND COALESCE(total_votes, 0) > 0
         THEN ROUND((total_correct::numeric / total_votes::numeric) * 100, 1)
       ELSE NULL
     END

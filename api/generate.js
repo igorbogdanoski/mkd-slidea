@@ -68,15 +68,28 @@ const STOPWORDS = new Set([
   'this','that','these','those','it','its','as','by','at','from','with','about','into',
 ]);
 
+// Strip likely-PII patterns before tokenization (emails, URLs, phone-ish
+// digit runs, @handles). We then split, drop tokens with mixed digits+letters
+// (often IDs/codes), and skip stopwords.
+const stripPII = (text) =>
+  String(text)
+    .replace(/\b[\w.+-]+@[\w-]+\.[\w.-]+\b/gi, ' ')      // emails
+    .replace(/https?:\/\/\S+/gi, ' ')                      // URLs
+    .replace(/\b\+?\d[\d\s-]{6,}\b/g, ' ')                 // phone-ish
+    .replace(/@[\w_]+/g, ' ');                             // @handles
+
 const tokenizeForVocab = (text) => {
   if (typeof text !== 'string' || !text.trim()) return [];
+  const cleaned = stripPII(text).toLowerCase();
   const seen = new Set();
   const tokens = [];
-  for (const raw of text.toLowerCase().split(/[^a-zа-яёѓѕјљњќџ0-9-]+/iu)) {
+  for (const raw of cleaned.split(/[^a-zа-яёѓѕјљњќџ0-9]+/iu)) {
     const w = raw.trim();
     if (!w || w.length < 3 || w.length > 32) continue;
     if (STOPWORDS.has(w)) continue;
     if (/^\d+$/.test(w)) continue;
+    // Drop tokens mixing letters + digits (likely IDs / codes / names with year)
+    if (/[a-zа-яёѓѕјљњќџ]/iu.test(w) && /\d/.test(w)) continue;
     if (seen.has(w)) continue;
     seen.add(w);
     tokens.push(w);
