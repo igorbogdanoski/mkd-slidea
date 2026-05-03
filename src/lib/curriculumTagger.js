@@ -31,10 +31,12 @@ const scoreEntry = (text, entry) => {
   return score;
 };
 
-export function suggestTags(text, { grade = null, subject = 'math', limit = 3 } = {}) {
+export function suggestTags(text, { grade = null, subject = 'math', track = null, limit = 3 } = {}) {
   if (!text || text.trim().length < 3) return [];
   const pool = MK_MATH_CURRICULUM.filter(
-    (e) => (!subject || e.subject === subject) && (!grade || e.grade === grade)
+    (e) => (!subject || e.subject === subject)
+        && (!grade || e.grade === grade)
+        && (!track || e.track === track)
   );
   const ranked = pool
     .map((entry) => ({ entry, score: scoreEntry(text, entry) }))

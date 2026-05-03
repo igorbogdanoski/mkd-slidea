@@ -72,8 +72,27 @@ const MK_MATH_CURRICULUM = [
   { id: 'mk.math.g9.stat.disp',      grade: 9, subject: 'math', topic: 'Статистика',          subtopic: 'Мерки на дисперзија',            keywords: ['медијана','модус','опсег','стандардно отстапување','варијанса'] },
 ];
 
-export default MK_MATH_CURRICULUM;
+// Tag every primary entry with track='primary' so combined queries can filter.
+for (const t of MK_MATH_CURRICULUM) {
+  if (!t.track) t.track = 'primary';
+}
 
-export const getCurriculumById = (id) => MK_MATH_CURRICULUM.find((t) => t.id === id) || null;
-export const listGrades = () => Array.from(new Set(MK_MATH_CURRICULUM.map((t) => t.grade))).sort((a, b) => a - b);
-export const listSubjects = () => Array.from(new Set(MK_MATH_CURRICULUM.map((t) => t.subject)));
+import MK_MATH_SECONDARY_CURRICULUM, { SECONDARY_TRACKS } from './mkMathSecondaryCurriculum';
+
+// Combined taxonomy used by the tagger and the picker.
+export const MK_MATH_ALL_CURRICULUM = [...MK_MATH_CURRICULUM, ...MK_MATH_SECONDARY_CURRICULUM];
+
+export const TRACKS = [
+  { id: 'primary', label: 'Основно' },
+  ...SECONDARY_TRACKS,
+];
+
+export default MK_MATH_ALL_CURRICULUM;
+
+export const getCurriculumById = (id) => MK_MATH_ALL_CURRICULUM.find((t) => t.id === id) || null;
+export const listGrades = (track = null) => {
+  const pool = track ? MK_MATH_ALL_CURRICULUM.filter((t) => t.track === track) : MK_MATH_ALL_CURRICULUM;
+  return Array.from(new Set(pool.map((t) => t.grade))).sort((a, b) => a - b);
+};
+export const listSubjects = () => Array.from(new Set(MK_MATH_ALL_CURRICULUM.map((t) => t.subject)));
+export const listTracks = () => TRACKS;

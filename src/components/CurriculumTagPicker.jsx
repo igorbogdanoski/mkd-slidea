@@ -1,17 +1,18 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { BookOpen, X, Plus, Sparkles } from 'lucide-react';
 import { suggestTags } from '../lib/curriculumTagger';
-import MK_MATH_CURRICULUM, { getCurriculumById, listGrades } from '../data/mkMathCurriculum';
+import MK_MATH_CURRICULUM, { getCurriculumById, listGrades, listTracks } from '../data/mkMathCurriculum';
 
 // Sprint 6.1 — Curriculum tag chips with auto-suggestions from question text.
-// Pure-JS taxonomy (MK math G1–G9). Zero network calls.
+// Pure-JS taxonomy (MK math G1–G13: primary + gymnasium + vocational). Zero network calls.
 const CurriculumTagPicker = ({ questionText = '', value = [], onChange }) => {
+  const [track, setTrack] = useState(null);
   const [grade, setGrade] = useState(null);
   const [browseOpen, setBrowseOpen] = useState(false);
 
   const suggestions = useMemo(
-    () => suggestTags(questionText, { grade, limit: 3 }).map((t) => t.id),
-    [questionText, grade]
+    () => suggestTags(questionText, { grade, track, limit: 3 }).map((t) => t.id),
+    [questionText, grade, track]
   );
 
   const selected = Array.isArray(value) ? value : [];
@@ -25,27 +26,45 @@ const CurriculumTagPicker = ({ questionText = '', value = [], onChange }) => {
   const candidates = suggestions.filter((id) => !selected.includes(id));
 
   const browsePool = useMemo(
-    () => (grade ? MK_MATH_CURRICULUM.filter((t) => t.grade === grade) : MK_MATH_CURRICULUM),
-    [grade]
+    () => MK_MATH_CURRICULUM.filter(
+      (e) => (!track || e.track === track) && (!grade || e.grade === grade)
+    ),
+    [grade, track]
   );
+
+  const tracks = listTracks();
+  const gradesForTrack = useMemo(() => listGrades(track), [track]);
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <label className="block text-xs font-black text-slate-500 uppercase tracking-widest px-1 flex items-center gap-1.5">
           <BookOpen className="w-3.5 h-3.5" /> Курикулум (по избор)
         </label>
-        <select
-          value={grade || ''}
-          onChange={(e) => setGrade(e.target.value ? Number(e.target.value) : null)}
-          className="text-[11px] font-black text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 outline-none"
-          aria-label="Одделение"
-        >
-          <option value="">Сите одделенија</option>
-          {listGrades().map((g) => (
-            <option key={g} value={g}>{g}. одделение</option>
-          ))}
-        </select>
+        <div className="flex items-center gap-1.5">
+          <select
+            value={track || ''}
+            onChange={(e) => { setTrack(e.target.value || null); setGrade(null); }}
+            className="text-[11px] font-black text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 outline-none"
+            aria-label="Образовно ниво"
+          >
+            <option value="">Сите нивоа</option>
+            {tracks.map((tr) => (
+              <option key={tr.id} value={tr.id}>{tr.label}</option>
+            ))}
+          </select>
+          <select
+            value={grade || ''}
+            onChange={(e) => setGrade(e.target.value ? Number(e.target.value) : null)}
+            className="text-[11px] font-black text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 outline-none"
+            aria-label="Одделение"
+          >
+            <option value="">Сите одделенија</option>
+            {gradesForTrack.map((g) => (
+              <option key={g} value={g}>{g}. одд</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {selected.length > 0 && (
