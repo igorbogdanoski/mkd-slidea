@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Search, BookOpen, LayoutGrid, History, Sparkles, AlertTriangle, ChevronRight } from 'lucide-react';
+import { Search, BookOpen, LayoutGrid, History, Sparkles, AlertTriangle, ChevronRight, ExternalLink } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 const Bar = ({ pct }) => (
@@ -126,10 +126,14 @@ const SemanticSearchTab = ({ user }) => {
           >
             <option value="">Сите предмети</option>
             <option value="math">Математика</option>
-            <option value="physics">Физика</option>
+            <option value="biology">Биологија / Природни науки</option>
             <option value="chemistry">Хемија</option>
-            <option value="biology">Биологија</option>
-            <option value="mk_language">Македонски</option>
+            <option value="physics">Физика</option>
+            <option value="cs">Информатика</option>
+            <option value="history">Историја</option>
+            <option value="geography">географија</option>
+            <option value="mk_language">Македонски јазик</option>
+            <option value="english">Англиски јазик</option>
           </select>
           <select
             value={grade}
@@ -201,16 +205,27 @@ const SemanticSearchTab = ({ user }) => {
               <ul className="space-y-3">
                 {result.curriculum.map((c) => (
                   <li key={c.id} className="p-3 rounded-2xl hover:bg-slate-50 transition-colors">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-violet-50 text-violet-600">
                         {c.grade}
                       </span>
-                      <span className="text-xs font-bold text-slate-700">
+                      <span className="text-xs font-bold text-slate-700 flex-1 min-w-0 truncate">
                         {[c.subject, c.topic, c.subtopic].filter(Boolean).join(' › ')}
                       </span>
                       <Bar pct={(c.similarity || 0) * 100} />
                     </div>
-                    <div className="text-xs text-slate-500 line-clamp-2">{c.text}</div>
+                    <div className="text-xs text-slate-500 line-clamp-2 mb-2">{c.text}</div>
+                    {c.source_url && (
+                      <a
+                        href={c.source_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[10px] font-black text-violet-600 hover:text-violet-800 bg-violet-50 hover:bg-violet-100 px-2.5 py-1 rounded-full transition-colors"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        Официјален БРО документ
+                      </a>
+                    )}
                   </li>
                 ))}
               </ul>
