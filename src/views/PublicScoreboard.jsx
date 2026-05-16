@@ -31,6 +31,7 @@ const PublicScoreboard = () => {
     description: 'Најдобрите играчи на интерактивни квизови во МК. Топ 50 ученици и наставници по освоени поени.',
     keywords: 'скорборд, квиз шампиони, топ наставници, leaderboard, MK',
     path: '/scoreboard',
+    image: 'https://slidea.mismath.net/api/og',
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'CollectionPage',

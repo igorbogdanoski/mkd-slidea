@@ -48,7 +48,7 @@ const Landing = ({ code, setCode, setView }) => {
     description: 'Македонска интерактивна платформа за настава, обуки и презентации во живо со анкети, квизови, Q&A и word cloud активности во реално време.',
     keywords: 'интерактивни презентации, mentimeter алтернатива, kahoot алтернатива, квиз во живо, анкета, word cloud, интерактивна настава, БРО курикулум, македонска SaaS',
     path: '/',
-    image: 'https://slidea.mismath.net/og-image.svg',
+    image: 'https://slidea.mismath.net/api/og',
     jsonLd: {
       '@context': 'https://schema.org',
       '@graph': [

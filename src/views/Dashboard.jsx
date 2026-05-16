@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '../components/Dashboard/Sidebar';
 import HomeTab from '../components/Dashboard/HomeTab';
@@ -14,6 +14,7 @@ import OrganizationsTab from '../components/Dashboard/OrganizationsTab';
 import { Download, ExternalLink, Presentation, GraduationCap, FileSpreadsheet, CheckCircle2 } from 'lucide-react';
 import { templates } from '../data/templates';
 import { supabase } from '../lib/supabase';
+import AiUsageWidget from '../components/AiUsageWidget';
 
 const cardColors = ['bg-indigo-600','bg-violet-600','bg-emerald-600','bg-amber-500','bg-rose-600','bg-cyan-600'];
 
@@ -373,8 +374,10 @@ const Dashboard = ({ setView, user, onLogout }) => {
               ))}
             </div>
 
+            <AiUsageWidget user={user} onUpgrade={() => setView('pricing')} isPro={isPro} />
+
             {!isPro && (
-              <div className="mt-16 bg-slate-900 p-12 rounded-[3.5rem] flex flex-col md:flex-row md:items-center justify-between gap-8 shadow-2xl shadow-indigo-100">
+              <div className="mt-8 bg-slate-900 p-12 rounded-[3.5rem] flex flex-col md:flex-row md:items-center justify-between gap-8 shadow-2xl shadow-indigo-100">
                 <div>
                   <h4 className="text-2xl font-black text-white mb-2">Сакате повеќе можности?</h4>
                   <p className="text-indigo-200 font-bold opacity-70">Надградете го вашиот план и добијте неограничен пристап до сите AI алатки.</p>

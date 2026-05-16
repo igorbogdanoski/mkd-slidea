@@ -131,6 +131,7 @@ const PublicTemplatesIndex = () => {
     description: 'Преземи готови интерактивни лекции на македонски — математика, информатика, англиски, природни науки. Еден клик и почнуваш.',
     keywords: 'шаблони, квизови, анкети, БРО курикулум, наставници, бесплатни лекции',
     path: '/templates',
+    image: 'https://slidea.mismath.net/api/og',
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'CollectionPage',
@@ -265,6 +266,7 @@ const PublicTemplateDetail = () => {
     description: tpl.description ? tpl.description.slice(0, 160) : `Бесплатен шаблон за ${tpl.subject || 'наставник'} на македонски јазик.`,
     keywords: ['шаблон', tpl.subject, tpl.grade, 'квиз', 'анкета'].filter(Boolean).join(', '),
     path: `/templates/${tpl.slug}`,
+    image: `https://slidea.mismath.net/api/og?type=template&title=${encodeURIComponent(tpl.title)}&subject=${encodeURIComponent(tpl.subject || '')}&grade=${encodeURIComponent(tpl.grade || '')}`,
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'Course',
