@@ -12,6 +12,9 @@ CREATE INDEX IF NOT EXISTS idx_curriculum_chunks_source_url
   WHERE source_url IS NOT NULL;
 
 -- Update the match_curriculum RPC to also return source_url
+-- Drop first because return type changes (source_url added).
+DROP FUNCTION IF EXISTS match_curriculum(vector, int, text, text);
+
 CREATE OR REPLACE FUNCTION match_curriculum(
   query_embedding  vector(768),
   match_count      int     DEFAULT 3,

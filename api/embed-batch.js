@@ -49,7 +49,8 @@ async function supabaseQuery(path, init = {}) {
 // ─────────────────────────────────────────────────────────────────
 
 async function fetchPendingTemplates(limit) {
-  const select = 'id,title,description,subject,grade,curriculum_tags';
+  // Select only guaranteed columns; subject/grade/curriculum_tags may not exist yet
+  const select = 'id,title,description';
   const data = await supabaseQuery(
     `/rest/v1/community_templates?select=${encodeURIComponent(select)}&embedding=is.null&limit=${limit}`
   );

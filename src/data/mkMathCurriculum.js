@@ -77,7 +77,7 @@ for (const t of MK_MATH_CURRICULUM) {
   if (!t.track) t.track = 'primary';
 }
 
-import MK_MATH_SECONDARY_CURRICULUM, { SECONDARY_TRACKS } from './mkMathSecondaryCurriculum';
+import MK_MATH_SECONDARY_CURRICULUM, { SECONDARY_TRACKS } from './mkMathSecondaryCurriculum.js';
 
 // Combined taxonomy used by the tagger and the picker.
 export const MK_MATH_ALL_CURRICULUM = [...MK_MATH_CURRICULUM, ...MK_MATH_SECONDARY_CURRICULUM];

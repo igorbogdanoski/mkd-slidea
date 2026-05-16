@@ -1,13 +1,15 @@
 // ============================================================================
-// Enrich curriculum_chunks with official BRO document URLs
+// Enrich curriculum_chunks with official BRO category page URLs
 // ----------------------------------------------------------------------------
-// Reads src/data/broCurriculumIndex.json (output of scrapeBroCurriculum.js)
-// and matches documents to existing curriculum_chunks by subject + grade,
-// then updates source_url in Supabase.
+// Reads src/data/broCurriculumIndex.json and maps grade+track → BRO page URL.
+// Updates source_url in Supabase curriculum_chunks.
+//
+// Strategy: BRO organises documents by grade-level category pages.
+// Each category page is a valid official reference even if the PDF inside
+// is the same monograph (the page lists all curricula for that grade).
 //
 // Usage:
-//   node scripts/scrapeBroCurriculum.js   (first — builds the index)
-//   node scripts/enrichCurriculumWithBro.js
+//   node --use-system-ca scripts/enrichCurriculumWithBro.js
 // ============================================================================
 
 import fs from 'node:fs';
@@ -44,7 +46,7 @@ if (!SUPABASE_URL || !SERVICE_KEY) {
 
 const INDEX_PATH = path.join(ROOT, 'src', 'data', 'broCurriculumIndex.json');
 if (!fs.existsSync(INDEX_PATH)) {
-  console.error('❌ broCurriculumIndex.json не постои. Пушти прво: node scripts/scrapeBroCurriculum.js');
+  console.error('❌ broCurriculumIndex.json не постои. Пушти прво: node --use-system-ca scripts/scrapeBroCurriculum.js');
   process.exit(1);
 }
 
@@ -52,52 +54,50 @@ const index = JSON.parse(fs.readFileSync(INDEX_PATH, 'utf8'));
 const allDocs = [...(index.primary || []), ...(index.secondary || [])];
 console.log(`📄 Вчитани ${allDocs.length} документи од BRO индексот.`);
 
-// ─── Subject keyword → internal subject code ──────────────────────────────
-const SUBJECT_KEYWORDS = {
-  math:        ['математика', 'math'],
-  biology:     ['биологија', 'природни науки', 'biology'],
-  chemistry:   ['хемија', 'chemistry'],
-  physics:     ['физика', 'physics'],
-  cs:          ['информатика', 'технологија', 'digitalna', 'дигитал'],
-  history:     ['историја', 'history'],
-  geography:   ['географија', 'geography'],
-  mk_language: ['македонски јазик', 'македонски', 'mk language'],
-  english:     ['англиски', 'english'],
+// ─── Track name normalisation ────────────────────────────────────────────────
+// BRO context → internal track codes used in curriculum_chunks
+const TRACK_KEYWORDS = {
+  gymnasium:   ['гимназиско', 'гимназија', 'gymnasium'],
+  vocational4: ['четиригодишно', 'четири год'],
+  vocational3: ['тригодишно', 'три год'],
+  vocational2: ['двегодишно', 'две год'],
+  math_gymnasium: ['математичко', 'math'],
+  sports:      ['спортска'],
+  music:       ['музичко'],
+  arts:        ['уметничко'],
+  primary:     ['primary', 'одделение'],
 };
 
-function guessSubject(title) {
-  const lower = title.toLowerCase();
-  for (const [subj, kws] of Object.entries(SUBJECT_KEYWORDS)) {
-    if (kws.some((k) => lower.includes(k))) return subj;
+function guessTrack(contextName) {
+  const lower = contextName.toLowerCase();
+  for (const [track, kws] of Object.entries(TRACK_KEYWORDS)) {
+    if (kws.some((k) => lower.includes(k))) return track;
   }
-  return null;
+  return 'primary';
 }
 
-// ─── Grade map: "I одделение" / "G1" etc. ────────────────────────────────
-function guessGrade(gradeStr) {
-  if (!gradeStr) return null;
-  if (/^G\d+$/.test(gradeStr)) return gradeStr;
-  return null;
-}
-
-// ─── Build lookup: subject+grade → best doc URL ──────────────────────────
-const lookup = new Map(); // key: "math_G8" → { title, url }
+// ─── Build lookup: grade+track → BRO category page URL ──────────────────────
+// BRO page URL is constructed from source_idcat (not the PDF URL inside it).
+const BASE_BRO = 'https://bro.gov.mk/podkategorii/?customposttype=documents_category&idcat=';
+const lookup = new Map(); // key: "G1_primary" or "G10_gymnasium" → page URL
 
 for (const doc of allDocs) {
-  // Try to infer subject from title or context
-  const subj = guessSubject(doc.title) || guessSubject(doc.subject_context || '');
-  const grade = guessGrade(doc.grade);
-  if (!subj || !grade) continue;
-
-  const key = `${subj}_${grade}`;
+  if (!doc.grade || !doc.source_idcat) continue;
+  const track = guessTrack(doc.subject_context || '');
+  const key = `${doc.grade}_${track}`;
   if (!lookup.has(key)) {
-    lookup.set(key, { title: doc.title, url: doc.url });
+    // Use the official BRO category page URL (not the monograph PDF)
+    const pageUrl = `${BASE_BRO}${doc.source_idcat}`;
+    lookup.set(key, pageUrl);
   }
 }
 
-console.log(`🔑 ${lookup.size} уникатни subject+grade пресеци пронајдени.`);
+console.log(`🔑 ${lookup.size} grade+track пресеци пронајдени.`);
+if (lookup.size > 0) {
+  console.log('   Примери:', [...lookup.entries()].slice(0, 5).map(([k, v]) => `${k} → ...idcat=${v.split('idcat=')[1]}`).join(', '));
+}
 
-// ─── Fetch all curriculum_chunks without source_url ───────────────────────
+// ─── Supabase helper ──────────────────────────────────────────────────────────
 async function sb(path2, init = {}) {
   const res = await fetch(`${SUPABASE_URL}${path2}`, {
     ...init,
@@ -113,7 +113,8 @@ async function sb(path2, init = {}) {
   return res.json();
 }
 
-const chunks = await sb('/rest/v1/curriculum_chunks?select=id,subject,grade&source_url=is.null&limit=500');
+// ─── Fetch chunks without source_url ─────────────────────────────────────────
+const chunks = await sb('/rest/v1/curriculum_chunks?select=id,subject,grade,track&source_url=is.null&limit=500');
 console.log(`🔍 ${chunks?.length || 0} chunks без source_url.`);
 
 if (!chunks || chunks.length === 0) {
@@ -121,13 +122,15 @@ if (!chunks || chunks.length === 0) {
   process.exit(0);
 }
 
-// ─── Match and update ─────────────────────────────────────────────────────
+// ─── Match and update ─────────────────────────────────────────────────────────
 let updated = 0;
 let skipped = 0;
 
 for (const chunk of chunks) {
-  const key = `${chunk.subject}_${chunk.grade}`;
-  const match = lookup.get(key);
+  // Try exact grade+track match first, then grade+primary fallback
+  const key1 = `${chunk.grade}_${chunk.track}`;
+  const key2 = `${chunk.grade}_primary`;
+  const match = lookup.get(key1) || lookup.get(key2);
   if (!match) { skipped++; continue; }
 
   try {
@@ -136,11 +139,11 @@ for (const chunk of chunks) {
       {
         method: 'PATCH',
         headers: { Prefer: 'return=minimal' },
-        body: JSON.stringify({ source_url: match.url }),
+        body: JSON.stringify({ source_url: match }),
       }
     );
     updated++;
-    process.stdout.write(`  ✔ ${chunk.subject} ${chunk.grade}\r`);
+    process.stdout.write(`  ✔ ${chunk.subject} ${chunk.grade} (${chunk.track})\r`);
   } catch (e) {
     console.error(`  ✗ chunk ${chunk.id}: ${e.message}`);
   }
@@ -148,4 +151,4 @@ for (const chunk of chunks) {
 
 console.log(`\n✅ Ажурирани ${updated} chunks со официјален БРО линк.`);
 console.log(`○  ${skipped} chunks без совпаѓање.`);
-console.log('\n👉 SemanticSearchTab ќе ги прикажува „📄 Официјален документ" линковите.');
+console.log('\n👉 SemanticSearchTab ќе ги прикажува „Официјален БРО документ" линковите.');

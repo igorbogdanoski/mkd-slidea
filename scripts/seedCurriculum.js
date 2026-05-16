@@ -13,7 +13,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -52,7 +52,7 @@ const SUBJECT_LABELS = {
   geography: 'Географија', mk_language: 'Македонски јазик', english: 'Англиски јазик',
 };
 
-const toPath = (rel) => path.join(ROOT, 'src', 'data', rel).replace(/\\/g, '/');
+const toPath = (rel) => pathToFileURL(path.join(ROOT, 'src', 'data', rel)).href;
 
 const [
   { default: MK_MATH_PRIMARY },
@@ -110,13 +110,13 @@ let failed = 0;
 for (let i = 0; i < rows.length; i += BATCH) {
   const slice = rows.slice(i, i + BATCH);
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/curriculum_chunks`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/curriculum_chunks?on_conflict=track,grade,subject,topic,subtopic,text`, {
       method: 'POST',
       headers: {
         apikey: SERVICE_KEY,
         Authorization: `Bearer ${SERVICE_KEY}`,
         'Content-Type': 'application/json',
-        Prefer: 'resolution=merge-duplicates,return=minimal',
+        Prefer: 'resolution=ignore-duplicates,return=minimal',
       },
       body: JSON.stringify(slice),
     });

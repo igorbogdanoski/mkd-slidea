@@ -100,7 +100,13 @@ function detectGrade(name) {
   const romanMap = { I: 1, II: 2, III: 3, IV: 4, V: 5, VI: 6, VII: 7, VIII: 8, IX: 9 };
   const romanM = name.match(/^(IX|VIII|VII|VI|IV|V|III|II|I)\s+одделение/i);
   if (romanM) return `G${romanMap[romanM[1].toUpperCase()]}`;
-  // Secondary: "X", "XI", "XII", "XIII" or "10", "11"
+  // Secondary years: "I година" → G10, "II година" → G11, "III година" → G12, "IV година" → G13
+  const yearM = name.match(/^(IV|III|II|I)\s+година/i);
+  if (yearM) {
+    const yearMap = { I: 10, II: 11, III: 12, IV: 13 };
+    return `G${yearMap[yearM[1].toUpperCase()]}`;
+  }
+  // Secondary: "X", "XI", "XII", "XIII"
   const secRoman = { X: 10, XI: 11, XII: 12, XIII: 13 };
   for (const [r, n] of Object.entries(secRoman)) {
     if (name.includes(r)) return `G${n}`;
@@ -136,32 +142,32 @@ async function crawlCategory(idcat, contextName = '', track = 'primary', grade =
 
   const results = [];
 
-  // Check for document links first (leaf page)
+  // Always collect docs from this page
   const docs = parseDocLinks(html, url);
-  if (docs.length > 0) {
-    for (const doc of docs) {
-      results.push({
-        subject_context: contextName,
-        track,
-        grade,
-        title: doc.title,
-        url: doc.url,
-        ext: doc.ext,
-        source_idcat: idcat,
-      });
+  for (const doc of docs) {
+    results.push({
+      subject_context: contextName,
+      track,
+      grade,
+      title: doc.title,
+      url: doc.url,
+      ext: doc.ext,
+      source_idcat: idcat,
+    });
+  }
+
+  // Always recurse into subcategories (docs on a category page don't mean it's a leaf)
+  const subcats = parseSubcatTable(html);
+  if (subcats.length === 0) {
+    if (docs.length > 0) {
+      console.log(`  📄 idcat=${idcat} "${contextName}" → ${docs.length} docs (leaf)`);
+    } else {
+      console.log(`  ○ idcat=${idcat} "${contextName}" — no docs, no subcats`);
     }
-    console.log(`  📄 idcat=${idcat} "${contextName}" → ${docs.length} docs`);
     return results;
   }
 
-  // Otherwise, parse subcategory table and recurse
-  const subcats = parseSubcatTable(html);
-  if (subcats.length === 0) {
-    console.log(`  ○ idcat=${idcat} "${contextName}" — no docs, no subcats`);
-    return [];
-  }
-
-  console.log(`  📂 idcat=${idcat} "${contextName}" → ${subcats.length} subcats`);
+  console.log(`  📂 idcat=${idcat} "${contextName}" → ${subcats.length} subcats${docs.length ? ` + ${docs.length} docs` : ''}`);
   for (const sub of subcats) {
     const subGrade = detectGrade(sub.name) || grade;
     const subTrack = depth === 0 ? detectTrack(sub.name) : track;
