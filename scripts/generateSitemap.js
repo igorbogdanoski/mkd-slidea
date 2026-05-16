@@ -59,9 +59,24 @@ ${alternates}
   </url>`;
 }
 
+async function loadBlogRoutes() {
+  try {
+    const mod = await import(pathToFileURL(path.join(ROOT, 'src/data/blogPosts.js')).href);
+    const posts = mod.blogPosts || [];
+    return [
+      { path: '/blog', priority: 0.8, changefreq: 'weekly' },
+      ...posts.map(p => ({ path: `/blog/${p.slug}`, priority: 0.75, changefreq: 'monthly' })),
+    ];
+  } catch (e) {
+    console.warn('  ! не можеше да се вчита blogPosts.js:', e?.message);
+    return [{ path: '/blog', priority: 0.8, changefreq: 'weekly' }];
+  }
+}
+
 async function main() {
   const templateRoutes = await loadTemplates();
-  const all = [...STATIC_ROUTES, ...templateRoutes];
+  const blogRoutes = await loadBlogRoutes();
+  const all = [...STATIC_ROUTES, ...blogRoutes, ...templateRoutes];
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">

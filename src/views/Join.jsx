@@ -9,6 +9,7 @@ const Join = ({ code, setCode, handleJoin, setView }) => {
     description: 'Внеси го кодот на настанот за да се приклучиш на интерактивна сесија во живо.',
     keywords: 'приклучи се, код, joincode, slidea',
     path: '/join',
+    image: 'https://slidea.mismath.net/api/og',
   });
   return (
     <motion.div

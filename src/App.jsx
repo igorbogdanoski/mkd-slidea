@@ -26,6 +26,8 @@ const PublicTemplateDetail = lazy(() =>
 );
 const PublicScoreboard = lazy(() => import('./views/PublicScoreboard'));
 const Checkout = lazy(() => import('./views/Checkout'));
+const Blog = lazy(() => import('./views/Blog'));
+const BlogPost = lazy(() => import('./views/BlogPost'));
 
 // Suppress Supabase auth lock violations and permissions policy violations
 if (typeof window !== 'undefined') {
@@ -206,6 +208,8 @@ const AppContent = () => {
                   path="/event/:id"
                   element={<EventWrapper type="participant" username={username} setUsername={updateUsername} />}
                 />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/:slug" element={<BlogPost />} />
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>
             </Suspense>

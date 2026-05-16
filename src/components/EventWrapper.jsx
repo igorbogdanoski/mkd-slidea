@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { useSEO } from '../hooks/useSEO';
 import confetti from 'canvas-confetti';
 import { useEvent } from '../hooks/useEvent';
 import Presenter from '../views/Presenter';
@@ -44,6 +45,14 @@ const EventWrapper = ({ type, username, setUsername }) => {
   const [pwdAuth, setPwdAuth] = useState(() =>
     !!sessionStorage.getItem(`pwd_auth_${window.location.pathname}`)
   );
+
+  useSEO(event && type === 'participant' ? {
+    title: `${event.title || 'Сесија во живо'} | MKD Slidea`,
+    description: `Приклучи се на интерактивната сесија "${event.title || ''}" — одговарај на квизови и анкети во живо.`,
+    path: `/event/${normalizedCode}`,
+    image: `https://slidea.mismath.net/api/og?type=event&title=${encodeURIComponent(event.title || 'Сесија во живо')}&code=${encodeURIComponent(normalizedCode)}`,
+    noindex: true,
+  } : { noindex: true });
 
   useEffect(() => {
     if (event) {

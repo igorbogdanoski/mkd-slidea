@@ -134,8 +134,47 @@ const injectMeta = (html, route) => _injectMeta(html, route, SITE);
 const escapeHtml = _escapeHtml;
 const escapeAttr = _escapeAttr;
 
+async function loadBlogPosts() {
+  try {
+    const mod = await import(pathToFileURL(path.join(ROOT, 'src/data/blogPosts.js')).href);
+    return mod.blogPosts || [];
+  } catch (e) {
+    console.warn('  ! не успеа да се вчита blogPosts.js:', e?.message);
+    return [];
+  }
+}
+
+function blogRoute(post) {
+  return {
+    path: `/blog/${post.slug}`,
+    title: `${post.title} | MKD Slidea Блог`,
+    description: post.description,
+    keywords: post.keywords,
+    image: `https://slidea.mismath.net/api/og?type=template&title=${encodeURIComponent(post.title)}&subject=${encodeURIComponent(post.subject || '')}`,
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'BlogPosting',
+      'headline': post.title,
+      'description': post.description,
+      'url': `https://slidea.mismath.net/blog/${post.slug}`,
+      'datePublished': post.date,
+      'dateModified': post.date,
+      'inLanguage': 'mk',
+      'author': { '@type': 'Organization', 'name': 'MKD Slidea', 'url': 'https://slidea.mismath.net/' },
+      'publisher': { '@type': 'Organization', 'name': 'MKD Slidea', 'url': 'https://slidea.mismath.net/' },
+      'mainEntityOfPage': { '@type': 'WebPage', '@id': `https://slidea.mismath.net/blog/${post.slug}` },
+    },
+  };
+}
+
 const templates = await loadTemplates();
-const ALL_ROUTES = [...ROUTES, ...templates.map(templateRoute)];
+const blogPostsData = await loadBlogPosts();
+const ALL_ROUTES = [
+  ...ROUTES,
+  { path: '/blog', title: 'Блог за интерактивна настава | MKD Slidea', description: 'Совети, водичи и истражувања за интерактивна настава на македонски јазик.', keywords: 'интерактивна настава, квизови, едукација, македонија' },
+  ...blogPostsData.map(blogRoute),
+  ...templates.map(templateRoute),
+];
 
 let written = 0;
 for (const route of ALL_ROUTES) {
