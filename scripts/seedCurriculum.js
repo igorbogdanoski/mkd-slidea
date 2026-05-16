@@ -46,20 +46,44 @@ if (!SUPABASE_URL || !SERVICE_KEY) {
 }
 
 // ─── load curriculum data ───────────────────────────────────────
-const { default: MK_MATH_ALL_CURRICULUM } = await import(
-  path.join(ROOT, 'src', 'data', 'mkMathCurriculum.js').replace(/\\/g, '/')
-);
+const SUBJECT_LABELS = {
+  math: 'Математика', biology: 'Биологија', chemistry: 'Хемија',
+  physics: 'Физика', cs: 'Информатика', history: 'Историја',
+  geography: 'Географија', mk_language: 'Македонски јазик', english: 'Англиски јазик',
+};
 
-if (!Array.isArray(MK_MATH_ALL_CURRICULUM) || !MK_MATH_ALL_CURRICULUM.length) {
-  console.error('❌ MK_MATH_ALL_CURRICULUM е празна.');
+const toPath = (rel) => path.join(ROOT, 'src', 'data', rel).replace(/\\/g, '/');
+
+const [
+  { default: MK_MATH_PRIMARY },
+  { default: MK_MATH_SECONDARY },
+  { default: MK_SUBJECTS },
+] = await Promise.all([
+  import(toPath('mkMathCurriculum.js')),
+  import(toPath('mkMathSecondaryCurriculum.js')),
+  import(toPath('mkSubjectsCurriculum.js')),
+]);
+
+const ALL_SOURCES = [
+  ...(Array.isArray(MK_MATH_PRIMARY) ? MK_MATH_PRIMARY : []),
+  ...(Array.isArray(MK_MATH_SECONDARY) ? MK_MATH_SECONDARY : []),
+  ...(Array.isArray(MK_SUBJECTS) ? MK_SUBJECTS : []),
+];
+
+if (!ALL_SOURCES.length) {
+  console.error('❌ Сите извори на курикулум се празни.');
   process.exit(1);
 }
 
+console.log(`📚 Извори: math primary=${Array.isArray(MK_MATH_PRIMARY) ? MK_MATH_PRIMARY.length : 0}, math secondary=${Array.isArray(MK_MATH_SECONDARY) ? MK_MATH_SECONDARY.length : 0}, subjects=${Array.isArray(MK_SUBJECTS) ? MK_SUBJECTS.length : 0}`);
+
 // ─── build chunks ───────────────────────────────────────────────
-const rows = MK_MATH_ALL_CURRICULUM.map((c) => {
+const rows = ALL_SOURCES.map((c) => {
+  const subjectLabel = SUBJECT_LABELS[c.subject] || c.subject || 'Општо';
   const text = [
-    c.subject ? `Предмет: ${c.subject === 'math' ? 'Математика' : c.subject}` : '',
-    c.grade != null ? `Одделение: ${c.grade}` : '',
+    `Предмет: ${subjectLabel}`,
+    c.grade != null ? `Одделение: G${c.grade}` : '',
+    c.track && c.track !== 'primary' ? `Насока: ${c.track}` : '',
     c.topic ? `Област: ${c.topic}` : '',
     c.subtopic ? `Тема: ${c.subtopic}` : '',
     Array.isArray(c.keywords) && c.keywords.length
@@ -73,7 +97,7 @@ const rows = MK_MATH_ALL_CURRICULUM.map((c) => {
     subtopic: c.subtopic || null,
     text,
     tags: Array.isArray(c.keywords) ? c.keywords.slice(0, 12) : [],
-    source: 'mkMathCurriculum',
+    source: c.subject === 'math' ? 'mkMathCurriculum' : 'mkSubjectsCurriculum',
   };
 });
 

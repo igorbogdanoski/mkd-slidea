@@ -98,6 +98,30 @@ export default async function handler(req) {
     out[scope] = r.error ? [] : r.data;
   }
 
+  // Fire-and-forget search log (doesn't block response)
+  const auth2 = req.headers.get('authorization') || '';
+  const logJwt = auth2.startsWith('Bearer ') ? auth2.slice(7) : null;
+  try {
+    fetch(`${SUPABASE_URL}/rest/v1/search_logs`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: SERVICE_KEY || ANON_KEY,
+        Authorization: `Bearer ${SERVICE_KEY || ANON_KEY}`,
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify({
+        query: query.slice(0, 500),
+        subject: subject || null,
+        grade: grade || null,
+        scopes: wantedScopes,
+        result_count_curriculum: Array.isArray(out.curriculum) ? out.curriculum.length : 0,
+        result_count_templates:  Array.isArray(out.templates)  ? out.templates.length  : 0,
+        result_count_my_polls:   Array.isArray(out.my_polls)   ? out.my_polls.length   : 0,
+      }),
+    }).catch(() => {});
+  } catch { /* ignore — logging is non-critical */ }
+
   return new Response(JSON.stringify(out), {
     status: 200,
     headers: { 'Content-Type': 'application/json' },
