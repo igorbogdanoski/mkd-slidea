@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Plus, ArrowLeft, Sparkles, ChevronLeft, ChevronRight, Settings, X, Timer, Square, ShieldCheck, Check, Trash2, MessageSquare, FileDown, Eye, EyeOff, BarChart2, Copy, UserPlus, RotateCcw, Sheet, Lock, Unlock, Upload, FileText
+  Plus, ArrowLeft, Sparkles, ChevronLeft, ChevronRight, Settings, X, Timer, Square, ShieldCheck, Check, Trash2, MessageSquare, FileDown, Eye, EyeOff, BarChart2, Copy, UserPlus, RotateCcw, Sheet, Lock, Unlock, Upload, FileText, Mail
 } from 'lucide-react';
 import QRCodeModal from '../components/QRCodeModal';
 import CreatePollModal from '../components/CreatePollModal';
@@ -62,6 +62,8 @@ const Host = ({ setView, user }) => {
   const [isRemoteMode, setIsRemoteMode] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isInsightsOpen, setIsInsightsOpen] = useState(false);
+  const [recapSending, setRecapSending] = useState(false);
+  const [recapSent, setRecapSent] = useState(false);
   const [isPublishTemplateOpen, setIsPublishTemplateOpen] = useState(false);
   const [isTemplateGalleryOpen, setIsTemplateGalleryOpen] = useState(false);
   const [embedTab, setEmbedTab] = useState('iframe');
@@ -491,6 +493,24 @@ const Host = ({ setView, user }) => {
     a.download = `slidea-${event.code}-${today.replace(/\./g, '-')}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const sendSessionRecap = async () => {
+    if (!event?.id || recapSending || recapSent) return;
+    setRecapSending(true);
+    try {
+      const res = await fetch('/api/email/session-recap', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': user?.id || '',
+          'x-user-plan': user?.plan || 'free',
+        },
+        body: JSON.stringify({ event_id: event.id }),
+      });
+      if (res.ok) setRecapSent(true);
+    } catch { /* ignore */ }
+    setRecapSending(false);
   };
 
   const publishTemplate = async ({ title, category, description }) => {
@@ -1316,6 +1336,19 @@ const Host = ({ setView, user }) => {
                             </button>
                             {!isPro(user) && <span className="absolute -top-2 -right-2 bg-amber-400 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wide pointer-events-none">Pro</span>}
                           </div>
+                          <button
+                            onClick={sendSessionRecap}
+                            disabled={recapSending || recapSent}
+                            className={`flex items-center justify-center gap-2 px-5 py-4 border-2 rounded-2xl font-black transition-all shadow-sm active:scale-95 ${recapSent ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : 'bg-white border-slate-100 text-slate-500 hover:border-indigo-200 hover:text-indigo-600'} disabled:opacity-60 disabled:cursor-not-allowed`}
+                            title={recapSent ? 'Рекапот е испратен на е-маил' : 'Прати AI рекап на е-маил'}
+                            aria-label="Прати AI рекап по е-маил"
+                          >
+                            {recapSending ? (
+                              <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <Mail className="w-5 h-5" />
+                            )}
+                          </button>
                         </>
                       )}
                       <button
