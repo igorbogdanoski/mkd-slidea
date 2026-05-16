@@ -16,7 +16,7 @@
     { "source": "/dashboard/:rest*", "destination": "/index.html" },
     { "source": "/host", "destination": "/index.html" },
     { "source": "/event/:rest*", "destination": "/index.html" },
-    { "source": "/((?!.*\\.).*)", "destination": "/index.html" }
+    { "source": "/:path*", "destination": "/index.html" }
   ],
   "crons": [
     {
