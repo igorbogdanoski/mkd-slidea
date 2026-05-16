@@ -259,10 +259,12 @@ export const useEvent = (eventCode) => {
     const id = `r-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     try {
       const ch = supabase.channel(`reactions:${event.id}`, { config: { broadcast: { self: false } } });
+      let subscribed = false;
       await new Promise((resolve) => {
-        ch.subscribe((status) => { if (status === 'SUBSCRIBED') resolve(); });
+        ch.subscribe((status) => { if (status === 'SUBSCRIBED') { subscribed = true; resolve(); } });
         setTimeout(resolve, 800);
       });
+      if (!subscribed) { supabase.removeChannel(ch); throw new Error('channel-timeout'); }
       const res = await ch.send({ type: 'broadcast', event: 'emoji', payload: { id, emoji } });
       // Optimistic локален render за испраќачот
       setReactions(prev => [...prev, { id, emoji, timestamp: Date.now() }]);

@@ -201,8 +201,10 @@ const Host = ({ setView, user }) => {
   useEffect(() => {
     if (!event?.id) return;
 
-    const navChannel = supabase.channel(`event-nav-${event.id}`).subscribe();
-    navChannelRef.current = navChannel;
+    const navChannel = supabase.channel(`event-nav-${event.id}`);
+    navChannel.subscribe((status) => {
+      if (status === 'SUBSCRIBED') navChannelRef.current = navChannel;
+    });
 
     return () => {
       navChannelRef.current = null;

@@ -21,8 +21,9 @@ const LiveCaptions = ({ lang = 'mk-MK', defaultEnabled = false, onTranscript, br
     if (!enabled || !broadcastChannel) return undefined;
     const code = String(broadcastChannel).toUpperCase();
     const ch = supabase.channel(`captions:${code}`, { config: { broadcast: { self: false, ack: false } } });
-    ch.subscribe();
-    channelRef.current = ch;
+    ch.subscribe((status) => {
+      if (status === 'SUBSCRIBED') channelRef.current = ch;
+    });
     return () => {
       try { supabase.removeChannel(ch); } catch { /* ignore */ }
       channelRef.current = null;
