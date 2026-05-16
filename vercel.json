@@ -7,9 +7,16 @@
     { "source": "/pricing", "destination": "/pricing/index.html" },
     { "source": "/scoreboard", "destination": "/scoreboard/index.html" },
     { "source": "/templates", "destination": "/templates/index.html" },
+    { "source": "/templates/:slug", "destination": "/templates/:slug/index.html" },
     { "source": "/demo", "destination": "/demo/index.html" },
     { "source": "/join", "destination": "/join/index.html" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/checkout", "destination": "/checkout/index.html" },
+    { "source": "/checkout/:slug", "destination": "/index.html" },
+    { "source": "/dashboard", "destination": "/index.html" },
+    { "source": "/dashboard/:rest*", "destination": "/index.html" },
+    { "source": "/host", "destination": "/index.html" },
+    { "source": "/event/:rest*", "destination": "/index.html" },
+    { "source": "/((?!.*\\.).*)", "destination": "/index.html" }
   ],
   "crons": [
     {
