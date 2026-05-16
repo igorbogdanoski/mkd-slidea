@@ -145,7 +145,7 @@ const AppContent = () => {
   };
 
   const isPublicRoute =
-    ['/', '/join', '/pricing', '/scoreboard', '/schools', '/integrations'].includes(location.pathname) ||
+    ['/', '/join', '/pricing', '/scoreboard', '/schools', '/integrations', '/demo'].includes(location.pathname) ||
     location.pathname === '/templates' ||
     location.pathname.startsWith('/templates/') ||
     location.pathname.startsWith('/blog') ||

@@ -37,27 +37,6 @@ const normalizeCommunity = (row) => ({
   author_name: row.author_name,
 });
 
-const upsertSEO = (title, description, canonical) => {
-  if (typeof document === 'undefined') return;
-  document.title = title;
-  const setMeta = (name, content) => {
-    let el = document.querySelector(`meta[name="${name}"]`);
-    if (!el) {
-      el = document.createElement('meta');
-      el.setAttribute('name', name);
-      document.head.appendChild(el);
-    }
-    el.setAttribute('content', content);
-  };
-  setMeta('description', description);
-  let link = document.querySelector('link[rel="canonical"]');
-  if (!link) {
-    link = document.createElement('link');
-    link.setAttribute('rel', 'canonical');
-    document.head.appendChild(link);
-  }
-  link.setAttribute('href', canonical);
-};
 
 const useAllTemplates = () => {
   const [community, setCommunity] = useState([]);
