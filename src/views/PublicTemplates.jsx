@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Search, BookOpen, ArrowRight, Sparkles, Users, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { STARTER_TEMPLATES, TEMPLATE_SUBJECTS } from '../lib/starterTemplates';
 import { supabase } from '../lib/supabase';
+import { useSEO } from '../hooks/useSEO';
 
 const slugify = (s) =>
   String(s || '')
@@ -125,13 +126,20 @@ const PublicTemplatesIndex = () => {
   const [query, setQuery] = useState('');
   const [subject, setSubject] = useState('Сите');
 
-  useEffect(() => {
-    upsertSEO(
-      'Бесплатни шаблони за квизови и анкети — MKD Slidea',
-      'Преземи готови интерактивни лекции на македонски — математика, информатика, англиски, природни науки. Еден клик и почнуваш.',
-      'https://slidea.mismath.net/templates'
-    );
-  }, []);
+  useSEO({
+    title: 'Бесплатни шаблони за квизови и анкети — MKD Slidea',
+    description: 'Преземи готови интерактивни лекции на македонски — математика, информатика, англиски, природни науки. Еден клик и почнуваш.',
+    keywords: 'шаблони, квизови, анкети, БРО курикулум, наставници, бесплатни лекции',
+    path: '/templates',
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      'name': 'MKD Slidea шаблони',
+      'description': 'Бесплатна библиотека на интерактивни шаблони за наставници.',
+      'inLanguage': 'mk',
+      'isPartOf': { '@type': 'WebSite', 'name': 'MKD Slidea', 'url': 'https://slidea.mismath.net/' },
+    },
+  });
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -252,14 +260,24 @@ const PublicTemplateDetail = () => {
     return () => { cancelled = true; };
   }, [slug]);
 
-  useEffect(() => {
-    if (!tpl) return;
-    upsertSEO(
-      `${tpl.title} — Шаблон | MKD Slidea`,
-      tpl.description ? tpl.description.slice(0, 160) : `Бесплатен шаблон за ${tpl.subject || 'наставник'} на македонски јазик.`,
-      `https://slidea.mismath.net/templates/${tpl.slug}`
-    );
-  }, [tpl]);
+  useSEO(tpl ? {
+    title: `${tpl.title} — Шаблон | MKD Slidea`,
+    description: tpl.description ? tpl.description.slice(0, 160) : `Бесплатен шаблон за ${tpl.subject || 'наставник'} на македонски јазик.`,
+    keywords: ['шаблон', tpl.subject, tpl.grade, 'квиз', 'анкета'].filter(Boolean).join(', '),
+    path: `/templates/${tpl.slug}`,
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'Course',
+      'name': tpl.title,
+      'description': tpl.description || `Бесплатен интерактивен шаблон за ${tpl.subject || 'наставник'}.`,
+      'provider': { '@type': 'Organization', 'name': 'MKD Slidea', 'url': 'https://slidea.mismath.net/' },
+      'inLanguage': 'mk',
+      'about': tpl.subject || undefined,
+      'educationalLevel': tpl.grade || undefined,
+      'audience': { '@type': 'EducationalAudience', 'educationalRole': 'student' },
+      'isAccessibleForFree': true,
+    },
+  } : { title: 'Шаблон | MKD Slidea', description: 'Се вчитува шаблон...' });
 
   const handleUse = () => {
     try {

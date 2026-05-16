@@ -3,6 +3,86 @@ export const config = {
 };
 
 import { kv } from '@vercel/kv';
+import { embedText, toPgVector } from './_lib/embeddings.js';
+import { checkAiQuota } from './_lib/planEnforcement.js';
+import {
+  FEWSHOT_BY_TYPE,
+  buildPedagogicalContext,
+  buildReasoningInstructions,
+  buildSystemInstructions,
+  isAdvancedReasoningStrategy,
+  validateGeneratePayload,
+} from './_lib/promptEngineering.js';
+
+// Sprint 8.1.4 — RAG retrieval (curriculum + community templates)
+// toggleable via ENV `RAG_ENABLED` (default: '1' = on if SUPABASE configured)
+const RAG_ENABLED = (process.env.RAG_ENABLED ?? '1') !== '0';
+
+async function ragRetrieve({ prompt, subject, gradeLevel }) {
+  if (!RAG_ENABLED) return { curriculum: [], templates: [] };
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) return { curriculum: [], templates: [] };
+
+  const queryText = [prompt, subject, gradeLevel].filter(Boolean).join(' · ').slice(0, 2000);
+  const vec = await embedText(queryText, { taskType: 'RETRIEVAL_QUERY' });
+  if (!vec) return { curriculum: [], templates: [] };
+  const pgvec = toPgVector(vec);
+
+  const headers = {
+    'Content-Type': 'application/json',
+    apikey: serviceKey,
+    Authorization: `Bearer ${serviceKey}`,
+  };
+
+  const callRpc = async (fn, body) => {
+    try {
+      const res = await fetch(`${url}/rest/v1/rpc/${fn}`, {
+        method: 'POST', headers, body: JSON.stringify(body),
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    } catch { return []; }
+  };
+
+  const [curriculum, templates] = await Promise.all([
+    callRpc('match_curriculum', {
+      query_embedding: pgvec,
+      match_count: 3,
+      p_grade: gradeLevel || null,
+      p_subject: subject || null,
+    }),
+    callRpc('match_templates', {
+      query_embedding: pgvec,
+      match_count: 2,
+      p_subject: subject || null,
+      p_grade: gradeLevel || null,
+    }),
+  ]);
+  return { curriculum, templates };
+}
+
+function buildRagContext({ curriculum, templates }) {
+  const lines = [];
+  if (Array.isArray(curriculum) && curriculum.length) {
+    lines.push('КОНТЕКСТ ОД МК КУРИКУЛУМ (за усогласеност со БРО/МОН):');
+    curriculum.forEach((c, i) => {
+      const head = [c.subject, c.grade, c.topic, c.subtopic].filter(Boolean).join(' › ');
+      lines.push(`  [${i + 1}] ${head}: ${String(c.text || '').slice(0, 240)}`);
+    });
+  }
+  if (Array.isArray(templates) && templates.length) {
+    lines.push('СЛИЧНИ ВЕРИФИЦИРАНИ ШАБЛОНИ ОД ЗАЕДНИЦАТА (за стил/тон):');
+    templates.forEach((t, i) => {
+      const head = [t.subject, t.grade].filter(Boolean).join(' · ');
+      lines.push(`  [${i + 1}] ${t.title}${head ? ` (${head})` : ''}: ${String(t.description || '').slice(0, 160)}`);
+    });
+  }
+  if (!lines.length) return '';
+  lines.push('Користи го контекстот за усогласеност со курикулум и стил, но НЕ копирај го дословно.');
+  return lines.join('\n');
+}
 
 // Persistent distributed rate limiting (Vercel KV / Upstash).
 const rateLimitMap = new Map();
@@ -120,21 +200,6 @@ async function logVocab(prompt, subject) {
   );
 }
 
-const FEWSHOT = {
-  quiz: `Пример (quiz):
-{"question":"Колку е 7 × 8?","type":"quiz","is_quiz":true,"options":[{"text":"54","is_correct":false},{"text":"56","is_correct":true},{"text":"63","is_correct":false},{"text":"49","is_correct":false}]}`,
-  poll: `Пример (poll):
-{"question":"Кој начин на учење ти помага најмногу?","type":"poll","is_quiz":false,"options":[{"text":"Видео-уроци","is_correct":false},{"text":"Читање","is_correct":false},{"text":"Решавање задачи","is_correct":false}]}`,
-  wordcloud: `Пример (wordcloud):
-{"question":"Со еден збор: што ти асоцира на пролет?","type":"wordcloud","is_quiz":false,"options":[]}`,
-  open: `Пример (open):
-{"question":"Опиши накратко што научи денес на час.","type":"open","is_quiz":false,"options":[]}`,
-  rating: `Пример (rating):
-{"question":"Колку ти беше јасна лекцијата (1–5)?","type":"rating","is_quiz":false,"options":[]}`,
-  ranking: `Пример (ranking):
-{"question":"Подреди ги темите по важност за тебе.","type":"ranking","is_quiz":false,"options":[{"text":"Алгебра","is_correct":false},{"text":"Геометрија","is_correct":false},{"text":"Статистика","is_correct":false}]}`,
-};
-
 function validateOutput(parsed, type) {
   if (!parsed || typeof parsed !== 'object') return { ok: false, reason: 'not_object' };
   if (typeof parsed.question !== 'string' || parsed.question.trim().length < 3) {
@@ -247,95 +312,97 @@ export default async function handler(req) {
     }
   } catch { /* ignore */ }
 
+  // Per-user plan enforcement (Sprint billing).
+  const quota = await checkAiQuota(req);
+  if (!quota.allowed) {
+    return new Response(
+      JSON.stringify({
+        error: quota.reason || 'Лимитот за AI генерации е достигнат.',
+        plan: quota.plan,
+        used: quota.used,
+        quota: { perDay: quota.quota.aiPerDay, perMonth: quota.quota.aiPerMonth },
+        upgrade: '/pricing',
+      }),
+      {
+        status: 402,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Plan': quota.plan,
+          'X-AI-Quota-Month': String(quota.quota.aiPerMonth),
+          'X-AI-Quota-Day': String(quota.quota.aiPerDay),
+        },
+      }
+    );
+  }
+
   let body;
   try { body = await req.json(); } catch {
     return new Response(JSON.stringify({ error: 'Invalid JSON body' }), { status: 400 });
   }
 
-  const { prompt, type, strategy = 'default', bloom, gradeLevel, subject, imageBase64, imageMime } = body;
-
-  const VALID_TYPES = ['poll', 'quiz', 'wordcloud', 'open', 'rating', 'ranking'];
-  const VALID_STRATEGIES = ['default', 'cot', 'tot'];
-  const VALID_BLOOM = ['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create'];
-
-  const BLOOM_GUIDE = {
-    remember:   'Bloom — Запомнување: фокус на факти, дефиниции, термини. Прашањата проверуваат препознавање.',
-    understand: 'Bloom — Разбирање: ученикот објаснува, парафразира или интерпретира концепт.',
-    apply:      'Bloom — Примена: ученикот применува знаење во нова ситуација или решава проблем.',
-    analyze:    'Bloom — Анализа: ученикот разложува информации, идентификува причини и врски.',
-    evaluate:   'Bloom — Евалуација: ученикот критички оценува тврдења, аргументи или решенија.',
-    create:     'Bloom — Создавање: ученикот синтетизира ново решение, идеја или продукт.',
-  };
-
-  const hasImage = typeof imageBase64 === 'string' && imageBase64.length > 100;
-  const minPromptLen = hasImage ? 0 : 3; // image alone is enough context
-  const maxImageBytesB64 = 4 * 1024 * 1024; // ~3MB binary
-
-  if (!type || !VALID_TYPES.includes(type)) {
-    return new Response(JSON.stringify({ error: 'Невалиден тип на активност.' }), { status: 400 });
+  const validation = validateGeneratePayload(body);
+  if (!validation.ok) {
+    return new Response(JSON.stringify({ error: validation.error }), { status: validation.status || 400 });
   }
-  if (!VALID_STRATEGIES.includes(strategy)) {
-    return new Response(JSON.stringify({ error: 'Невалидна стратегија.' }), { status: 400 });
-  }
-  if (typeof prompt !== 'string' || prompt.trim().length < minPromptLen || prompt.length > 500) {
-    return new Response(JSON.stringify({ error: 'Промптот мора да биде до 500 знаци.' }), { status: 400 });
-  }
-  if (hasImage && imageBase64.length > maxImageBytesB64) {
-    return new Response(JSON.stringify({ error: 'Сликата е преголема (max 3MB).' }), { status: 413 });
-  }
+
+  const {
+    prompt,
+    type,
+    strategy,
+    bloom,
+    gradeLevel,
+    subject,
+    hasImage,
+    imageBase64,
+    imageMime,
+  } = validation.data;
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return new Response(JSON.stringify({ error: 'AI API key not configured' }), { status: 500 });
   }
 
-  const isAdvanced = strategy === 'cot' || strategy === 'tot';
+  const isAdvanced = isAdvancedReasoningStrategy(strategy);
   const modelToUse = isAdvanced
     ? (process.env.GEMINI_PRO_MODEL || 'gemini-2.5-pro')
     : (process.env.GEMINI_FLASH_MODEL || 'gemini-2.5-flash');
 
-  const safeBloom = VALID_BLOOM.includes(bloom) ? bloom : null;
-  const safeGrade = typeof gradeLevel === 'string' ? gradeLevel.slice(0, 40) : '';
-  const safeSubject = typeof subject === 'string' ? subject.slice(0, 60) : '';
+  const safeBloom = bloom;
+  const safeGrade = gradeLevel;
+  const safeSubject = subject;
 
-  const pedagogicalContext = [
-    safeBloom ? BLOOM_GUIDE[safeBloom] : '',
-    safeGrade ? `Возрасна група / одделение: ${safeGrade}.` : '',
-    safeSubject ? `Предмет: ${safeSubject}.` : '',
-  ].filter(Boolean).join(' ');
+  const pedagogicalContext = buildPedagogicalContext({
+    bloom: safeBloom,
+    gradeLevel: safeGrade,
+    subject: safeSubject,
+  });
 
-  let strategyInstructions = '';
-  if (strategy === 'cot') {
-    strategyInstructions = 'Користи Chain-of-Thought (CoT): прво анализирај ја темата подлабоко, идентификувај ги клучните образовни цели и размисли кој е најдобриот концепт пред да го генерираш JSON-от.';
-  } else if (strategy === 'tot') {
-    strategyInstructions = 'Користи Tree-of-Thoughts (ToT): генерирај 3 различни идеи во себе, оцени ги според нивото на Bloom-овата таксономија и избери ја онаа што најмногу поттикнува критичко размислување.';
-  }
+  const strategyInstructions = buildReasoningInstructions(strategy);
 
   const visionInstructions = hasImage
     ? 'ВАЖНО: Корисникот прикачи слика. Прочитај го текстот / содржината на сликата (OCR + анализа) и генерирај прашање што директно се однесува на тоа што е прикажано. Ако има математичка задача, направи квиз со точниот одговор. Ако има текст, направи прашање за разбирање.'
     : '';
 
-  const fewShot = FEWSHOT[type] || '';
+  const fewShot = FEWSHOT_BY_TYPE[type] || '';
 
-  const systemInstructions = `Ти си светски експерт за Prompt Engineering и EdTech за MKD Slidea.
-Креирај ${type === 'quiz' ? 'КВИЗ' : 'ИНТЕРАКТИВНА АКТИВНОСТ'} (${type}) на тема: "${prompt || '(види прикачена слика)'}".
-${pedagogicalContext}
-${strategyInstructions}
-${visionInstructions}
+  // Sprint 8.1.4 — RAG: грамоти го промптот со MK курикулум + слични шаблони.
+  let ragContext = '';
+  try {
+    const rag = await ragRetrieve({ prompt, subject: safeSubject, gradeLevel: safeGrade });
+    ragContext = buildRagContext(rag);
+  } catch (err) {
+    console.error('[generate] RAG retrieve failed (non-fatal):', err?.message);
+  }
 
-ПРАВИЛА:
-1. Излезот МОРА да биде САМО валиден JSON објект (без markdown wrappers, без објаснувања).
-2. Користи чист МАКЕДОНСКИ литературен јазик; точна интерпункција и правопис.
-3. Прашањето да е јасно, недвосмислено, едукативно и возрасно соодветно.
-4. За тип "quiz": ТОЧНО 3 ИЛИ 4 опции, ТОЧНО ЕДНА со "is_correct": true; погрешните одговори да бидат веродостојни (не очигледно глупави).
-5. За тип "poll" / "ranking": 3-5 опции; сите со "is_correct": false.
-6. За "wordcloud", "open", "rating": options МОРА да биде празна низа [].
-7. Не повторувај го прашањето во опциите. Не користи „сите наведени" / „ниту едно".
-
-JSON Шема:
-{"question":"...","type":"${type}","is_quiz":${type === 'quiz'},"options":[...]}
-
-${fewShot}`;
+  const systemInstructions = buildSystemInstructions({
+    type,
+    prompt,
+    pedagogicalContext,
+    strategyInstructions,
+    visionInstructions,
+    ragContext,
+    fewShot,
+  });
 
   let parsed;
   let attempt = 0;
@@ -373,8 +440,18 @@ ${fewShot}`;
   // Sprint 6.3 — fire-and-forget anonymous vocab log. No PII, no event_id.
   try { logVocab(prompt, safeSubject); } catch { /* ignore */ }
 
+  // Bump per-user AI quota counters (fire-and-forget).
+  try { if (typeof quota?.bump === 'function') await quota.bump(); } catch { /* ignore */ }
+
   return new Response(JSON.stringify(parsed), {
     status: 200,
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Plan': quota?.plan || 'free',
+      'X-AI-Quota-Month': String(quota?.quota?.aiPerMonth ?? ''),
+      'X-AI-Quota-Day': String(quota?.quota?.aiPerDay ?? ''),
+      'X-AI-Used-Month': String((quota?.used?.month ?? 0) + 1),
+      'X-AI-Used-Day': String((quota?.used?.day ?? 0) + 1),
+    },
   });
 }

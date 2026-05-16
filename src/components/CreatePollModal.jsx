@@ -21,6 +21,7 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
   const [coverMeta, setCoverMeta] = useState(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [curriculumTags, setCurriculumTags] = useState([]);
+  const [presenterNotes, setPresenterNotes] = useState('');
   const questionRef = useRef(null);
   const optionRefs = useRef({});
   const activeFieldRef = useRef({ kind: 'question' });
@@ -36,12 +37,14 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
       setCoverUrl(initialData.cover_url || '');
       setCoverMeta(initialData.cover_meta || null);
       setCurriculumTags(Array.isArray(initialData.curriculum_tags) ? initialData.curriculum_tags : []);
+      setPresenterNotes(initialData.presenter_notes || '');
     } else {
       setQuestion('');
       setOptions(['', '']);
       setCoverUrl('');
       setCoverMeta(null);
       setCurriculumTags([]);
+      setPresenterNotes('');
     }
   }, [initialData, isOpen]);
 
@@ -129,6 +132,7 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
         cover_url: coverUrl || null,
         cover_meta: coverMeta || null,
         curriculum_tags: curriculumTags && curriculumTags.length ? curriculumTags : null,
+        presenter_notes: presenterNotes ? presenterNotes.slice(0, 4000) : null,
         survey_questions: isSurvey ? surveyQuestions.map(q => ({
           id: q.id,
           text: q.text.slice(0, 300),
@@ -146,6 +150,7 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
       setCoverUrl('');
       setCoverMeta(null);
       setCurriculumTags([]);
+      setPresenterNotes('');
     }
   };
 
@@ -219,6 +224,19 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
                     questionText={question}
                     value={curriculumTags}
                     onChange={setCurriculumTags}
+                  />
+                </div>
+                <div className="mt-4">
+                  <label className="block text-xs font-black text-slate-400 uppercase tracking-widest px-1 mb-2">
+                    Белешки за презентер (само за хост)
+                  </label>
+                  <textarea
+                    value={presenterNotes}
+                    onChange={(e) => setPresenterNotes(e.target.value)}
+                    placeholder="Напомени, поенти, точки за дискусија — невидливи за учесниците."
+                    rows={3}
+                    maxLength={4000}
+                    className="w-full bg-amber-50/40 border-2 border-amber-100 rounded-2xl px-5 py-3 text-sm font-bold text-slate-700 focus:border-amber-400 focus:bg-white outline-none transition-all resize-y"
                   />
                 </div>
               </div>

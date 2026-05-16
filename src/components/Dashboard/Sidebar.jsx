@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   Home, Presentation, LayoutGrid, Users, 
-  CreditCard, Share2, Trash2, LogOut, BarChart2, Lock, Shield, Gift, KeyRound, User
+  CreditCard, Share2, Trash2, LogOut, BarChart2, Lock, Shield, Gift, KeyRound, User, Sparkles, Building2, Receipt
 } from 'lucide-react';
 
 const Sidebar = ({ activeTab, setActiveTab, user, onLogout }) => {
@@ -11,12 +11,17 @@ const Sidebar = ({ activeTab, setActiveTab, user, onLogout }) => {
     { id: 'home', label: 'Почетна', icon: <Home size={20} /> },
     { id: 'presentations', label: 'Мои презентации', icon: <Presentation size={20} /> },
     { id: 'analytics', label: 'Аналитика', icon: <BarChart2 size={20} />, locked: userPlan === 'basic' },
+    { id: 'semantic', label: 'AI пребарување', icon: <Sparkles size={20} /> },
     { id: 'templates', label: 'Сите шаблони', icon: <LayoutGrid size={20} /> },
     { id: 'team', label: 'Креирај тим', icon: <Users size={20} />, locked: userPlan === 'basic' },
+    { id: 'organizations', label: 'Организации', icon: <Building2 size={20} /> },
     { id: 'plan', label: 'Мој план', icon: <CreditCard size={20} /> },
     { id: 'profile', label: 'Профил', icon: <User size={20} /> },
     { id: 'referrals', label: 'Препорачај', icon: <Gift size={20} /> },
-    ...(user?.role === 'admin' ? [{ id: 'admin', label: 'Админ панел', icon: <Shield size={20} /> }] : []),
+    ...(user?.role === 'admin' ? [
+      { id: 'admin', label: 'Админ панел', icon: <Shield size={20} /> },
+      { id: 'orders', label: 'Нарачки/Уплати', icon: <Receipt size={20} /> },
+    ] : []),
     { id: 'integrations', label: 'Интеграции', icon: <Share2 size={20} /> },
     { id: 'api', label: 'API клучеви', icon: <KeyRound size={20} /> },
     { id: 'trash', label: 'Корпа', icon: <Trash2 size={20} /> },

@@ -1,10 +1,32 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ShieldCheck, CheckCircle2, Zap, Star, Trophy, Users, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useSEO } from '../hooks/useSEO';
 
 const Pricing = ({ setView }) => {
+  const navigate = useNavigate();
+  useSEO({
+    title: 'Цени | MKD Slidea — Бесплатен и Pro план за наставници и фирми',
+    description: 'Бесплатен план со 200 учесници, Pro план од €20/година. Македонска интерактивна платформа за настава, обуки и состаноци.',
+    keywords: 'цени, mentimeter алтернатива, slidea план, бесплатен квиз, pro план',
+    path: '/pricing',
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      'name': 'MKD Slidea',
+      'description': 'Македонска интерактивна платформа за настава, обуки и презентации.',
+      'brand': { '@type': 'Brand', 'name': 'MKD Slidea' },
+      'offers': [
+        { '@type': 'Offer', 'name': 'Бесплатен', 'price': '0', 'priceCurrency': 'EUR', 'availability': 'https://schema.org/InStock' },
+        { '@type': 'Offer', 'name': 'Месечен', 'price': '5', 'priceCurrency': 'EUR', 'availability': 'https://schema.org/InStock' },
+        { '@type': 'Offer', 'name': 'Годишен', 'price': '20', 'priceCurrency': 'EUR', 'availability': 'https://schema.org/InStock' },
+      ],
+    },
+  });
   const plans = [
     {
+      code: null,
       name: "Бесплатен",
       price: "0",
       period: "/засекогаш",
@@ -22,6 +44,7 @@ const Pricing = ({ setView }) => {
       tag: "ОСНОВЕН"
     },
     {
+      code: 'monthly',
       name: "Месечен",
       price: "5",
       period: "/мес",
@@ -39,6 +62,7 @@ const Pricing = ({ setView }) => {
       tag: "FLEX"
     },
     {
+      code: 'quarterly',
       name: "Квартален",
       price: "10",
       period: "/3 мес",
@@ -56,6 +80,7 @@ const Pricing = ({ setView }) => {
       tag: "SAVER"
     },
     {
+      code: 'semester',
       name: "Семестрален",
       price: "15",
       period: "/6 мес",
@@ -74,6 +99,7 @@ const Pricing = ({ setView }) => {
       popular: true
     },
     {
+      code: 'yearly',
       name: "Годишен",
       price: "20",
       period: "/год",
@@ -91,6 +117,14 @@ const Pricing = ({ setView }) => {
       tag: "НАЈДОБРА ПОНУДА"
     }
   ];
+
+  const goToCheckout = (plan) => {
+    if (!plan.code) {
+      setView('host');
+    } else {
+      navigate(`/checkout/${plan.code}`);
+    }
+  };
 
   return (
     <motion.div
@@ -137,7 +171,7 @@ const Pricing = ({ setView }) => {
             </ul>
 
             <button 
-              onClick={() => setView('host')}
+              onClick={() => goToCheckout(plan)}
               className={`w-full py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl transition-all active:scale-95 ${plan.btnColor}`}
             >
               {plan.button}

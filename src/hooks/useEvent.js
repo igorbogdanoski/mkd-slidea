@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase, warmUp } from '../lib/supabase';
+import { pipelineQuestions } from '../lib/questionsCore';
 
 export const useEvent = (eventCode) => {
   const [event, setEvent] = useState(null);
@@ -33,16 +34,7 @@ export const useEvent = (eventCode) => {
       return;
     }
 
-    const rows = data || [];
-    const activeOnly = rows.filter((q) => {
-      if (Object.prototype.hasOwnProperty.call(q, 'is_answered')) {
-        return q.is_answered === false;
-      }
-      return true;
-    });
-
-    const hasApprovalFlag = activeOnly.some((q) => Object.prototype.hasOwnProperty.call(q, 'is_approved'));
-    setQuestions(hasApprovalFlag ? activeOnly.filter((q) => q.is_approved === true) : activeOnly);
+    setQuestions(pipelineQuestions(data || []));
   }, []);
 
   useEffect(() => {
@@ -147,10 +139,21 @@ export const useEvent = (eventCode) => {
       )
       .subscribe();
 
+    // Sprint 8.3.2 — Realtime BROADCAST overlay (zero DB cost).
+    // Постара DB-backed insert табела сè уште работи како fallback, но primary
+    // патот е ефемерен broadcast `reactions:<event_id>`.
     const reactionChannel = supabase
-      .channel(`event-reactions-${event.id}`)
-      .on('postgres_changes', 
-        { event: 'INSERT', schema: 'public', table: 'reactions', filter: `event_id=eq.${event.id}` }, 
+      .channel(`reactions:${event.id}`, { config: { broadcast: { self: true } } })
+      .on('broadcast', { event: 'emoji' }, ({ payload }) => {
+        const id = payload?.id || `r-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        const newReaction = { id, emoji: payload?.emoji || '👍', timestamp: Date.now() };
+        setReactions(prev => [...prev, newReaction]);
+        setTimeout(() => {
+          setReactions(prev => prev.filter(r => r.id !== id));
+        }, 4000);
+      })
+      .on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'reactions', filter: `event_id=eq.${event.id}` },
         (payload) => {
           const newReaction = { ...payload.new, timestamp: Date.now() };
           setReactions(prev => [...prev, newReaction]);
@@ -248,8 +251,25 @@ export const useEvent = (eventCode) => {
     };
   }, [event?.id, event?.active_poll_id, fetchPolls, fetchQuestions]);
 
+  // Sprint 8.3.2 — primary path: Realtime broadcast (zero DB cost).
+  // Ако broadcast потфрли (rare), fallback на DB insert.
   const sendReaction = async (emoji) => {
     if (!event) return;
+    if (!event.is_reactions_enabled && event.is_reactions_enabled !== undefined) return;
+    const id = `r-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    try {
+      const ch = supabase.channel(`reactions:${event.id}`, { config: { broadcast: { self: false } } });
+      await new Promise((resolve) => {
+        ch.subscribe((status) => { if (status === 'SUBSCRIBED') resolve(); });
+        setTimeout(resolve, 800);
+      });
+      const res = await ch.send({ type: 'broadcast', event: 'emoji', payload: { id, emoji } });
+      // Optimistic локален render за испраќачот
+      setReactions(prev => [...prev, { id, emoji, timestamp: Date.now() }]);
+      setTimeout(() => setReactions(prev => prev.filter(r => r.id !== id)), 4000);
+      supabase.removeChannel(ch);
+      if (res === 'ok') return { data: { id }, error: null };
+    } catch { /* fall through */ }
     return await supabase.from('reactions').insert([{ event_id: event.id, emoji }]);
   };
 
@@ -282,28 +302,75 @@ export const useEvent = (eventCode) => {
     }]);
   };
 
+  // Sprint 8.3.1 — session id за анонимни upvotes (per browser)
+  const getSessionId = () => {
+    if (typeof window === 'undefined') return 'srv';
+    let sid = window.localStorage.getItem('mkd_session');
+    if (!sid) {
+      sid = (crypto?.randomUUID?.() || `s-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`);
+      window.localStorage.setItem('mkd_session', sid);
+    }
+    return sid;
+  };
+
   const submitQuestion = async (text, author = "Гостин") => {
     if (!event) return;
     const clean = String(text || '').replace(/<[^>]+>/g, '').trim().slice(0, 300);
     if (clean.length < 3) return;
     const isApproved = !event.questions_moderation;
-    return await supabase.from('questions').insert([{ event_id: event.id, text: clean, author, votes: 0, is_approved: isApproved }]);
+    return await supabase.from('questions').insert([{
+      event_id: event.id,
+      text: clean,
+      author,
+      votes: 0,
+      is_approved: isApproved,
+      session_id: getSessionId(),
+    }]);
   };
 
+  // Sprint 8.3.1 — toggle session-scoped upvote (anti-spam, RPC атомски).
+  // Fallback на старо `increment_question_vote` ако RPC уште не е мигриран.
   const upvoteQuestion = async (questionId) => {
-    return await supabase.rpc('increment_question_vote', { question_id: questionId });
+    const sid = getSessionId();
+    const { data, error } = await supabase.rpc('toggle_question_upvote', {
+      p_question_id: questionId,
+      p_session_id: sid,
+    });
+    if (error) {
+      // pre-migration fallback
+      return supabase.rpc('increment_question_vote', { question_id: questionId });
+    }
+    return { data, error: null };
   };
 
   const markQuestionAnswered = async (questionId) => {
     return await supabase
       .from('questions')
-      .update({ is_answered: true })
+      .update({ is_answered: true, answered_at: new Date().toISOString() })
+      .eq('id', questionId);
+  };
+
+  // Sprint 8.3.1 — pin / hide за host moderation queue
+  const setQuestionPinned = async (questionId, pinned) => {
+    return await supabase
+      .from('questions')
+      .update({ is_pinned: !!pinned })
+      .eq('id', questionId);
+  };
+
+  const setQuestionHidden = async (questionId, hidden) => {
+    return await supabase
+      .from('questions')
+      .update({ is_hidden: !!hidden })
       .eq('id', questionId);
   };
 
   return {
     event, polls, questions, reactions,
     loading, error, vote, submitSurvey, submitQuestion,
-    upvoteQuestion, markQuestionAnswered, sendReaction
+    upvoteQuestion, markQuestionAnswered,
+    setQuestionPinned, setQuestionHidden,
+    sendReaction,
+    getSessionId,
   };
 };

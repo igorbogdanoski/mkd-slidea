@@ -3,6 +3,12 @@
 **Средина:** React + Vite + Supabase + Vercel Edge  
 **Ревизија:** Април 2026 · Expert review интегриран
 
+**Работни принципи (обврзувачки):**
+- Модуларност прво: секоја голема capability во посебен helper/module, без монолитни API рути.
+- Чести проверки: по секоја подфаза задолжително `lint` + `build` + `test` (и краток smoke-check на критичниот flow).
+- RAG-first: retrieval grounding (курикулум + шаблони + сопствени податоци) пред финална генерација.
+- Prompt Engineering на напредно ниво: SoS, ToT, CoT, self-consistency и critic-refine pass во backend инструкциите.
+
 ---
 
 ## ✅ SPRINT 0 — Завршено (9 Апр 2026)
@@ -523,6 +529,78 @@ Expansion loops:
 - [x] **7.D PDF увоз** ✅ — `ImportPPTXModal.parsePdfFile()` lazy-load `pdfjs-dist` + worker (`pdf.worker.min.mjs?url`) само при .pdf избор; парсира text items по page со Y-координата line detection; cap 8MB / 50 страни; partial-success при rate-limit; clear error за скенирани PDF-ови. Цена: 0€.
 - [x] **7.E Pollinations.ai контекстуална илустрација** ✅ — `generateWithPollinations()` во `IllustrationPickerModal` Generate tab → `https://image.pollinations.ai/prompt/{enhanced}?width=1024&height=576&nologo=true&seed=...` (бесплатно, без клуч); enriched prompt со „educational illustration, clean, vibrant, flat design"; preload validation пред показ; fallback error UI. Цена: 0€.
 - [x] **7.F Hardened prompt engineering** ✅ — `api/generate.js` enrich со `FEWSHOT` примери по type (quiz/poll/wordcloud/open/rating/ranking), `BLOOM_GUIDE` per ниво, structured JSON schema во system prompt; `validateOutput()` server-side (no deps): question length ≥3 / ≤300, options 2-6, quiz auto-fix exactly 1 correct, options кларира [] за wordcloud/open/rating; retry еднаш со tighter temperature (0.4) при validator fail. Цена: 0€.
+
+## ФАЗА 8 — „Македонски бисер" (Sprint 21–24) 🟣
+*Цел: секое училиште, НВО, фирма и корпорација во МК да сака MKD Slidea. Парира на Mentimeter / Slido / PearDeck / Nearpod, со moat кој тие не можат да го реплицираат: курикулум-grounded RAG, MK/AL/EN, нула-cost AI стек.*
+
+### 8.1 — RAG + Gemini Embeddings (data moat) 🔴 ПРИОРИТЕТ 1
+*Цел: AI генерациите да бидат grounded во MK курикулум + community templates + сопствена историја на хост.*
+
+- [x] **8.1.1 pgvector setup** ✅ — `SUPABASE_PGVECTOR_RAG.sql`: vector ext, embedding vector(768) на polls/community_templates, curriculum_chunks, HNSW (vector_cosine_ops, m=16/ef_construction=64), RPCs match_curriculum / match_templates / match_my_polls + embedding_backfill_stats.
+- [x] **8.1.2 Embedding helper** ✅ — `api/_lib/embeddings.js`: `embedText` со 768-dim Matryoshka L2-renorm, LRU cache (50), 429/503 retry, `embedBatch`, `toPgVector`.
+- [x] **8.1.3 Backfill batch** ✅ — `api/embed-batch.js` Edge function (`EMBED_BATCH_SECRET` Bearer auth), batch=20 за templates/polls/curriculum; `vercel.json` cron `*/15 * * * *`.
+- [x] **8.1.4 RAG retrieval во generate.js** ✅ — `ragRetrieve` + `buildRagContext` инјектиран како „КОНТЕКСТ ОД МК КУРИКУЛУМ" во system prompt; toggleable со ENV `RAG_ENABLED`.
+- [x] **8.1.5 Семантичко пребарување** ✅ — `api/semantic-search.js` Edge endpoint + `SemanticSearchTab.jsx` со subject/grade филтри, similarity bars, example chips; жичено во Sidebar (Sparkles, „AI пребарување") + Dashboard `case 'semantic'`.
+- [x] **8.1.6 „Chat-with-your-events" (минимум)** ✅ — `match_my_polls` RPC + scope во `/api/semantic-search` со Bearer JWT за auth.uid() resolve; UI секција „Мои претходни прашања" во SemanticSearchTab.
+
+### 8.2 — SEO darkest darks 🟠
+- [x] **8.2.1 SPA prerender** ✅ — `scripts/prerenderRoutes.js` (zero-dep, post-build node script): пишува route-specific `index.html` за `/pricing`, `/scoreboard`, `/templates`, `/demo`, `/join` со `<title>`, meta description, OG, hreflang (mk-MK / sq-AL / en / x-default) и опционално JSON-LD; `vercel.json` cleanUrls + explicit rewrites пред catch-all; `package.json` build = `vite build && node scripts/prerenderRoutes.js`.
+- [ ] **8.2.2 Per-route meta + hreflang во runtime** — `useSEO()` hook на сите јавни routes (комплемент кон 8.2.1).
+- [ ] **8.2.3 OG image generator** — `api/og.js` (edge, `@vercel/og`) за event/template/teacher pages.
+- [ ] **8.2.4 Schema.org обогатување** — `EducationalApplication` на homepage, `Course` на templates, `Person` со `affiliation` на teacher leaderboard.
+- [ ] **8.2.5 Blog/Resources hub** — `/blog` со MDX за SEO long-tail (MK keywords: „интерактивна настава", „квиз за ученици", „БРО курикулум").
+
+### 8.3 — Парирање на конкуренти (feature gaps) 🟢
+- [x] **8.3.1 Q&A upvote stream** ✅ — `SUPABASE_QA_REACTIONS.sql`: ги надоградува постоечките `questions` со `session_id`, `is_pinned`, `is_hidden`, `answered_at`; нов `question_upvotes` joiner со session-scoped PK; `toggle_question_upvote` RPC (атомски toggle + brojач); RLS (public read, conditional insert по `events.is_qa_enabled`, host-only update/delete); Realtime publication. `useEvent.js` доби `getSessionId()`, нов `submitQuestion` со session_id, `upvoteQuestion` со fallback, `setQuestionPinned` / `setQuestionHidden`, `markQuestionAnswered` со `answered_at`, `fetchQuestions` со sort pinned-first / votes desc и filter `is_hidden=false`. Participant.jsx покажува upvoted state со localStorage `mkd_upvoted_<code>` + pinned бадж. Presenter.jsx host-side копчиња „Pin/Откачи" и „Сокриј" во Q&A queue.
+- [x] **8.3.2 Emoji reactions overlay** ✅ — `useEvent.sendReaction()` primary path преку Supabase Realtime broadcast (`reactions:<event_id>` channel, event `emoji`) — нула DB cost; новиот канал слуша `broadcast` + задржан `postgres_changes` legacy fallback; ефемерни floaters веќе постоечки во Presenter (4s lifetime). Респектира `events.is_reactions_enabled` flag (мигриран во SUPABASE_QA_REACTIONS.sql).
+- [ ] **8.3.3 Drawing annotations** (PearDeck) — `<canvas>` layer врз `cover_url` во Participant; снимка како PNG во `slide-images`.
+- [ ] **8.3.4 Template auto-thumbnails** (Slidesgo) — html2canvas → `template-thumbs` bucket; visual gallery.
+- [ ] **8.3.5 Breakout rooms / тимови** (Kahoot Teams) — `event_rooms`, host random-assign, room-scoped leaderboards.
+- [ ] **8.3.6 Presenter notes + dual-screen** (PearDeck) — `polls.presenter_notes`, `/present/:code` secondary view со current+next slide.
+- [ ] **8.3.7 Live caption & translate** — postoechki `useLiveCaptions` + Gemini Flash translate → MK↔SQ↔EN real-time за инклузивна настава.
+
+### 8.4 — SaaS зрелост (училишен/корпоративен план) 🔵
+- [x] **8.4.1 Organizations / sub-accounts (скелет)** ✅ — `SUPABASE_ORGANIZATIONS.sql`: `organizations` (name/slug/domain/plan/seats/brand/custom_domain/billing/vat), `org_members` (owner/admin/member/viewer), `org_invites` (token + 14d expiry), `org_audit_log`, `events.org_id` FK; full RLS со member-scoped read и admin-scoped write; trigger `on_organization_created` (creator → owner); RPCs `my_organizations()` и `accept_org_invite(token)`. `OrganizationsTab.jsx` UI: create form (name + domain), grid на orgs со role-badge + plan/seats; жичено во Sidebar и Dashboard router.
+- [ ] **8.4.2 Stripe Customer Portal** — самопослужно upgrade / отказ / VAT invoices / proforma за јавни набавки.
+- [ ] **8.4.3 SSO Google Workspace for Education** — Supabase OIDC + домен-allowlist по org.
+- [ ] **8.4.4 Audit log** — `audit_log(org_id, actor, action, target, ts)` + GDPR export tool.
+- [ ] **8.4.5 Usage metering UI** — events/AI calls по месец, soft-cap warnings, upgrade CTA inline.
+- [ ] **8.4.6 Onboarding email drip** — day-3, day-7, day-14 sequences (резрешен Resend).
+- [ ] **8.4.7 White-label** — custom domain CNAME, brand kit (font + лого + accent) per org.
+
+### 8.5 — Local trust & GTM 🟤
+- [ ] **8.5.1 МОН/БРО партнерство pitch deck** — само-сервис edu-discount за `*.edu.mk`.
+- [ ] **8.5.2 НВО таб** — бесплатен Pro 1 година за регистрирани НВО (со `*.org.mk` верификација).
+- [ ] **8.5.3 Корпоративни templates** — onboarding/HR/training/town-hall со MK localization.
+- [ ] **8.5.4 Case studies на /blog** — првите 3 училишта што го користат.
+
+### 8.6 — Test coverage (Phase 8 unit suite) ✅
+- [x] **8.6.1 Pure helpers extraction** ✅ — `src/lib/embeddingsCore.js` (l2normalize, truncateAndRenorm, cleanInput, toPgVector, EMBED_DIM_DEFAULT), `scripts/seoHelpers.js` (escapeHtml, escapeAttr, injectMeta), `src/lib/questionsCore.js` (filterActiveQuestions, filterApprovedIfFlagged, sortPinnedThenVotes, pipelineQuestions). `api/_lib/embeddings.js` и `useEvent.js` ре-факторирани да импортираат од овие — без regression.
+- [x] **8.6.2 Native node:test runner** ✅ — vitest 4.x пука на path со spaces („MKD Slidea") + `@vitejs/plugin-react` клинч; switch-нато на `node --test` за unit (нула dep, native од Node 20+). `vitest.unit.config.js` остана за идна употреба ако се поправи upstream.
+- [x] **8.6.3 Unit suite (44 tests across 3 files)** ✅
+  - `src/__tests__/embeddings.test.js` — 16 тестови (unit-norm, zero vec, Matryoshka truncation, whitespace/maxLen, pgvector format).
+  - `src/__tests__/seoHelpers.test.js` — 15 тестови (HTML escaping, title/canonical/desc/og injection, hreflang quartet, JSON-LD opt-in, fallback insertion).
+  - `src/__tests__/questionsCore.test.js` — 13 тестови (hidden/answered filter, approval toggle, pinned-then-votes sort, full pipeline).
+- [x] **8.6.4 npm script** ✅ — `npm run test:unit` (registered во `package.json`) → 44/44 pass за ~270ms. Build remains green (`vite build` ✓ 3130 modules).
+
+### Редослед на спринт (наредни 14 дена)
+| Ден | Задача |
+|---|---|
+| 1 | 8.1.1 pgvector миграција + 8.1.2 embeddings helper |
+| 2 | 8.1.3 backfill + 8.1.4 RAG во generate.js |
+| 3 | 8.1.5 SemanticSearchTab |
+| 4 | 8.2.1 SPA prerender + 8.2.3 OG generator |
+| 5 | 8.3.1 Q&A upvote + 8.3.2 emoji reactions |
+| 6-7 | 8.4.1 organizations + 8.4.2 Stripe portal |
+| 8 | 8.3.4 template thumbnails + 8.3.6 presenter notes |
+| 9 | 8.4.3 SSO Google Workspace |
+| 10 | 8.3.3 drawing annotations |
+| 11 | 8.4.5 usage UI + 8.4.6 email drip |
+| 12 | 8.3.5 breakout rooms |
+| 13 | 8.2.5 blog hub seed |
+| 14 | 8.5 GTM materials + bug-bash |
+
+---
 
 ## Прозорец за следните 7 дена
 | Ден | Задача |

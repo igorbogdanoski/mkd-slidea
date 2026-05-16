@@ -5,9 +5,12 @@ import HomeTab from '../components/Dashboard/HomeTab';
 import AnalyticsTab from '../components/Dashboard/AnalyticsTab';
 import EventResultsModal from '../components/Dashboard/EventResultsModal';
 import AdminTab from '../components/Dashboard/AdminTab';
+import OrdersTab from '../components/Dashboard/OrdersTab';
 import ReferralsTab from '../components/Dashboard/ReferralsTab';
 import ApiKeysTab from '../components/Dashboard/ApiKeysTab';
 import ProfileTab from '../components/Dashboard/ProfileTab';
+import SemanticSearchTab from '../components/Dashboard/SemanticSearchTab';
+import OrganizationsTab from '../components/Dashboard/OrganizationsTab';
 import { Download, ExternalLink, Presentation, GraduationCap, FileSpreadsheet, CheckCircle2 } from 'lucide-react';
 import { templates } from '../data/templates';
 import { supabase } from '../lib/supabase';
@@ -300,12 +303,20 @@ const Dashboard = ({ setView, user, onLogout }) => {
         return user?.role === 'admin'
           ? <AdminTab currentUser={user} />
           : null;
+      case 'orders':
+        return user?.role === 'admin'
+          ? <OrdersTab currentUser={user} />
+          : null;
       case 'referrals':
         return <ReferralsTab user={user} />;
       case 'api':
         return <ApiKeysTab user={user} />;
       case 'profile':
         return <ProfileTab user={user} />;
+      case 'semantic':
+        return <SemanticSearchTab user={user} />;
+      case 'organizations':
+        return <OrganizationsTab user={user} />;
       case 'plan':
         const planInfo = {
           free:      { name: 'Бесплатен',    price: '€0',  period: 'Засекогаш',  participants: '200', polls: '3', events: '5' },

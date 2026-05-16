@@ -109,6 +109,7 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(user?.id ? { 'x-user-id': user.id } : {}),
         },
         body: JSON.stringify({
           prompt,

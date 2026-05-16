@@ -27,7 +27,9 @@ const EventWrapper = ({ type, username, setUsername }) => {
   const {
     event, polls, questions, reactions,
     loading, error, vote, submitSurvey, submitQuestion,
-    upvoteQuestion, markQuestionAnswered, sendReaction
+    upvoteQuestion, markQuestionAnswered,
+    setQuestionPinned, setQuestionHidden,
+    sendReaction
   } = useEvent(normalizedCode);
 
   const { setEvent, setPresence } = useEventStore();
@@ -146,6 +148,8 @@ const EventWrapper = ({ type, username, setUsername }) => {
         activePollIndex={activePollIndex}
         leaderboard={[]}
         markQuestionAnswered={markQuestionAnswered}
+        setQuestionPinned={setQuestionPinned}
+        setQuestionHidden={setQuestionHidden}
       />
     );
   }

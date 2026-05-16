@@ -243,7 +243,9 @@ const Host = ({ setView, user }) => {
           .update({ 
             question: pollData.question,
             type: pollData.type || 'poll',
-            is_quiz: !!pollData.is_quiz
+            is_quiz: !!pollData.is_quiz,
+            presenter_notes: pollData.presenter_notes ?? null,
+            curriculum_tags: pollData.curriculum_tags ?? null
           })
           .eq('id', editingPoll.id);
         
@@ -274,6 +276,8 @@ const Host = ({ setView, user }) => {
           is_quiz: !!pollData.is_quiz,
           type: pollData.type || 'poll',
           survey_questions: pollData.survey_questions || [],
+          presenter_notes: pollData.presenter_notes ?? null,
+          curriculum_tags: pollData.curriculum_tags ?? null,
         }]).select().single();
         
         if (pollError) throw pollError;

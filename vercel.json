@@ -1,13 +1,24 @@
 {
   "framework": "vite",
+  "cleanUrls": true,
+  "trailingSlash": false,
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/pricing", "destination": "/pricing/index.html" },
+    { "source": "/scoreboard", "destination": "/scoreboard/index.html" },
+    { "source": "/templates", "destination": "/templates/index.html" },
+    { "source": "/demo", "destination": "/demo/index.html" },
+    { "source": "/join", "destination": "/join/index.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "crons": [
     {
       "path": "/api/keepalive",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/embed-batch",
+      "schedule": "*/15 * * * *"
     }
   ],
   "headers": [

@@ -261,19 +261,23 @@ const NumbersView = ({ options, totalVotes }) => {
 };
 
 // ─── Main Presenter ───────────────────────────────────────────────────────────
-const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reactions = [], markQuestionAnswered }) => {
+const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reactions = [], markQuestionAnswered, setQuestionPinned, setQuestionHidden }) => {
   const { activeParticipants, activeNow } = useEventStore();
   const [chartMode, setChartMode] = useState('bars');
 
   useKeyboardShortcuts({
     'F': toggleFullscreen,
     'f': toggleFullscreen,
+    'N': () => setShowNotes((v) => !v),
+    'n': () => setShowNotes((v) => !v),
   });
 
   const [timerRemaining, setTimerRemaining] = useState(null);
   const [surveyResponses, setSurveyResponses] = useState([]);
   const [confettiFired, setConfettiFired] = useState(false);
   const [pendingAnsweredId, setPendingAnsweredId] = useState(null);
+  // Sprint 8.3.6 — speaker notes overlay (host-only). Toggle: 'N' key.
+  const [showNotes, setShowNotes] = useState(false);
 
   const eventCode = event?.code || '982341';
   const joinUrl = `${window.location.origin}/event/${eventCode}`;
@@ -769,8 +773,29 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
                   >
                     <p className="text-2xl font-bold mb-4 text-slate-200">{q.text}</p>
                     <div className="flex justify-between items-center">
-                      <span className="text-xs font-black text-slate-500 uppercase tracking-widest">{q.author}</span>
-                      <div className="flex items-center gap-4">
+                      <span className="text-xs font-black text-slate-500 uppercase tracking-widest">
+                        {q.author}
+                        {q.is_pinned && <span className="ml-2 text-amber-400">📌</span>}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        {typeof setQuestionPinned === 'function' && (
+                          <button
+                            onClick={() => setQuestionPinned(q.id, !q.is_pinned)}
+                            className={`px-3 py-1 text-[10px] font-black uppercase rounded-lg border transition-all ${q.is_pinned ? 'bg-amber-500/20 text-amber-300 border-amber-400/30' : 'bg-slate-700/40 hover:bg-slate-700/70 text-slate-400 border-slate-700/40'}`}
+                            title="Pin"
+                          >
+                            {q.is_pinned ? 'Откачи' : 'Pin'}
+                          </button>
+                        )}
+                        {typeof setQuestionHidden === 'function' && (
+                          <button
+                            onClick={() => setQuestionHidden(q.id, true)}
+                            className="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-[10px] font-black uppercase rounded-lg border border-rose-500/20 transition-all"
+                            title="Сокриј"
+                          >
+                            Сокриј
+                          </button>
+                        )}
                         <button onClick={() => {
                           if (pendingAnsweredId === q.id) {
                             markQuestionAnswered(q.id);
@@ -799,6 +824,36 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
           </div>
         </div>
       </div>
+
+      {/* Sprint 8.3.6 — Presenter notes overlay (host-only, toggle 'N') */}
+      <AnimatePresence>
+        {showNotes && currentPoll?.presenter_notes && (
+          <motion.div
+            key="presenter-notes"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
+            transition={{ duration: 0.25 }}
+            className="fixed bottom-6 right-6 z-[60] max-w-md bg-amber-50 border-2 border-amber-300 rounded-3xl shadow-2xl p-5 text-slate-800"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-700">
+                Белешки за презентер
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowNotes(false)}
+                className="text-amber-600 hover:text-amber-800 text-xs font-black uppercase tracking-widest"
+              >
+                N · скриј
+              </button>
+            </div>
+            <p className="text-sm font-bold whitespace-pre-wrap leading-relaxed">
+              {currentPoll.presenter_notes}
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Footer */}
       <div className="mt-auto pt-8 flex items-center justify-between border-t border-slate-800/50 text-slate-600 font-black text-xs uppercase tracking-[0.2em]">

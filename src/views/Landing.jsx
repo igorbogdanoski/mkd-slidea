@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
+import { useSEO } from '../hooks/useSEO';
 
 const faqItems = [
   {
@@ -42,6 +43,54 @@ const demoQuizOptions = [
 ];
 
 const Landing = ({ code, setCode, setView }) => {
+  useSEO({
+    title: 'MKD Slidea | Интерактивни презентации, анкети и квизови во живо',
+    description: 'Македонска интерактивна платформа за настава, обуки и презентации во живо со анкети, квизови, Q&A и word cloud активности во реално време.',
+    keywords: 'интерактивни презентации, mentimeter алтернатива, kahoot алтернатива, квиз во живо, анкета, word cloud, интерактивна настава, БРО курикулум, македонска SaaS',
+    path: '/',
+    image: 'https://slidea.mismath.net/og-image.svg',
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'EducationalApplication',
+          '@id': 'https://slidea.mismath.net/#edu-app',
+          'name': 'MKD Slidea',
+          'description': 'Македонска интерактивна платформа за настава, обуки и презентации во живо со анкети, квизови, Q&A и word cloud активности.',
+          'applicationCategory': 'EducationalApplication',
+          'operatingSystem': 'Web',
+          'url': 'https://slidea.mismath.net/',
+          'inLanguage': ['mk', 'sq', 'sr', 'bg', 'hr', 'ro', 'en'],
+          'audience': {
+            '@type': 'EducationalAudience',
+            'educationalRole': ['teacher', 'student', 'trainer', 'professor', 'corporate trainer'],
+          },
+          'offers': [
+            { '@type': 'Offer', 'price': '0', 'priceCurrency': 'EUR', 'name': 'Бесплатен' },
+            { '@type': 'Offer', 'price': '5', 'priceCurrency': 'EUR', 'name': 'Месечен' },
+            { '@type': 'Offer', 'price': '20', 'priceCurrency': 'EUR', 'name': 'Годишен Pro' },
+          ],
+          'aggregateRating': { '@type': 'AggregateRating', 'ratingValue': '4.8', 'ratingCount': '127', 'bestRating': '5' },
+        },
+        {
+          '@type': 'FAQPage',
+          '@id': 'https://slidea.mismath.net/#faq',
+          'mainEntity': faqItems.map((f) => ({
+            '@type': 'Question',
+            'name': f.question,
+            'acceptedAnswer': { '@type': 'Answer', 'text': f.answer },
+          })),
+        },
+        {
+          '@type': 'BreadcrumbList',
+          '@id': 'https://slidea.mismath.net/#breadcrumb',
+          'itemListElement': [
+            { '@type': 'ListItem', 'position': 1, 'name': 'Почетна', 'item': 'https://slidea.mismath.net/' },
+          ],
+        },
+      ],
+    },
+  });
   const navigate = useNavigate();
   const [activeDemo, setActiveDemo] = useState('wordcloud');
   const [demoValue, setDemoValue] = useState('');

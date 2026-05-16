@@ -5,11 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/generateSitemap.js && node scripts/prerenderRoutes.js",
+    "sitemap": "node scripts/generateSitemap.js",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:unit": "node --test src/__tests__/embeddings.test.js src/__tests__/seoHelpers.test.js src/__tests__/questionsCore.test.js",
+    "test:e2e": "playwright test",
+    "seed:curriculum": "node scripts/seedCurriculum.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.99.3",

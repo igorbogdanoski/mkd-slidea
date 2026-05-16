@@ -3,28 +3,7 @@ import { motion } from 'framer-motion';
 import { Trophy, Crown, Medal, Sparkles, Calendar, ArrowRight, GraduationCap, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-
-const upsertSEO = (title, description, canonical) => {
-  if (typeof document === 'undefined') return;
-  document.title = title;
-  const setMeta = (name, content) => {
-    let el = document.querySelector(`meta[name="${name}"]`);
-    if (!el) {
-      el = document.createElement('meta');
-      el.setAttribute('name', name);
-      document.head.appendChild(el);
-    }
-    el.setAttribute('content', content);
-  };
-  setMeta('description', description);
-  let link = document.querySelector('link[rel="canonical"]');
-  if (!link) {
-    link = document.createElement('link');
-    link.setAttribute('rel', 'canonical');
-    document.head.appendChild(link);
-  }
-  link.setAttribute('href', canonical);
-};
+import { useSEO } from '../hooks/useSEO';
 
 const formatDate = (iso) => {
   if (!iso) return '';
@@ -47,13 +26,20 @@ const PublicScoreboard = () => {
   const [tab, setTab] = useState('players'); // 'players' | 'teachers'
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    upsertSEO(
-      'Скорборд — Топ квиз шампиони во Македонија | MKD Slidea',
-      'Најдобрите играчи на интерактивни квизови во МК. Топ 50 ученици и наставници по освоени поени.',
-      'https://slidea.mismath.net/scoreboard'
-    );
-  }, []);
+  useSEO({
+    title: 'Скорборд — Топ квиз шампиони во Македонија | MKD Slidea',
+    description: 'Најдобрите играчи на интерактивни квизови во МК. Топ 50 ученици и наставници по освоени поени.',
+    keywords: 'скорборд, квиз шампиони, топ наставници, leaderboard, MK',
+    path: '/scoreboard',
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      'name': 'MKD Slidea Скорборд',
+      'description': 'Топ играчи и наставници во MK интерактивни квизови.',
+      'inLanguage': 'mk',
+      'isPartOf': { '@type': 'WebSite', 'name': 'MKD Slidea', 'url': 'https://slidea.mismath.net/' },
+    },
+  });
 
   useEffect(() => {
     let cancelled = false;

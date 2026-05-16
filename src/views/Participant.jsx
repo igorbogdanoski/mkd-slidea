@@ -47,6 +47,34 @@ const Participant = ({
   const [rankingOrder, setRankingOrder] = React.useState([]);
   const [dragIndex, setDragIndex] = React.useState(null);
 
+  // Sprint 8.3.1 — оптимистички трекинг кои прашања ги има upvote-нато оваа сесија.
+  const upvotedKey = `mkd_upvoted_${eventCode || 'x'}`;
+  const [upvotedIds, setUpvotedIds] = React.useState(() => {
+    try {
+      const raw = typeof window !== 'undefined' ? window.localStorage.getItem(upvotedKey) : null;
+      return new Set(raw ? JSON.parse(raw) : []);
+    } catch { return new Set(); }
+  });
+  const persistUpvoted = (next) => {
+    try { window.localStorage.setItem(upvotedKey, JSON.stringify(Array.from(next))); } catch { /* ignore */ }
+  };
+  const onUpvote = async (qid) => {
+    const next = new Set(upvotedIds);
+    if (next.has(qid)) next.delete(qid); else next.add(qid);
+    setUpvotedIds(next);
+    persistUpvoted(next);
+    try {
+      const r = await handleUpvote(qid);
+      const row = Array.isArray(r?.data) ? r.data[0] : r?.data;
+      if (row && typeof row.upvoted === 'boolean') {
+        const fixed = new Set(upvotedIds);
+        if (row.upvoted) fixed.add(qid); else fixed.delete(qid);
+        setUpvotedIds(fixed);
+        persistUpvoted(fixed);
+      }
+    } catch { /* ignore */ }
+  };
+
   React.useEffect(() => {
     if (currentPoll.type === 'ranking') {
       setRankingOrder((currentPoll.options || []).map((_, i) => i));
@@ -521,21 +549,30 @@ const Participant = ({
             </div>
 
             <div className="space-y-4">
-              {questions.map((q) => (
-                <div key={q.id} className="flex items-start justify-between gap-4 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+              {questions.map((q) => {
+                const isUp = upvotedIds.has(q.id);
+                return (
+                <div key={q.id} className={`flex items-start justify-between gap-4 p-5 rounded-2xl border ${q.is_pinned ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-slate-100'}`}>
                   <div>
-                    <p className="font-bold text-slate-700 mb-1">{q.text}</p>
+                    <div className="flex items-center gap-2 mb-1">
+                      {q.is_pinned && (
+                        <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-amber-200 text-amber-700">📌 Pinned</span>
+                      )}
+                      <p className="font-bold text-slate-700">{q.text}</p>
+                    </div>
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{q.author}</p>
                   </div>
-                  <button 
-                    onClick={() => handleUpvote(q.id)}
-                    className="flex flex-col items-center gap-1 p-2 hover:bg-white rounded-xl transition-all text-slate-400 hover:text-indigo-600"
+                  <button
+                    onClick={() => onUpvote(q.id)}
+                    aria-pressed={isUp}
+                    className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${isUp ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-slate-400 hover:text-indigo-600 hover:bg-white'}`}
                   >
-                    <ThumbsUp className="w-4 h-4" />
+                    <ThumbsUp className={`w-4 h-4 ${isUp ? 'fill-white' : ''}`} />
                     <span className="text-xs font-black">{q.votes}</span>
                   </button>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>

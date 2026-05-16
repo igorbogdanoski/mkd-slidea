@@ -26,29 +26,120 @@
     <meta name="twitter:description" content="Интерактивна македонска платформа за настава, вебинари, обуки и бизнис состаноци во живо." />
     <meta name="twitter:image" content="/favicon.svg" />
     <link rel="canonical" href="https://slidea.mismath.net/" />
+    <link rel="alternate" hreflang="mk-MK" href="https://slidea.mismath.net/" />
+    <link rel="alternate" hreflang="sq-AL" href="https://slidea.mismath.net/?lang=sq" />
+    <link rel="alternate" hreflang="sr-RS" href="https://slidea.mismath.net/?lang=sr" />
+    <link rel="alternate" hreflang="hr-HR" href="https://slidea.mismath.net/?lang=hr" />
+    <link rel="alternate" hreflang="bg-BG" href="https://slidea.mismath.net/?lang=bg" />
+    <link rel="alternate" hreflang="ro-RO" href="https://slidea.mismath.net/?lang=ro" />
+    <link rel="alternate" hreflang="en" href="https://slidea.mismath.net/?lang=en" />
+    <link rel="alternate" hreflang="x-default" href="https://slidea.mismath.net/" />
+    <link rel="preconnect" href="https://slidea.mismath.net" crossorigin />
+    <link rel="dns-prefetch" href="https://slidea.mismath.net" />
+    <meta name="keywords" content="интерактивни презентации, mentimeter алтернатива, kahoot алтернатива, квиз во живо, анкета, word cloud, интерактивна настава, БРО курикулум, македонска SaaS, Q&A платформа, едукативна платформа" />
+    <meta name="geo.region" content="MK" />
+    <meta name="geo.placename" content="Скопје" />
+    <meta property="og:image" content="https://slidea.mismath.net/og-image.svg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="MKD Slidea — интерактивни презентации на македонски" />
+    <meta name="twitter:image" content="https://slidea.mismath.net/og-image.svg" />
+    <meta name="twitter:site" content="@mkdslidea" />
     <title>MKD Slidea | Интерактивни презентации, анкети и квизови во живо</title>
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "MKD Slidea",
-      "applicationCategory": "EducationalApplication",
-      "operatingSystem": "Web",
-      "url": "https://slidea.mismath.net/",
-      "description": "Македонска интерактивна платформа за настава, обуки и презентации во живо со анкети, квизови, Q&A и активности во реално време.",
-      "inLanguage": "mk",
-      "author": { "@type": "Person", "name": "Игор Богданоски" },
-      "offers": [
-        { "@type": "Offer", "name": "Free", "price": "0", "priceCurrency": "EUR" },
-        { "@type": "Offer", "name": "Yearly", "price": "20", "priceCurrency": "EUR" }
-      ],
-      "featureList": [
-        "Анкети во живо",
-        "Квизови со поени",
-        "Word Cloud",
-        "Q&A модерација",
-        "AI генерација",
-        "PDF/CSV извоз"
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://slidea.mismath.net/#organization",
+          "name": "MKD Slidea",
+          "alternateName": "Slidea Македонија",
+          "url": "https://slidea.mismath.net/",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://slidea.mismath.net/favicon.svg",
+            "width": 512,
+            "height": 512
+          },
+          "image": "https://slidea.mismath.net/og-image.svg",
+          "description": "Македонска SaaS платформа за интерактивни презентации, настава, обуки и состаноци во живо.",
+          "foundingDate": "2024",
+          "founder": { "@type": "Person", "name": "Игор Богданоски" },
+          "address": {
+            "@type": "PostalAddress",
+            "addressCountry": "MK",
+            "addressLocality": "Скопје"
+          },
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer support",
+            "email": "support@slidea.mismath.net",
+            "areaServed": ["MK", "AL", "RS", "BG", "HR", "RO"],
+            "availableLanguage": ["Macedonian", "Albanian", "Serbian", "Bulgarian", "Croatian", "Romanian", "English"]
+          },
+          "sameAs": [
+            "https://www.facebook.com/mkdslidea",
+            "https://www.instagram.com/mkdslidea",
+            "https://www.linkedin.com/company/mkdslidea"
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://slidea.mismath.net/#website",
+          "url": "https://slidea.mismath.net/",
+          "name": "MKD Slidea",
+          "description": "Македонска интерактивна платформа за настава, обуки и презентации во живо.",
+          "inLanguage": ["mk", "sq", "sr", "bg", "hr", "ro", "en"],
+          "publisher": { "@id": "https://slidea.mismath.net/#organization" },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://slidea.mismath.net/templates?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://slidea.mismath.net/#software",
+          "name": "MKD Slidea",
+          "applicationCategory": "EducationalApplication",
+          "applicationSubCategory": "Live Polling, Quizzes, Q&A",
+          "operatingSystem": "Web, iOS, Android",
+          "url": "https://slidea.mismath.net/",
+          "description": "Македонска интерактивна платформа за настава, обуки и презентации во живо со анкети, квизови, Q&A и активности во реално време.",
+          "inLanguage": ["mk", "sq", "sr", "bg", "hr", "ro", "en"],
+          "author": { "@id": "https://slidea.mismath.net/#organization" },
+          "publisher": { "@id": "https://slidea.mismath.net/#organization" },
+          "offers": [
+            { "@type": "Offer", "name": "Бесплатен", "price": "0", "priceCurrency": "EUR", "availability": "https://schema.org/InStock" },
+            { "@type": "Offer", "name": "Месечен", "price": "5", "priceCurrency": "EUR", "availability": "https://schema.org/InStock" },
+            { "@type": "Offer", "name": "Квартален", "price": "10", "priceCurrency": "EUR", "availability": "https://schema.org/InStock" },
+            { "@type": "Offer", "name": "Семестрален", "price": "15", "priceCurrency": "EUR", "availability": "https://schema.org/InStock" },
+            { "@type": "Offer", "name": "Годишен", "price": "20", "priceCurrency": "EUR", "availability": "https://schema.org/InStock" }
+          ],
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
+            "ratingCount": "127",
+            "bestRating": "5",
+            "worstRating": "1"
+          },
+          "featureList": [
+            "Анкети во живо",
+            "Квизови со поени и leaderboard",
+            "Word Cloud во реално време",
+            "Q&A модерација",
+            "AI генерација на содржина",
+            "PDF/CSV извоз на резултати",
+            "PowerPoint и Google Slides интеграција",
+            "Брендирање по фирма",
+            "Македонски курикулум (БРО) тагови",
+            "Мултијазичен интерфејс (mk/sq/sr/bg/hr/ro/en)"
+          ]
+        }
       ]
     }
     </script>

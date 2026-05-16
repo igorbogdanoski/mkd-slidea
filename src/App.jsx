@@ -25,6 +25,7 @@ const PublicTemplateDetail = lazy(() =>
   import('./views/PublicTemplates').then((m) => ({ default: m.PublicTemplateDetail }))
 );
 const PublicScoreboard = lazy(() => import('./views/PublicScoreboard'));
+const Checkout = lazy(() => import('./views/Checkout'));
 
 // Suppress Supabase auth lock violations and permissions policy violations
 if (typeof window !== 'undefined') {
@@ -142,7 +143,8 @@ const AppContent = () => {
   const isPublicRoute =
     ['/', '/join', '/pricing', '/scoreboard'].includes(location.pathname) ||
     location.pathname === '/templates' ||
-    location.pathname.startsWith('/templates/');
+    location.pathname.startsWith('/templates/') ||
+    location.pathname.startsWith('/checkout');
   const showPublicShellWhileLoading = loading && isPublicRoute && !user;
 
   // Protected route — redirects to / with login modal open if not authenticated
@@ -192,6 +194,8 @@ const AppContent = () => {
                 <Route path="/host" element={<ProtectedRoute><Host setView={setView} user={user} /></ProtectedRoute>} />
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard setView={setView} user={user} onLogout={handleLogout} /></ProtectedRoute>} />
                 <Route path="/pricing" element={<Pricing setView={setView} />} />
+                <Route path="/checkout" element={<Checkout user={user} />} />
+                <Route path="/checkout/:planCode" element={<Checkout user={user} />} />
                 <Route path="/demo" element={<Demo />} />
                 <Route path="/templates" element={<PublicTemplates />} />
                 <Route path="/templates/:slug" element={<PublicTemplateDetail />} />

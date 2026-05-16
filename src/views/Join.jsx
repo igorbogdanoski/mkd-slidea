@@ -1,8 +1,15 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
+import { useSEO } from '../hooks/useSEO';
 
 const Join = ({ code, setCode, handleJoin, setView }) => {
+  useSEO({
+    title: 'Приклучи се на настан | MKD Slidea',
+    description: 'Внеси го кодот на настанот за да се приклучиш на интерактивна сесија во живо.',
+    keywords: 'приклучи се, код, joincode, slidea',
+    path: '/join',
+  });
   return (
     <motion.div
       key="join"

@@ -86,7 +86,7 @@ const TYPE_OPTIONS = [
   { value: 'ai',        label: 'AI Активност',       desc: 'Gemini генерира квиз од текстот на слајдот' },
 ];
 
-const ImportPPTXModal = ({ isOpen, onClose, onImport }) => {
+const ImportPPTXModal = ({ isOpen, onClose, onImport, user }) => {
   const inputRef = useRef();
   const [slides, setSlides] = useState([]);
   const [selected, setSelected] = useState([]);
@@ -196,7 +196,10 @@ const ImportPPTXModal = ({ isOpen, onClose, onImport }) => {
     if (prompt.length < 10) return null;
     const res = await fetch('/api/generate', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(user?.id ? { 'x-user-id': user.id } : {}),
+      },
       body: JSON.stringify({ prompt, type: 'quiz', strategy: 'default' }),
     });
     if (!res.ok) {
