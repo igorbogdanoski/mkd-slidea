@@ -28,6 +28,7 @@ const PublicScoreboard = lazy(() => import('./views/PublicScoreboard'));
 const Checkout = lazy(() => import('./views/Checkout'));
 const Blog = lazy(() => import('./views/Blog'));
 const BlogPost = lazy(() => import('./views/BlogPost'));
+const Schools = lazy(() => import('./views/Schools'));
 
 // Suppress Supabase auth lock violations and permissions policy violations
 if (typeof window !== 'undefined') {
@@ -210,6 +211,7 @@ const AppContent = () => {
                 />
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:slug" element={<BlogPost />} />
+                <Route path="/schools" element={<Schools />} />
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>
             </Suspense>

@@ -27,6 +27,7 @@ const STATIC_ROUTES = [
   { path: '/scoreboard', priority: 0.8, changefreq: 'daily' },
   { path: '/demo', priority: 0.7, changefreq: 'monthly' },
   { path: '/checkout', priority: 0.6, changefreq: 'monthly' },
+  { path: '/schools',  priority: 0.85, changefreq: 'monthly' },
 ];
 
 async function loadTemplates() {

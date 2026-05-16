@@ -9,6 +9,7 @@ import AnimatedBackground from '../components/AnimatedBackground';
 import SentimentHeatmap from '../components/SentimentHeatmap';
 import LiveCaptions from '../components/LiveCaptions';
 import CurriculumBenchmarkBadge from '../components/CurriculumBenchmarkBadge';
+import DrawingCanvas from '../components/DrawingCanvas';
 import { useEventStore } from '../lib/store';
 import { supabase } from '../lib/supabase';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
@@ -270,6 +271,8 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
     'f': toggleFullscreen,
     'N': () => setShowNotes((v) => !v),
     'n': () => setShowNotes((v) => !v),
+    'D': () => setShowDraw((v) => !v),
+    'd': () => setShowDraw((v) => !v),
   });
 
   const [timerRemaining, setTimerRemaining] = useState(null);
@@ -278,6 +281,8 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
   const [pendingAnsweredId, setPendingAnsweredId] = useState(null);
   // Sprint 8.3.6 — speaker notes overlay (host-only). Toggle: 'N' key.
   const [showNotes, setShowNotes] = useState(false);
+  // Г.1 — Drawing annotations overlay. Toggle: 'D' key.
+  const [showDraw, setShowDraw] = useState(false);
 
   const eventCode = event?.code || '982341';
   const joinUrl = `${window.location.origin}/event/${eventCode}`;
@@ -824,6 +829,9 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
           </div>
         </div>
       </div>
+
+      {/* Г.1 — Drawing annotations overlay (host-only, toggle 'D') */}
+      <DrawingCanvas active={showDraw} onClose={() => setShowDraw(false)} />
 
       {/* Sprint 8.3.6 — Presenter notes overlay (host-only, toggle 'N') */}
       <AnimatePresence>

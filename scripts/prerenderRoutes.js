@@ -172,6 +172,7 @@ const blogPostsData = await loadBlogPosts();
 const ALL_ROUTES = [
   ...ROUTES,
   { path: '/blog', title: 'Блог за интерактивна настава | MKD Slidea', description: 'Совети, водичи и истражувања за интерактивна настава на македонски јазик.', keywords: 'интерактивна настава, квизови, едукација, македонија' },
+  { path: '/schools', title: 'MKD Slidea за училишта и институции | Интерактивна настава', description: 'Институционални лиценци за училишта, факултети и НВО. GDPR, фактура, неограничени наставници.', keywords: 'интерактивна настава школа, мон образование македонија, edu лиценца' },
   ...blogPostsData.map(blogRoute),
   ...templates.map(templateRoute),
 ];
