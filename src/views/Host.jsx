@@ -952,7 +952,47 @@ const Host = ({ setView, user }) => {
                 </div>
               </div>
 
-              {/* Embed code (5.2 — iframe / script / WordPress) */}
+              {/* Share to Google Classroom / Microsoft Teams */}
+              {(() => {
+                const joinUrl = `${window.location.origin}/event/${event.code}`;
+                const title = encodeURIComponent(event.title || `Интерактивен час #${event.code}`);
+                const msg   = encodeURIComponent(`Приклучи се на нашиот интерактивен час! Код: ${event.code}`);
+                return (
+                  <div className="p-5 bg-slate-50 rounded-2xl">
+                    <p className="font-black text-slate-900 mb-1">Сподели со класот</p>
+                    <p className="text-sm text-slate-400 font-bold mb-3">Директно во Google Classroom или Microsoft Teams</p>
+                    <div className="flex flex-wrap gap-2">
+                      <a
+                        href={`https://classroom.google.com/share?url=${encodeURIComponent(joinUrl)}&title=${title}`}
+                        target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-slate-100 rounded-xl text-sm font-black text-slate-600 hover:border-blue-300 hover:text-blue-600 transition-all"
+                      >
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="#4285F4"/><path d="M17 8H7a1 1 0 00-1 1v6a1 1 0 001 1h10a1 1 0 001-1V9a1 1 0 00-1-1zm-5 5.5L7.5 11h9L12 13.5z" fill="white"/></svg>
+                        Google Classroom
+                      </a>
+                      <a
+                        href={`https://teams.microsoft.com/share?href=${encodeURIComponent(joinUrl)}&msgText=${msg}`}
+                        target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-slate-100 rounded-xl text-sm font-black text-slate-600 hover:border-purple-300 hover:text-purple-600 transition-all"
+                      >
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="#6264A7"><path d="M20 3H4C2.9 3 2 3.9 2 5v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm6 12H6v-1c0-2 4-3.1 6-3.1s6 1.1 6 3.1v1z"/></svg>
+                        Microsoft Teams
+                      </a>
+                      <a
+                        href={`https://zoom.us/teaching`}
+                        target="_blank" rel="noopener noreferrer"
+                        onClick={e => { e.preventDefault(); navigator.clipboard.writeText(joinUrl).catch(()=>{}); alert('Линкот е копиран — налепи го во Zoom Chat!'); }}
+                        className="flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-slate-100 rounded-xl text-sm font-black text-slate-600 hover:border-sky-300 hover:text-sky-600 transition-all cursor-pointer"
+                      >
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="#2D8CFF"><rect width="24" height="24" rx="4" fill="#2D8CFF"/><path d="M5 8.5A1.5 1.5 0 016.5 7h7A1.5 1.5 0 0115 8.5V14a1.5 1.5 0 01-1.5 1.5h-7A1.5 1.5 0 015 14V8.5zm10 1.5l3.5-2v7L15 13.5V10z" fill="white"/></svg>
+                        Zoom (копирај линк)
+                      </a>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Embed code (5.2 — iframe / script / WordPress / Moodle) */}
               {(() => {
                 const origin = window.location.origin;
                 const code = event.code;
@@ -960,8 +1000,9 @@ const Host = ({ setView, user }) => {
                   iframe: `<iframe src="${origin}/event/${code}/embed?utm_source=embed&utm_medium=iframe" width="100%" height="480" frameborder="0" loading="lazy" style="border:0;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.08)"></iframe>`,
                   script: `<div data-mkd-slidea="${code}" data-height="480"></div>\n<script async src="${origin}/embed.js"></script>`,
                   wordpress: `[mkd_slidea code="${code}" height="480"]\n\n<!-- Note: WordPress site administrators must add this shortcode to functions.php (a 10-line snippet documented in the Slidea help center). -->`,
+                  moodle: `<iframe src="${origin}/event/${code}/embed?utm_source=moodle&utm_medium=lms" width="100%" height="480" frameborder="0" allowfullscreen style="border:0;border-radius:12px;"></iframe>\n\n<!-- Moodle: Уреди активност → Додај HTML блок → Налепи го кодот -->\n<!-- За LTI/External Tool интеграција посети: ${origin}/integrations#moodle -->`,
                 };
-                const labels = { iframe: 'iFrame', script: 'Script', wordpress: 'WordPress' };
+                const labels = { iframe: 'iFrame', script: 'Script', wordpress: 'WordPress', moodle: 'Moodle' };
                 const value = snippets[embedTab];
                 const copy = async () => {
                   try {

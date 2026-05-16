@@ -173,6 +173,7 @@ const ALL_ROUTES = [
   ...ROUTES,
   { path: '/blog', title: 'Блог за интерактивна настава | MKD Slidea', description: 'Совети, водичи и истражувања за интерактивна настава на македонски јазик.', keywords: 'интерактивна настава, квизови, едукација, македонија' },
   { path: '/schools', title: 'MKD Slidea за училишта и институции | Интерактивна настава', description: 'Институционални лиценци за училишта, факултети и НВО. GDPR, фактура, неограничени наставници.', keywords: 'интерактивна настава школа, мон образование македонија, edu лиценца' },
+  { path: '/integrations', title: 'Интеграции — Google Classroom, Teams, Moodle | MKD Slidea', description: 'Поврзи MKD Slidea со Google Classroom, Microsoft Teams, Moodle и Zoom. Водичи чекор-по-чекор за наставници и администратори.', keywords: 'google classroom интеграција, microsoft teams квиз, moodle lti, zoom интерактивно' },
   ...blogPostsData.map(blogRoute),
   ...templates.map(templateRoute),
 ];

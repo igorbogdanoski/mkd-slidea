@@ -1,0 +1,53 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.16/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.16",
+  "version": "1.0.0",
+  "id": "a7b4c3d2-e1f0-4a5b-8c9d-0e1f2a3b4c5d",
+  "packageName": "net.mismath.slidea",
+  "developer": {
+    "name": "MKD Slidea",
+    "websiteUrl": "https://slidea.mismath.net",
+    "privacyUrl": "https://slidea.mismath.net/privacy",
+    "termsOfUseUrl": "https://slidea.mismath.net/terms"
+  },
+  "name": {
+    "short": "MKD Slidea",
+    "full": "MKD Slidea — Интерактивни квизови и анкети"
+  },
+  "description": {
+    "short": "Интерактивни квизови, анкети и Word Cloud во живо",
+    "full": "MKD Slidea е македонска интерактивна платформа за настава. Создај квиз, анкета или Word Cloud и приклучи ученици со еден код — без апликација, без регистрација."
+  },
+  "icons": {
+    "outline": "icon-outline.png",
+    "color": "icon-color.png"
+  },
+  "accentColor": "#6366f1",
+  "configurableTabs": [
+    {
+      "configurationUrl": "https://slidea.mismath.net/teams-config",
+      "canUpdateConfiguration": true,
+      "scopes": ["team", "groupchat"],
+      "context": ["channelTab", "privateChatTab", "meetingChatTab", "meetingSidePanel"]
+    }
+  ],
+  "staticTabs": [
+    {
+      "entityId": "host",
+      "name": "Создај квиз",
+      "contentUrl": "https://slidea.mismath.net/host",
+      "websiteUrl": "https://slidea.mismath.net/host",
+      "scopes": ["personal"]
+    },
+    {
+      "entityId": "templates",
+      "name": "Шаблони",
+      "contentUrl": "https://slidea.mismath.net/templates",
+      "websiteUrl": "https://slidea.mismath.net/templates",
+      "scopes": ["personal"]
+    }
+  ],
+  "permissions": ["identity", "messageTeamMembers"],
+  "validDomains": ["slidea.mismath.net", "*.supabase.co"],
+  "showLoadingIndicator": true
+}

@@ -28,6 +28,7 @@ const STATIC_ROUTES = [
   { path: '/demo', priority: 0.7, changefreq: 'monthly' },
   { path: '/checkout', priority: 0.6, changefreq: 'monthly' },
   { path: '/schools',  priority: 0.85, changefreq: 'monthly' },
+  { path: '/integrations', priority: 0.8, changefreq: 'monthly' },
 ];
 
 async function loadTemplates() {

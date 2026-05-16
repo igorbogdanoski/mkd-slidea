@@ -29,6 +29,7 @@ const Checkout = lazy(() => import('./views/Checkout'));
 const Blog = lazy(() => import('./views/Blog'));
 const BlogPost = lazy(() => import('./views/BlogPost'));
 const Schools = lazy(() => import('./views/Schools'));
+const Integrations = lazy(() => import('./views/Integrations'));
 
 // Suppress Supabase auth lock violations and permissions policy violations
 if (typeof window !== 'undefined') {
@@ -144,9 +145,10 @@ const AppContent = () => {
   };
 
   const isPublicRoute =
-    ['/', '/join', '/pricing', '/scoreboard'].includes(location.pathname) ||
+    ['/', '/join', '/pricing', '/scoreboard', '/schools', '/integrations'].includes(location.pathname) ||
     location.pathname === '/templates' ||
     location.pathname.startsWith('/templates/') ||
+    location.pathname.startsWith('/blog') ||
     location.pathname.startsWith('/checkout');
   const showPublicShellWhileLoading = loading && isPublicRoute && !user;
 
@@ -212,6 +214,7 @@ const AppContent = () => {
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:slug" element={<BlogPost />} />
                 <Route path="/schools" element={<Schools />} />
+                <Route path="/integrations" element={<Integrations />} />
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>
             </Suspense>
