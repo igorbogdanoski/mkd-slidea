@@ -14,6 +14,10 @@
     {
       "path": "/api/email/drip-cron",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/email/pending-reminder",
+      "schedule": "0 7 * * *"
     }
   ],
   "headers": [
