@@ -52,7 +52,7 @@ export default function Schools() {
     description: 'Институционални лиценци за училишта, факултети и НВО. Централна Admin конзола, неограничени наставници, GDPR усогласено, фактура/УЈП. Контактирај нè за понуда.',
     keywords: 'интерактивна настава школа, мон образование македонија, бро курикулум дигитализација, slidea за училиште, edu лиценца македонија',
     path: '/schools',
-    image: 'https://slidea.mismath.net/api/og',
+    image: 'https://slidea.mismath.net/api/og-png',
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'Product',

@@ -17,7 +17,7 @@ export default function Blog() {
     description: 'Совети, водичи и истражувања за интерактивна настава на македонски јазик. Откријте како да ги ангажирате учениците со квизови, анкети и AI алатки.',
     keywords: 'интерактивна настава македонија, квизови за наставници, едукација блог македонски, активно учење',
     path: '/blog',
-    image: 'https://slidea.mismath.net/api/og',
+    image: 'https://slidea.mismath.net/api/og-png',
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'Blog',

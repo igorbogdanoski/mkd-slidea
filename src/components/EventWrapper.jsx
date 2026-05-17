@@ -50,7 +50,7 @@ const EventWrapper = ({ type, username, setUsername }) => {
     title: `${event.title || 'Сесија во живо'} | MKD Slidea`,
     description: `Приклучи се на интерактивната сесија "${event.title || ''}" — одговарај на квизови и анкети во живо.`,
     path: `/event/${normalizedCode}`,
-    image: `https://slidea.mismath.net/api/og?type=event&title=${encodeURIComponent(event.title || 'Сесија во живо')}&code=${encodeURIComponent(normalizedCode)}`,
+    image: `https://slidea.mismath.net/api/og-png?type=event&title=${encodeURIComponent(event.title || 'Сесија во живо')}&code=${encodeURIComponent(normalizedCode)}`,
     noindex: true,
   } : { noindex: true });
 

@@ -55,7 +55,7 @@ export default function Integrations() {
     description: 'Поврзи MKD Slidea со Google Classroom, Microsoft Teams, Moodle и Zoom. Чекор по чекор упатства за наставници и IT администратори.',
     keywords: 'google classroom интеграција, microsoft teams квиз, moodle embed, slidea интеграција, lms macedonia',
     path: '/integrations',
-    image: `${SITE}/api/og`,
+    image: `${SITE}/api/og-png`,
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'HowTo',
