@@ -3,6 +3,10 @@
     "api/og-png.js": {
       "memory": 1024,
       "maxDuration": 15
+    },
+    "api/push-send.js": {
+      "memory": 512,
+      "maxDuration": 30
     }
   },
   "rewrites": [

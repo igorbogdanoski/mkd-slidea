@@ -75,3 +75,35 @@ self.addEventListener('fetch', (event) => {
     );
   }
 });
+
+// ─── Push Notifications ────────────────────────────────────────────────────────
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+  let payload;
+  try { payload = event.data.json(); } catch { payload = { title: 'MKD Slidea', body: event.data.text() }; }
+
+  const { title = 'MKD Slidea', body = '', url = '/', icon = '/favicon.svg' } = payload;
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      icon,
+      badge: '/favicon.svg',
+      data: { url },
+      vibrate: [100, 50, 100],
+      requireInteraction: false,
+      tag: 'slidea-event',
+      renotify: true,
+    })
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const target = event.notification.data?.url || '/';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      const existing = clients.find((c) => c.url.includes(target) && 'focus' in c);
+      return existing ? existing.focus() : self.clients.openWindow(target);
+    })
+  );
+});

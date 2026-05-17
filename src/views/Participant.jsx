@@ -1,11 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Hash, PieChart, MessageSquare, Send, ThumbsUp, Trophy, CheckCircle2, XCircle, Star, GripVertical, BarChart2 } from 'lucide-react';
+import { Hash, PieChart, MessageSquare, Send, ThumbsUp, Trophy, CheckCircle2, XCircle, Star, GripVertical, BarChart2, Bell, BellOff } from 'lucide-react';
 import { useEventStore } from '../lib/store';
 import PoweredByBadge from '../components/PoweredByBadge';
 import ParticipantCaptions from '../components/ParticipantCaptions';
 import MathSymbolPicker from '../components/MathSymbolPicker';
 import { applyInsertion } from '../lib/insertAtCursor';
+import { usePushNotifications } from '../hooks/usePushNotifications';
 
 const haptic = (pattern = [30]) => {
   try { navigator.vibrate?.(pattern); } catch { /* unsupported */ }
@@ -34,6 +35,7 @@ const Participant = ({
   asyncDeadline,
 }) => {
   const { activeParticipants } = useEventStore();
+  const { supported: pushSupported, subscribed: pushSubscribed, loading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotifications(eventCode);
   const currentPoll = polls[activePollIndex] || { question: 'Чекаме настан...', options: [], type: 'poll' };
   const [response, setResponse] = React.useState('');
   const responseRef = React.useRef(null);
@@ -184,6 +186,16 @@ const Participant = ({
             </div>
           </div>
           <div className="flex items-center gap-3">
+            {pushSupported && (
+              <button
+                onClick={pushSubscribed ? pushUnsubscribe : pushSubscribe}
+                disabled={pushLoading}
+                title={pushSubscribed ? 'Исклучи нотификации' : 'Вклучи нотификации'}
+                className={`p-2 rounded-xl transition-all ${pushSubscribed ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-400 hover:text-slate-600'} disabled:opacity-50`}
+              >
+                {pushSubscribed ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
+              </button>
+            )}
             <div className="bg-slate-100 px-3 py-1.5 rounded-2xl flex items-center gap-2 border border-slate-200">
               <div className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
