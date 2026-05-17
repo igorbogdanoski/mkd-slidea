@@ -1,5 +1,17 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import ErrorBoundary from '../ErrorBoundary';
+
+const BrokenCard = () => (
+  <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden opacity-50">
+    <div className="h-48 bg-slate-100 flex items-center justify-center">
+      <span className="text-slate-400 text-sm font-bold">⚠ Грешка при вчитување</span>
+    </div>
+    <div className="p-8">
+      <p className="font-black text-slate-300">Настанот не е достапен</p>
+    </div>
+  </div>
+);
 
 const cardColors = ['bg-indigo-600','bg-violet-600','bg-emerald-600','bg-amber-500','bg-rose-600','bg-cyan-600'];
 
@@ -43,12 +55,17 @@ const PresentationsTab = ({ allEvents, eventsLoading, setSelectedEvent, setView 
     ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {allEvents.map((ev, idx) => (
-          <div key={ev.id} className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden group hover:shadow-2xl hover:shadow-indigo-50 transition-all hover:-translate-y-1">
-            <div className={`h-48 ${cardColors[idx % cardColors.length]} p-8 flex items-end relative`}>
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
+          <ErrorBoundary key={ev.id} fallback={<BrokenCard />}>
+          <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden group hover:shadow-2xl hover:shadow-indigo-50 transition-all hover:-translate-y-1">
+            <div
+              className={`h-48 p-8 flex items-end relative ${ev.cover_image ? '' : cardColors[idx % cardColors.length]}`}
+              style={ev.cover_image ? { backgroundImage: `url(${ev.cover_image})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
+            >
+              {ev.cover_image && <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/10" />}
+              <div className="relative z-10 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
                 <span className="text-3xl text-white">📊</span>
               </div>
-              <div className="absolute bottom-6 right-6 bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl border border-white/30 text-white font-black text-xs">
+              <div className="absolute bottom-6 right-6 z-10 bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl border border-white/30 text-white font-black text-xs">
                 #{ev.code}
               </div>
             </div>
@@ -73,6 +90,7 @@ const PresentationsTab = ({ allEvents, eventsLoading, setSelectedEvent, setView 
               </div>
             </div>
           </div>
+          </ErrorBoundary>
         ))}
       </div>
     )}

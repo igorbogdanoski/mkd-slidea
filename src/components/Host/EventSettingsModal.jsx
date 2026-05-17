@@ -100,6 +100,35 @@ const EventSettingsModal = ({
             />
           </div>
 
+          {/* Cover image */}
+          <div className="p-5 bg-slate-50 rounded-2xl">
+            <p className="font-black text-slate-900 mb-1">Насловна слика</p>
+            <p className="text-sm text-slate-400 font-bold mb-3">URL на слика која се прикажува на картичката на настанот</p>
+            {event.cover_image && (
+              <div className="mb-3 relative group w-full h-24 rounded-xl overflow-hidden border border-slate-200">
+                <img src={event.cover_image} alt="Cover" className="w-full h-full object-cover" />
+                <button
+                  onClick={async () => {
+                    await supabase.from('events').update({ cover_image: null }).eq('id', event.id);
+                    setEvent(prev => ({ ...prev, cover_image: null }));
+                  }}
+                  className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full text-[10px] font-black flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                >✕</button>
+              </div>
+            )}
+            <input
+              type="url"
+              defaultValue={event.cover_image || ''}
+              onBlur={async (e) => {
+                const val = e.target.value.trim() || null;
+                await supabase.from('events').update({ cover_image: val }).eq('id', event.id);
+                setEvent(prev => ({ ...prev, cover_image: val }));
+              }}
+              className="w-full bg-white border-2 border-slate-100 rounded-xl px-4 py-3 font-bold focus:border-indigo-600 outline-none transition-all text-sm"
+              placeholder="https://images.unsplash.com/..."
+            />
+          </div>
+
           {/* Co-host */}
           <div className="p-5 bg-slate-50 rounded-2xl">
             <div className="flex items-center gap-2 mb-1">
