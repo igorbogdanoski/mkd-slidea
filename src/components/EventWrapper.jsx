@@ -116,6 +116,13 @@ const EventWrapper = ({ type, username, setUsername }) => {
     if (!v.includes(pollId)) localStorage.setItem(votedKey, JSON.stringify([...v, pollId]));
   };
 
+  // Lock state polling — MUST be before any early returns (Rules of Hooks)
+  useEffect(() => {
+    if (!event?.is_locked) return;
+    const timer = setInterval(refetchLockState, 8000);
+    return () => clearInterval(timer);
+  }, [event?.is_locked, refetchLockState]);
+
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
@@ -180,13 +187,6 @@ const EventWrapper = ({ type, username, setUsername }) => {
       </div>
     );
   }
-
-  // Lock screen — fallback polling every 8s in case WebSocket drops on mobile
-  useEffect(() => {
-    if (!event?.is_locked) return;
-    const timer = setInterval(refetchLockState, 8000);
-    return () => clearInterval(timer);
-  }, [event?.is_locked, refetchLockState]);
 
   // Lock screen — host has locked voting
   if (event.is_locked) {
