@@ -30,6 +30,7 @@ const Blog = lazy(() => import('./views/Blog'));
 const BlogPost = lazy(() => import('./views/BlogPost'));
 const Schools = lazy(() => import('./views/Schools'));
 const Integrations = lazy(() => import('./views/Integrations'));
+const EventScoreboard = lazy(() => import('./views/EventScoreboard'));
 
 // Suppress Supabase auth lock violations and permissions policy violations
 if (typeof window !== 'undefined') {
@@ -205,6 +206,7 @@ const AppContent = () => {
                 <Route path="/templates" element={<PublicTemplates />} />
                 <Route path="/templates/:slug" element={<PublicTemplateDetail />} />
                 <Route path="/scoreboard" element={<PublicScoreboard />} />
+                <Route path="/event/:id/scores" element={<EventScoreboard />} />
                 <Route path="/event/:id/present" element={<EventWrapper type="present" />} />
                 <Route path="/event/:id/embed" element={<Embed />} />
                 <Route

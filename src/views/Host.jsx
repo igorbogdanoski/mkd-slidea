@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Plus, ArrowLeft, Sparkles, ChevronLeft, ChevronRight, Settings, X, Timer, Square, ShieldCheck, Check, Trash2, MessageSquare, FileDown, Eye, EyeOff, BarChart2, Copy, UserPlus, RotateCcw, Sheet, Lock, Unlock, Upload, FileText, Mail
+  Plus, ArrowLeft, Sparkles, ChevronLeft, ChevronRight, Settings, X, Timer, Square, ShieldCheck, Check, Trash2, MessageSquare, FileDown, Eye, EyeOff, BarChart2, Copy, UserPlus, RotateCcw, Sheet, Lock, Unlock, Upload, FileText, Mail, Trophy
 } from 'lucide-react';
 import QRCodeModal from '../components/QRCodeModal';
 import CreatePollModal from '../components/CreatePollModal';
@@ -1133,8 +1133,27 @@ const Host = ({ setView, user }) => {
               </button>
             </div>
 
+            {/* Per-event scoreboard link */}
+            <a
+              href={`/event/${event.code}/scores`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-5 p-5 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-4 hover:bg-amber-100 transition-colors group"
+            >
+              <div className="w-10 h-10 bg-amber-400 rounded-xl flex items-center justify-center flex-shrink-0">
+                <Trophy className="w-5 h-5 text-amber-900" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-black text-slate-900">Скорборд на сесијата</p>
+                <p className="text-sm text-slate-500 font-bold mt-0.5 truncate">
+                  /event/{event.code}/scores · живо ажурирање
+                </p>
+              </div>
+              <ArrowLeft className="w-4 h-4 text-amber-600 rotate-180 group-hover:translate-x-1 transition-transform" />
+            </a>
+
             {/* Public scoreboard opt-in (Sprint 5.5) */}
-            <div className="mt-5 p-5 bg-slate-50 rounded-2xl flex items-center justify-between">
+            <div className="mt-3 p-5 bg-slate-50 rounded-2xl flex items-center justify-between">
               <div className="flex-1 pr-4">
                 <p className="font-black text-slate-900 flex items-center gap-2">
                   Јавен скорборд 🏆

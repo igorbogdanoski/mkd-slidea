@@ -318,13 +318,13 @@ const Participant = ({
                       </div>
                     )}
                     <a
-                      href="/scoreboard"
+                      href={`/event/${eventCode}/scores`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="mt-3 flex items-center justify-center gap-2 w-full py-3 rounded-2xl border-2 border-amber-200 bg-amber-50 text-amber-700 font-black text-sm hover:bg-amber-100 transition-all active:scale-95"
                       onClick={() => haptic([20])}
                     >
-                      <Trophy className="w-4 h-4" /> Погледни ги резултатите
+                      <Trophy className="w-4 h-4" /> Погледни го скорбордот
                     </a>
                   </>
                 ) : (
