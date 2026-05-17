@@ -30,7 +30,7 @@ const EventWrapper = ({ type, username, setUsername }) => {
     loading, error, vote, submitSurvey, submitQuestion,
     upvoteQuestion, markQuestionAnswered,
     setQuestionPinned, setQuestionHidden,
-    sendReaction
+    sendReaction, refetchLockState,
   } = useEvent(normalizedCode);
 
   const { setEvent, setPresence } = useEventStore();
@@ -181,16 +181,31 @@ const EventWrapper = ({ type, username, setUsername }) => {
     );
   }
 
+  // Lock screen — fallback polling every 8s in case WebSocket drops on mobile
+  useEffect(() => {
+    if (!event?.is_locked) return;
+    const timer = setInterval(refetchLockState, 8000);
+    return () => clearInterval(timer);
+  }, [event?.is_locked, refetchLockState]);
+
   // Lock screen — host has locked voting
   if (event.is_locked) {
     return (
       <div className="flex items-center justify-center min-h-[80vh] px-4">
         <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl p-10 max-w-sm w-full text-center">
-          <div className="w-20 h-20 bg-red-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
-            <Lock className="w-10 h-10 text-red-500" />
+          <div className="relative w-20 h-20 mx-auto mb-6">
+            <span className="absolute inset-0 rounded-3xl bg-red-100 animate-ping opacity-30" />
+            <div className="relative w-20 h-20 bg-red-50 rounded-3xl flex items-center justify-center">
+              <Lock className="w-10 h-10 text-red-500" />
+            </div>
           </div>
           <h2 className="text-2xl font-black text-slate-900 mb-2">Гласањето е заклучено</h2>
-          <p className="text-slate-400 font-bold text-sm">Домаќинот привремено го оневозможи гласањето. Почекајте малку.</p>
+          <p className="text-slate-400 font-bold text-sm">Следи ги инструкциите на наставникот. Гласањето ќе продолжи наскоро.</p>
+          <div className="mt-5 flex items-center justify-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+            <span className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+            <span className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+          </div>
           <div className="mt-6"><PoweredByBadge code={event.code} utm="locked" /></div>
         </div>
       </div>

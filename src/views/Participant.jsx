@@ -415,7 +415,7 @@ const Participant = ({
                   </div>
                 ) : currentPoll.type === 'ranking' ? (
                   <div className="space-y-4">
-                    <p className="text-sm font-black text-slate-500">Повлечи за редослед, па притисни „Испрати рангирање".</p>
+                    <p className="text-sm font-black text-slate-500">Постави ги во редослед по важност — на прво место ставете го најважното.</p>
                     <div className="space-y-2">
                       {rankingOrder.map((optIdx, rank) => {
                         const opt = currentPoll.options[optIdx];

@@ -367,6 +367,16 @@ export const useEvent = (eventCode) => {
       .eq('id', questionId);
   };
 
+  const refetchLockState = useCallback(async () => {
+    if (!event?.id) return;
+    const { data } = await supabase
+      .from('events')
+      .select('is_locked, active_poll_id')
+      .eq('id', event.id)
+      .single();
+    if (data) setEvent((prev) => (prev ? { ...prev, ...data } : prev));
+  }, [event?.id]);
+
   return {
     event, polls, questions, reactions,
     loading, error, vote, submitSurvey, submitQuestion,
@@ -374,5 +384,6 @@ export const useEvent = (eventCode) => {
     setQuestionPinned, setQuestionHidden,
     sendReaction,
     getSessionId,
+    refetchLockState,
   };
 };
