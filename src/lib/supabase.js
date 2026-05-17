@@ -16,12 +16,14 @@ export const supabase = createClient(
   supabaseAnonKey || 'placeholder',
   {
     auth: {
-      // Reduce lock contention across tabs by using memory storage for tokens
-      // and relying on real-time broadcasters for sync instead
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
       storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+      // Bypass the Web Locks API — it causes INITIAL_SESSION to hang on page
+      // reload when warmUp() competes for the same lock during module init.
+      // Single-tab app; cross-tab atomicity is not needed.
+      lock: (name, acquireTimeout, fn) => fn(),
     },
     realtime: {
       params: {
