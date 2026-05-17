@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '../components/Dashboard/Sidebar';
 import HomeTab from '../components/Dashboard/HomeTab';
@@ -19,11 +21,22 @@ import { templates } from '../data/templates';
 import { useDashboardData } from '../hooks/useDashboardData';
 
 const Dashboard = ({ setView, user, onLogout }) => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('home');
   const [selectedEvent, setSelectedEvent] = useState(null);
 
   const { allEvents, eventsLoading, communityTemplates, templatesLoading, useTemplate } =
     useDashboardData({ user, activeTab, setView });
+
+  // Redirect new users (zero events, flag not set) to onboarding wizard.
+  useEffect(() => {
+    if (!user?.id || localStorage.getItem('onboarding_v1_done')) return;
+    supabase
+      .from('events')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .then(({ count }) => { if (count === 0) navigate('/onboarding'); });
+  }, [user?.id]);
 
   const renderContent = () => {
     switch (activeTab) {
