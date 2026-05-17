@@ -1,41 +1,15 @@
-// Sprint 8.2.3 — OG Image Generator (Edge Function)
+// OG Image Generator — SVG-based, no WASM, Edge-safe
 // GET /api/og?type=template&title=...&subject=...&grade=...
 // GET /api/og?type=event&title=...&code=...
 // GET /api/og  (default branded)
 //
-// Uses @vercel/og (satori) — zero extra cost, runs on Edge.
-// Font: Inter w/ Cyrillic subset fetched from Google Fonts.
-
-import { ImageResponse } from '@vercel/og';
+// Returns SVG 1200x630. For PNG (Facebook/LinkedIn), upgrade to a
+// Node.js canvas function in a future sprint.
 
 export const config = { runtime: 'edge' };
 
 const W = 1200;
 const H = 630;
-
-// Fetch Inter Cyrillic font once per cold start
-let _fontBold = null;
-let _fontRegular = null;
-
-async function getFont(weight) {
-  const css = await fetch(
-    `https://fonts.googleapis.com/css2?family=Inter:wght@${weight}`,
-    { headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' } }
-  ).then(r => r.text()).catch(() => '');
-
-  const match = css.match(/src:\s*url\((https:\/\/fonts\.gstatic\.com[^)]+)\)/);
-  if (!match) return null;
-  return fetch(match[1]).then(r => r.arrayBuffer()).catch(() => null);
-}
-
-async function fonts() {
-  if (!_fontBold)    _fontBold    = await getFont(700);
-  if (!_fontRegular) _fontRegular = await getFont(400);
-  const result = [];
-  if (_fontBold)    result.push({ name: 'Inter', data: _fontBold,    weight: 700, style: 'normal' });
-  if (_fontRegular) result.push({ name: 'Inter', data: _fontRegular, weight: 400, style: 'normal' });
-  return result;
-}
 
 const SUBJECT_COLORS = {
   'Математика':  '#6366f1',
@@ -48,165 +22,167 @@ const SUBJECT_COLORS = {
   'Информатика': '#3b82f6',
 };
 
-function subjectColor(subject) {
+function subjectColor(subject = '') {
   for (const [k, v] of Object.entries(SUBJECT_COLORS)) {
-    if ((subject || '').includes(k)) return v;
+    if (subject.includes(k)) return v;
   }
   return '#6366f1';
 }
 
-// ─── Template OG ──────────────────────────────────────────────────────────────
-function TemplateCard({ title, subject, grade }) {
+function esc(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function wrap(text, maxLen = 42) {
+  const words = String(text || '').split(' ');
+  const lines = [];
+  let line = '';
+  for (const w of words) {
+    if ((line + ' ' + w).trim().length > maxLen) {
+      if (line) lines.push(line);
+      line = w;
+    } else {
+      line = (line + ' ' + w).trim();
+    }
+  }
+  if (line) lines.push(line);
+  return lines.slice(0, 3);
+}
+
+function templateSvg({ title, subject, grade }) {
   const accent = subjectColor(subject);
-  const shortTitle = (title || 'MKD Slidea').slice(0, 60);
-  return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', width: W, height: H,
-      background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)',
-      fontFamily: 'Inter, sans-serif', position: 'relative', overflow: 'hidden',
-    }}>
-      {/* Decorative circles */}
-      <div style={{ position: 'absolute', top: -120, right: -120, width: 500, height: 500, borderRadius: '50%', background: `radial-gradient(circle, ${accent}33 0%, transparent 70%)` }} />
-      <div style={{ position: 'absolute', bottom: -80, left: -80, width: 350, height: 350, borderRadius: '50%', background: 'radial-gradient(circle, #6366f122 0%, transparent 70%)' }} />
+  const lines = wrap(title || 'MKD Slidea', 40);
+  const fontSize = lines[0]?.length > 30 ? 58 : 68;
+  const linesY = lines.map((_, i) => 300 + i * (fontSize + 8));
 
-      {/* Top bar */}
-      <div style={{ display: 'flex', alignItems: 'center', padding: '40px 64px 0', gap: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 52, height: 52, background: accent, borderRadius: 16, fontSize: 28 }}>⚡</div>
-        <span style={{ color: '#ffffff', fontWeight: 700, fontSize: 26, letterSpacing: -0.5 }}>MKD Slidea</span>
-        <div style={{ flex: 1 }} />
-        <div style={{ background: '#ffffff15', border: '1px solid #ffffff25', borderRadius: 999, padding: '8px 20px', color: '#9ca3af', fontSize: 18, fontWeight: 400 }}>
-          Шаблон за настава
-        </div>
-      </div>
-
-      {/* Main content */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '20px 64px 0' }}>
-        {/* Tags */}
-        <div style={{ display: 'flex', gap: 12, marginBottom: 28 }}>
-          {subject && (
-            <div style={{ background: `${accent}22`, border: `1.5px solid ${accent}55`, borderRadius: 999, padding: '8px 20px', color: accent, fontSize: 18, fontWeight: 700 }}>
-              {subject}
-            </div>
-          )}
-          {grade && (
-            <div style={{ background: '#ffffff10', border: '1.5px solid #ffffff25', borderRadius: 999, padding: '8px 20px', color: '#9ca3af', fontSize: 18, fontWeight: 700 }}>
-              {grade}
-            </div>
-          )}
-        </div>
-
-        {/* Title */}
-        <div style={{ color: '#ffffff', fontWeight: 700, fontSize: shortTitle.length > 40 ? 52 : 64, lineHeight: 1.15, letterSpacing: -1, maxWidth: 900 }}>
-          {shortTitle}
-        </div>
-      </div>
-
-      {/* Bottom bar */}
-      <div style={{ display: 'flex', alignItems: 'center', padding: '0 64px 44px', gap: 16 }}>
-        <div style={{ flex: 1, height: 2, background: '#ffffff10', borderRadius: 2 }} />
-        <span style={{ color: '#6b7280', fontSize: 18, fontWeight: 400 }}>slidea.mismath.net/templates</span>
-      </div>
-    </div>
-  );
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f0c29"/>
+      <stop offset="50%" style="stop-color:#302b63"/>
+      <stop offset="100%" style="stop-color:#24243e"/>
+    </linearGradient>
+    <radialGradient id="glow1" cx="100%" cy="0%" r="50%">
+      <stop offset="0%" style="stop-color:${accent};stop-opacity:0.2"/>
+      <stop offset="100%" style="stop-color:${accent};stop-opacity:0"/>
+    </radialGradient>
+  </defs>
+  <rect width="${W}" height="${H}" fill="url(#bg)"/>
+  <circle cx="${W}" cy="0" r="380" fill="url(#glow1)"/>
+  <!-- Logo box -->
+  <rect x="64" y="40" width="52" height="52" rx="16" fill="${accent}"/>
+  <text x="90" y="76" font-family="system-ui,sans-serif" font-size="28" text-anchor="middle" fill="white">⚡</text>
+  <text x="132" y="76" font-family="system-ui,sans-serif" font-size="24" font-weight="700" fill="white">MKD Slidea</text>
+  <!-- Subject + grade tags -->
+  ${subject ? `<rect x="64" y="230" width="${esc(subject).length * 14 + 40}" height="38" rx="19" fill="${accent}33" stroke="${accent}88" stroke-width="1.5"/>
+  <text x="${64 + esc(subject).length * 7 + 20}" y="254" font-family="system-ui,sans-serif" font-size="18" font-weight="700" fill="${accent}" text-anchor="middle">${esc(subject)}</text>` : ''}
+  ${grade ? `<rect x="${subject ? esc(subject).length * 14 + 120 : 64}" y="230" width="90" height="38" rx="19" fill="#ffffff11" stroke="#ffffff33" stroke-width="1.5"/>
+  <text x="${subject ? esc(subject).length * 14 + 165 : 109}" y="254" font-family="system-ui,sans-serif" font-size="18" font-weight="700" fill="#9ca3af" text-anchor="middle">${esc(grade)}</text>` : ''}
+  <!-- Title lines -->
+  ${lines.map((l, i) => `<text x="64" y="${(subject || grade ? 310 : 270) + i * (fontSize + 10)}" font-family="system-ui,sans-serif" font-size="${fontSize}" font-weight="700" fill="white">${esc(l)}</text>`).join('\n  ')}
+  <!-- Bottom line -->
+  <line x1="64" y1="560" x2="${W - 64}" y2="560" stroke="#ffffff18" stroke-width="2"/>
+  <text x="${W - 64}" y="595" font-family="system-ui,sans-serif" font-size="18" fill="#6b7280" text-anchor="end">slidea.mismath.net/templates</text>
+</svg>`;
 }
 
-// ─── Event OG ─────────────────────────────────────────────────────────────────
-function EventCard({ title, code }) {
-  const shortTitle = (title || 'Интерактивна сесија').slice(0, 60);
-  return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', width: W, height: H,
-      background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%)',
-      fontFamily: 'Inter, sans-serif', position: 'relative', overflow: 'hidden',
-    }}>
-      <div style={{ position: 'absolute', top: -100, right: -100, width: 450, height: 450, borderRadius: '50%', background: 'radial-gradient(circle, #818cf822 0%, transparent 70%)' }} />
+function eventSvg({ title, code }) {
+  const lines = wrap(title || 'Интерактивна сесија', 40);
+  const fontSize = lines[0]?.length > 30 ? 58 : 68;
 
-      {/* Top bar */}
-      <div style={{ display: 'flex', alignItems: 'center', padding: '40px 64px 0', gap: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 52, height: 52, background: '#6366f1', borderRadius: 16, fontSize: 28 }}>⚡</div>
-        <span style={{ color: '#ffffff', fontWeight: 700, fontSize: 26, letterSpacing: -0.5 }}>MKD Slidea</span>
-      </div>
-
-      {/* Main */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '20px 64px' }}>
-        <div style={{ background: '#6366f122', border: '1.5px solid #6366f144', borderRadius: 999, padding: '8px 20px', color: '#818cf8', fontSize: 18, fontWeight: 700, marginBottom: 28, display: 'flex', width: 'fit-content' }}>
-          🔴 Live сесија
-        </div>
-        <div style={{ color: '#ffffff', fontWeight: 700, fontSize: shortTitle.length > 40 ? 52 : 64, lineHeight: 1.15, letterSpacing: -1, maxWidth: 900, marginBottom: 32 }}>
-          {shortTitle}
-        </div>
-        {code && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <span style={{ color: '#6b7280', fontWeight: 700, fontSize: 22, textTransform: 'uppercase', letterSpacing: 3 }}>Код:</span>
-            <span style={{ color: '#a5b4fc', fontWeight: 700, fontSize: 36, letterSpacing: 6, fontVariantNumeric: 'tabular-nums' }}>{code}</span>
-          </div>
-        )}
-      </div>
-
-      <div style={{ display: 'flex', alignItems: 'center', padding: '0 64px 44px', gap: 16 }}>
-        <div style={{ flex: 1, height: 2, background: '#ffffff10', borderRadius: 2 }} />
-        <span style={{ color: '#6b7280', fontSize: 18, fontWeight: 400 }}>slidea.mismath.net</span>
-      </div>
-    </div>
-  );
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1b4b"/>
+      <stop offset="50%" style="stop-color:#312e81"/>
+      <stop offset="100%" style="stop-color:#1e1b4b"/>
+    </linearGradient>
+    <radialGradient id="glow1" cx="100%" cy="0%" r="50%">
+      <stop offset="0%" style="stop-color:#818cf8;stop-opacity:0.15"/>
+      <stop offset="100%" style="stop-color:#818cf8;stop-opacity:0"/>
+    </radialGradient>
+  </defs>
+  <rect width="${W}" height="${H}" fill="url(#bg)"/>
+  <circle cx="${W}" cy="0" r="380" fill="url(#glow1)"/>
+  <!-- Logo -->
+  <rect x="64" y="40" width="52" height="52" rx="16" fill="#6366f1"/>
+  <text x="90" y="76" font-family="system-ui,sans-serif" font-size="28" text-anchor="middle" fill="white">⚡</text>
+  <text x="132" y="76" font-family="system-ui,sans-serif" font-size="24" font-weight="700" fill="white">MKD Slidea</text>
+  <!-- Live badge -->
+  <rect x="64" y="230" width="148" height="38" rx="19" fill="#6366f122" stroke="#6366f144" stroke-width="1.5"/>
+  <text x="138" y="254" font-family="system-ui,sans-serif" font-size="18" font-weight="700" fill="#818cf8" text-anchor="middle">🔴 Live сесија</text>
+  <!-- Title -->
+  ${lines.map((l, i) => `<text x="64" y="${300 + i * (fontSize + 10)}" font-family="system-ui,sans-serif" font-size="${fontSize}" font-weight="700" fill="white">${esc(l)}</text>`).join('\n  ')}
+  <!-- Code -->
+  ${code ? `<text x="64" y="540" font-family="system-ui,sans-serif" font-size="22" font-weight="700" fill="#6b7280" letter-spacing="3">КОД:</text>
+  <text x="160" y="540" font-family="system-ui,sans-serif" font-size="36" font-weight="700" fill="#a5b4fc" letter-spacing="8">${esc(code)}</text>` : ''}
+  <!-- Bottom -->
+  <line x1="64" y1="590" x2="${W - 64}" y2="590" stroke="#ffffff18" stroke-width="2"/>
+  <text x="${W - 64}" y="618" font-family="system-ui,sans-serif" font-size="18" fill="#6b7280" text-anchor="end">slidea.mismath.net</text>
+</svg>`;
 }
 
-// ─── Default OG ───────────────────────────────────────────────────────────────
-function DefaultCard() {
-  return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-      width: W, height: H,
-      background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)',
-      fontFamily: 'Inter, sans-serif', position: 'relative', overflow: 'hidden',
-    }}>
-      <div style={{ position: 'absolute', top: -120, right: -120, width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, #6366f133 0%, transparent 70%)' }} />
-      <div style={{ position: 'absolute', bottom: -100, left: -100, width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, #8b5cf622 0%, transparent 70%)' }} />
-
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: 1 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 96, height: 96, background: '#6366f1', borderRadius: 28, fontSize: 52, marginBottom: 32 }}>⚡</div>
-        <div style={{ color: '#ffffff', fontWeight: 700, fontSize: 80, letterSpacing: -3, marginBottom: 16 }}>MKD Slidea</div>
-        <div style={{ color: '#9ca3af', fontWeight: 400, fontSize: 28, textAlign: 'center', maxWidth: 700, lineHeight: 1.5 }}>
-          Интерактивна платформа за настава на македонски јазик
-        </div>
-        <div style={{ display: 'flex', gap: 16, marginTop: 48 }}>
-          {['Квизови', 'Анкети', 'AI Генерирање', 'Live Резултати'].map(tag => (
-            <div key={tag} style={{ background: '#ffffff10', border: '1px solid #ffffff20', borderRadius: 999, padding: '10px 24px', color: '#d1d5db', fontSize: 18, fontWeight: 700 }}>
-              {tag}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+function defaultSvg() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f0c29"/>
+      <stop offset="50%" style="stop-color:#302b63"/>
+      <stop offset="100%" style="stop-color:#24243e"/>
+    </linearGradient>
+    <radialGradient id="glow1" cx="80%" cy="20%" r="50%">
+      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:0.25"/>
+      <stop offset="100%" style="stop-color:#6366f1;stop-opacity:0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="20%" cy="80%" r="40%">
+      <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:0.18"/>
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:0"/>
+    </radialGradient>
+  </defs>
+  <rect width="${W}" height="${H}" fill="url(#bg)"/>
+  <circle cx="${W * 0.8}" cy="${H * 0.2}" r="380" fill="url(#glow1)"/>
+  <circle cx="${W * 0.2}" cy="${H * 0.8}" r="320" fill="url(#glow2)"/>
+  <!-- Logo box -->
+  <rect x="${W/2 - 48}" y="160" width="96" height="96" rx="28" fill="#6366f1"/>
+  <text x="${W/2}" y="228" font-family="system-ui,sans-serif" font-size="52" text-anchor="middle" fill="white">⚡</text>
+  <!-- Title -->
+  <text x="${W/2}" y="340" font-family="system-ui,sans-serif" font-size="80" font-weight="700" fill="white" text-anchor="middle">MKD Slidea</text>
+  <!-- Subtitle -->
+  <text x="${W/2}" y="400" font-family="system-ui,sans-serif" font-size="26" fill="#9ca3af" text-anchor="middle">Интерактивна платформа за настава на македонски јазик</text>
+  <!-- Tags -->
+  <rect x="210" y="450" width="160" height="44" rx="22" fill="#ffffff12" stroke="#ffffff22" stroke-width="1"/>
+  <text x="290" y="477" font-family="system-ui,sans-serif" font-size="18" font-weight="700" fill="#d1d5db" text-anchor="middle">Квизови</text>
+  <rect x="390" y="450" width="160" height="44" rx="22" fill="#ffffff12" stroke="#ffffff22" stroke-width="1"/>
+  <text x="470" y="477" font-family="system-ui,sans-serif" font-size="18" font-weight="700" fill="#d1d5db" text-anchor="middle">Анкети</text>
+  <rect x="570" y="450" width="200" height="44" rx="22" fill="#ffffff12" stroke="#ffffff22" stroke-width="1"/>
+  <text x="670" y="477" font-family="system-ui,sans-serif" font-size="18" font-weight="700" fill="#d1d5db" text-anchor="middle">AI Генерирање</text>
+  <rect x="790" y="450" width="220" height="44" rx="22" fill="#ffffff12" stroke="#ffffff22" stroke-width="1"/>
+  <text x="900" y="477" font-family="system-ui,sans-serif" font-size="18" font-weight="700" fill="#d1d5db" text-anchor="middle">Live Резултати</text>
+</svg>`;
 }
 
-// ─── Handler ──────────────────────────────────────────────────────────────────
 export default async function handler(req) {
   try {
-    const url = new URL(req.url);
+    const url  = new URL(req.url);
     const type    = url.searchParams.get('type') || 'default';
     const title   = url.searchParams.get('title') || '';
     const subject = url.searchParams.get('subject') || '';
     const grade   = url.searchParams.get('grade') || '';
     const code    = url.searchParams.get('code') || '';
 
-    const fontData = await fonts();
+    let svg;
+    if (type === 'template') svg = templateSvg({ title, subject, grade });
+    else if (type === 'event') svg = eventSvg({ title, code });
+    else svg = defaultSvg();
 
-    let element;
-    if (type === 'template') {
-      element = <TemplateCard title={title} subject={subject} grade={grade} />;
-    } else if (type === 'event') {
-      element = <EventCard title={title} code={code} />;
-    } else {
-      element = <DefaultCard />;
-    }
-
-    return new ImageResponse(element, {
-      width: W,
-      height: H,
-      fonts: fontData,
+    return new Response(svg, {
+      status: 200,
       headers: {
+        'Content-Type': 'image/svg+xml',
         'Cache-Control': 'public, max-age=86400, s-maxage=86400',
         'Access-Control-Allow-Origin': '*',
       },
