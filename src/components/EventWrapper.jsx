@@ -188,25 +188,43 @@ const EventWrapper = ({ type, username, setUsername }) => {
     );
   }
 
-  // Lock screen — host has locked voting
+  // Lock screen — differentiate between "paused" and "ended" (ended = locked + no active poll)
   if (event.is_locked) {
+    const isEnded = !event.active_poll_id;
     return (
       <div className="flex items-center justify-center min-h-[80vh] px-4">
         <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl p-10 max-w-sm w-full text-center">
           <div className="relative w-20 h-20 mx-auto mb-6">
-            <span className="absolute inset-0 rounded-3xl bg-red-100 animate-ping opacity-30" />
-            <div className="relative w-20 h-20 bg-red-50 rounded-3xl flex items-center justify-center">
-              <Lock className="w-10 h-10 text-red-500" />
-            </div>
+            {isEnded ? (
+              <div className="w-20 h-20 bg-emerald-50 rounded-3xl flex items-center justify-center">
+                <span className="text-4xl">🎉</span>
+              </div>
+            ) : (
+              <>
+                <span className="absolute inset-0 rounded-3xl bg-red-100 animate-ping opacity-30" />
+                <div className="relative w-20 h-20 bg-red-50 rounded-3xl flex items-center justify-center">
+                  <Lock className="w-10 h-10 text-red-500" />
+                </div>
+              </>
+            )}
           </div>
-          <h2 className="text-2xl font-black text-slate-900 mb-2">Гласањето е заклучено</h2>
-          <p className="text-slate-400 font-bold text-sm">Следи ги инструкциите на наставникот. Гласањето ќе продолжи наскоро.</p>
-          <div className="mt-5 flex items-center justify-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-            <span className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-            <span className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '300ms' }} />
-          </div>
-          <div className="mt-6"><PoweredByBadge code={event.code} utm="locked" /></div>
+          {isEnded ? (
+            <>
+              <h2 className="text-2xl font-black text-slate-900 mb-2">Сесијата е завршена</h2>
+              <p className="text-slate-400 font-bold text-sm">Ви благодариме за учеството! Наставникот ги обработува резултатите.</p>
+            </>
+          ) : (
+            <>
+              <h2 className="text-2xl font-black text-slate-900 mb-2">Гласањето е паузирано</h2>
+              <p className="text-slate-400 font-bold text-sm">Следи ги инструкциите на наставникот. Гласањето ќе продолжи наскоро.</p>
+              <div className="mt-5 flex items-center justify-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+            </>
+          )}
+          <div className="mt-6"><PoweredByBadge code={event.code} utm={isEnded ? 'ended' : 'locked'} /></div>
         </div>
       </div>
     );

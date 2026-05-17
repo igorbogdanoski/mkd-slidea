@@ -142,6 +142,63 @@ const PollCard = ({ poll, index, activePollIndex, setActivePoll, onEdit, onDelet
           {['wordcloud', 'open'].includes(poll.type) ? '' : `${poll.options?.length || 0} опции • `}
           {poll.options?.reduce((sum, o) => sum + (o.votes || 0), 0) || 0} одговори
         </p>
+
+        {/* Live vote breakdown — visible only for active poll */}
+        {isActive && poll.options && poll.options.length > 0 && (() => {
+          const totalVotes = poll.options.reduce((s, o) => s + (o.votes || 0), 0);
+          const isRating = poll.type === 'rating';
+          const isText = ['wordcloud', 'open'].includes(poll.type);
+
+          if (isText) {
+            const approved = poll.options.filter(o => o.text && o.is_approved !== false);
+            if (approved.length === 0) return <p className="text-xs text-slate-300 font-bold mt-2">Нема одговори уште</p>;
+            return (
+              <div className="mt-3 flex flex-wrap gap-1.5" onClick={e => e.stopPropagation()}>
+                {approved.slice(0, 8).map((o, i) => (
+                  <span key={i} className="bg-indigo-50 text-indigo-700 text-xs font-black px-3 py-1 rounded-full">
+                    {o.text.slice(0, 30)}
+                  </span>
+                ))}
+                {approved.length > 8 && <span className="text-xs text-slate-400 font-bold self-center">+{approved.length - 8}</span>}
+              </div>
+            );
+          }
+
+          if (isRating) {
+            const avg = totalVotes > 0
+              ? (poll.options.reduce((s, o) => s + (parseInt(o.text || '0') * (o.votes || 0)), 0) / totalVotes).toFixed(1)
+              : '—';
+            return (
+              <div className="mt-3 flex items-center gap-3" onClick={e => e.stopPropagation()}>
+                <span className="text-2xl font-black text-indigo-600">{avg}</span>
+                <span className="text-xs text-slate-400 font-bold">просечна оцена · {totalVotes} гласови</span>
+              </div>
+            );
+          }
+
+          if (totalVotes === 0) return <p className="text-xs text-slate-300 font-bold mt-2">Нема гласови уште</p>;
+
+          return (
+            <div className="mt-3 space-y-1.5" onClick={e => e.stopPropagation()}>
+              {poll.options.slice(0, 5).map((o, i) => {
+                const pct = totalVotes > 0 ? Math.round((o.votes || 0) / totalVotes * 100) : 0;
+                return (
+                  <div key={i} className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-slate-500 w-4 shrink-0">{i + 1}</span>
+                    <div className="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${poll.is_quiz && o.is_correct ? 'bg-emerald-500' : 'bg-indigo-500'}`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                    <span className="text-xs font-black text-slate-700 w-8 text-right">{pct}%</span>
+                    <span className="text-xs text-slate-400 font-bold truncate max-w-[120px]">{o.text}</span>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

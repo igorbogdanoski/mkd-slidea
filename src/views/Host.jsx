@@ -60,6 +60,7 @@ const Host = ({ setView, user }) => {
   const [isStatsOpen, setIsStatsOpen] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
   const [isRemoteMode, setIsRemoteMode] = useState(false);
+  const pollIndexInitialized = useRef(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isInsightsOpen, setIsInsightsOpen] = useState(false);
   const [recapSending, setRecapSending] = useState(false);
@@ -197,6 +198,14 @@ const Host = ({ setView, user }) => {
       .subscribe();
     return () => { sub.unsubscribe(); };
   }, [event]);
+
+  // Sync activePollIndex from DB on first load so host is in-sync with participants
+  useEffect(() => {
+    if (pollIndexInitialized.current || !event?.active_poll_id || polls.length === 0) return;
+    const idx = polls.findIndex((p) => p.id === event.active_poll_id);
+    if (idx > 0) setActivePollIndex(idx);
+    pollIndexInitialized.current = true;
+  }, [polls, event?.active_poll_id]);
 
   useEffect(() => {
     if (!event?.id) return;
@@ -1545,6 +1554,21 @@ const Host = ({ setView, user }) => {
                                 ? <><Unlock className="w-3.5 h-3.5" /> Отклучи</>
                                 : <><Lock className="w-3.5 h-3.5" /> Заклучи</>
                               }
+                            </button>
+                            <button
+                              onClick={async () => {
+                                if (!window.confirm('Заврши ја сесијата? Учесниците ќе видат „Сесијата е завршена" и нема да можат да гласаат.')) return;
+                                await supabase.from('events').update({ is_locked: true, active_poll_id: null }).eq('id', event.id);
+                                setEvent(prev => ({ ...prev, is_locked: true, active_poll_id: null }));
+                                setActivePollIndex(0);
+                                pollIndexInitialized.current = false;
+                                setIsStatsOpen(true);
+                                announce('Сесијата е завршена.', { assertive: true });
+                              }}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-black text-xs bg-slate-700 hover:bg-emerald-600 text-slate-300 hover:text-white transition-all"
+                              title="Заврши сесија — заклучи и отвори статистики"
+                            >
+                              <Check className="w-3.5 h-3.5" /> Заврши
                             </button>
                             <button onClick={goNext} disabled={activePollIndex === polls.length - 1}
                               className="flex items-center gap-2 font-black text-sm disabled:opacity-30 hover:text-indigo-400 transition-colors disabled:cursor-not-allowed"
