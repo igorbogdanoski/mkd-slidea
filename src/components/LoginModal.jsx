@@ -103,15 +103,35 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin }) => {
     }
     setLoading(true);
     setError('');
+    setLoadingMsg('');
     const t = withSlowWarning(setLoadingMsg);
     try {
       primeAuth();
       await onLogin(email, password, 'register', name);
       clearTimeout(t);
-      onClose();
+      // If Supabase auto-confirmed → App.jsx already navigated away (component unmounts).
+      // If email confirmation required → show success screen so user knows to check email.
+      setRegistered(true);
     } catch (err) {
       clearTimeout(t);
-      setError(translateError(err.message));
+      const isTimeout = err.message?.toLowerCase().includes('timeout') ||
+        err.message?.toLowerCase().includes('fetch') ||
+        err.message?.toLowerCase().includes('network');
+      if (isTimeout) {
+        setLoadingMsg('Повторно се обидуваме...');
+        primeAuth();
+        try {
+          await new Promise(r => setTimeout(r, 500));
+          await onLogin(email, password, 'register', name);
+          clearTimeout(t);
+          setRegistered(true);
+          return;
+        } catch (retryErr) {
+          setError(translateError(retryErr.message));
+        }
+      } else {
+        setError(translateError(err.message));
+      }
     } finally {
       setLoading(false);
       setLoadingMsg('');
@@ -280,38 +300,59 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin }) => {
 
               {/* REGISTER */}
               {mode === 'register' && (
-                <form onSubmit={handleRegister} className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Име и презиме</label>
-                    <input
-                      type="text" value={name} onChange={(e) => setName(e.target.value)}
-                      placeholder="Марко Марковски"
-                      className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all"
-                    />
+                registered ? (
+                  <div className="text-center py-6">
+                    <CheckCircle className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
+                    <h4 className="text-xl font-black mb-2">Сметката е создадена!</h4>
+                    <p className="text-slate-400 font-bold text-sm mb-1">
+                      Проверете го е-маилот на <span className="text-indigo-600">{email}</span>
+                    </p>
+                    <p className="text-slate-300 font-bold text-xs mb-6">
+                      Ако нема потврда потребна, веќе сте најавени.
+                    </p>
+                    <button onClick={onClose} className="px-8 py-3 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-700 transition-all active:scale-95">
+                      Продолжи
+                    </button>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Е-маил адреса</label>
-                    <input
-                      type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                      placeholder="name@company.com" required
-                      className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Лозинка (мин. 6 знаци)</label>
-                    <input
-                      type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••" required
-                      className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all"
-                    />
-                  </div>
-                  <button
-                    type="submit" disabled={loading}
-                    className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black text-xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 mt-4 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
-                  >
-                    {loading ? (loadingMsg || 'Се регистрира...') : 'Креирај профил'}
-                  </button>
-                </form>
+                ) : (
+                  <form onSubmit={handleRegister} className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Име и презиме</label>
+                      <input
+                        type="text" value={name} onChange={(e) => setName(e.target.value)}
+                        placeholder="Марко Марковски"
+                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Е-маил адреса</label>
+                      <input
+                        type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                        placeholder="name@company.com" required
+                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Лозинка (мин. 6 знаци)</label>
+                      <input
+                        type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••" required
+                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all"
+                      />
+                    </div>
+                    <button
+                      type="submit" disabled={loading}
+                      className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black text-xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 mt-4 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          <span className="text-base">{loadingMsg || 'Се регистрира...'}</span>
+                        </>
+                      ) : 'Креирај профил'}
+                    </button>
+                  </form>
+                )
               )}
 
               {/* MAGIC LINK */}

@@ -51,24 +51,25 @@ export const useAuth = ({ enabled = true } = {}) => {
     const timeout = setTimeout(() => setLoading(false), 25000);
 
     warmUp().catch(() => {});
+    // Fire-and-forget: triggers token refresh if needed, but does NOT control loading state.
+    // INITIAL_SESSION below is the authoritative source — it reads localStorage directly
+    // without Web Locks, so it's reliable even under lock contention.
+    authGetSessionSafe().catch(() => {});
 
-    authGetSessionSafe().then(async ({ data: { session } }) => {
-      clearTimeout(slowMsg);
-      clearTimeout(timeout);
-      if (session?.user) {
-        const profile = await fetchProfile(session.user.id);
-        setUser(buildUserProfile(session.user, profile));
-      }
-      setLoading(false);
-    }).catch(() => {
-      clearTimeout(slowMsg);
-      clearTimeout(timeout);
-      setLoading(false);
-    });
-
-    // Auth state changes (SIGNED_IN fires after signInWithPassword resolves)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       try {
+        if (event === 'INITIAL_SESSION') {
+          // Supabase always fires this once on startup — the definitive session answer.
+          clearTimeout(slowMsg);
+          clearTimeout(timeout);
+          if (session?.user) {
+            const profile = await fetchProfile(session.user.id);
+            setUser(buildUserProfile(session.user, profile));
+          }
+          setLoading(false);
+          return;
+        }
+
         if (session?.user) {
           if (event === 'SIGNED_IN') {
             // Best-effort referral claim — needs auth.uid() so must run after sign-in.
@@ -81,10 +82,19 @@ export const useAuth = ({ enabled = true } = {}) => {
         }
       } catch {
         setUser(session?.user ? buildUserProfile(session.user, null) : null);
+        if (event === 'INITIAL_SESSION') {
+          clearTimeout(slowMsg);
+          clearTimeout(timeout);
+          setLoading(false);
+        }
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      clearTimeout(slowMsg);
+      clearTimeout(timeout);
+      subscription.unsubscribe();
+    };
   }, [enabled]);
 
   const fetchProfile = async (userId) => {
@@ -111,7 +121,7 @@ export const useAuth = ({ enabled = true } = {}) => {
   const signUp = async (email, password, name = '') => {
     const startedAt = performance.now();
     const finalName = name || email.split('@')[0];
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { name: finalName } },
@@ -130,6 +140,9 @@ export const useAuth = ({ enabled = true } = {}) => {
         keepalive: true,
       }).catch(() => {});
     } catch { /* non-blocking */ }
+    // Returns true if Supabase auto-confirmed (no email verification required).
+    // Returns false if email confirmation email was sent — caller should NOT navigate.
+    return !!data?.session;
   };
 
   const signInWithGoogle = async (redirectPath = '/dashboard') => {

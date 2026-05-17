@@ -109,8 +109,10 @@ const AppContent = () => {
     if (mode === 'magic') {
       await signInWithMagicLink(email);
     } else if (mode === 'register') {
-      await signUp(email, password, name);
-      navigate(nextPath);
+      const autoConfirmed = await signUp(email, password, name);
+      // Only navigate if Supabase auto-confirmed (no email verification step).
+      // If email confirmation is required, the modal shows a "check your email" screen.
+      if (autoConfirmed) navigate(nextPath);
     } else {
       await signIn(email, password);
       navigate(nextPath);
