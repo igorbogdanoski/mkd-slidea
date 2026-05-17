@@ -31,6 +31,7 @@ const BlogPost = lazy(() => import('./views/BlogPost'));
 const Schools = lazy(() => import('./views/Schools'));
 const Integrations = lazy(() => import('./views/Integrations'));
 const EventScoreboard = lazy(() => import('./views/EventScoreboard'));
+const Onboarding = lazy(() => import('./views/Onboarding'));
 
 // Suppress Supabase auth lock violations and permissions policy violations
 if (typeof window !== 'undefined') {
@@ -198,6 +199,7 @@ const AppContent = () => {
                 <Route path="/" element={<Landing code={code} setCode={setCode} setView={setView} />} />
                 <Route path="/join" element={<Join code={code} setCode={setCode} handleJoin={handleJoin} setView={setView} />} />
                 <Route path="/host" element={<ProtectedRoute><Host setView={setView} user={user} /></ProtectedRoute>} />
+                <Route path="/onboarding" element={<ProtectedRoute><Onboarding user={user} /></ProtectedRoute>} />
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard setView={setView} user={user} onLogout={handleLogout} /></ProtectedRoute>} />
                 <Route path="/pricing" element={<Pricing setView={setView} />} />
                 <Route path="/checkout" element={<Checkout user={user} />} />

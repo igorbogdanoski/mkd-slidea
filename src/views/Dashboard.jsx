@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '../components/Dashboard/Sidebar';
 import HomeTab from '../components/Dashboard/HomeTab';
@@ -35,12 +36,23 @@ const openExternal = (url) => {
 };
 
 const Dashboard = ({ setView, user, onLogout }) => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('home');
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [allEvents, setAllEvents] = useState([]);
   const [eventsLoading, setEventsLoading] = useState(false);
   const [communityTemplates, setCommunityTemplates] = useState([]);
   const [templatesLoading, setTemplatesLoading] = useState(false);
+
+  // First-time onboarding redirect: send new users (0 events) to the wizard
+  useEffect(() => {
+    if (!user?.id || localStorage.getItem('onboarding_v1_done')) return;
+    supabase
+      .from('events')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .then(({ count }) => { if (count === 0) navigate('/onboarding'); });
+  }, [user?.id]);
 
   useEffect(() => {
     if (activeTab !== 'presentations') return;
