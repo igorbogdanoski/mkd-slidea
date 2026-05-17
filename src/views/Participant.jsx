@@ -1,11 +1,15 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Hash, PieChart, MessageSquare, Send, ThumbsUp, Trophy, CheckCircle2, XCircle, Star, GripVertical } from 'lucide-react';
+import { Hash, PieChart, MessageSquare, Send, ThumbsUp, Trophy, CheckCircle2, XCircle, Star, GripVertical, BarChart2 } from 'lucide-react';
 import { useEventStore } from '../lib/store';
 import PoweredByBadge from '../components/PoweredByBadge';
 import ParticipantCaptions from '../components/ParticipantCaptions';
 import MathSymbolPicker from '../components/MathSymbolPicker';
 import { applyInsertion } from '../lib/insertAtCursor';
+
+const haptic = (pattern = [30]) => {
+  try { navigator.vibrate?.(pattern); } catch { /* unsupported */ }
+};
 
 const Participant = ({
   polls,
@@ -46,6 +50,12 @@ const Participant = ({
   const [surveySubmitting, setSurveySubmitting] = React.useState(false);
   const [rankingOrder, setRankingOrder] = React.useState([]);
   const [dragIndex, setDragIndex] = React.useState(null);
+
+  // Haptic feedback when quiz result arrives
+  React.useEffect(() => {
+    if (!quizResult) return;
+    haptic(quizResult.isCorrect ? [50, 30, 80] : [100, 50, 100]);
+  }, [quizResult]);
 
   // Sprint 8.3.1 — оптимистички трекинг кои прашања ги има upvote-нато оваа сесија.
   const upvotedKey = `mkd_upvoted_${eventCode || 'x'}`;
@@ -163,7 +173,7 @@ const Participant = ({
         exit={{ opacity: 0, y: -20 }}
         className="max-w-xl mx-auto px-6 pt-12 pb-24"
       >
-        <div className="flex items-center justify-between mb-8 bg-white p-4 rounded-3xl border border-slate-100 shadow-sm">
+        <div className="flex items-center justify-between mb-4 bg-white p-4 rounded-3xl border border-slate-100 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="bg-indigo-600 p-2 rounded-xl">
               <Hash className="text-white w-5 h-5" />
@@ -186,6 +196,28 @@ const Participant = ({
             <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Активно</span>
           </div>
         </div>
+
+        {/* Progress bar — question X of Y */}
+        {polls.length > 1 && (
+          <div className="mb-6">
+            <div className="flex justify-between items-center mb-1.5">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                <BarChart2 className="w-3 h-3" /> Прашање {activePollIndex + 1} од {polls.length}
+              </span>
+              <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">
+                {Math.round(((activePollIndex + 1) / polls.length) * 100)}%
+              </span>
+            </div>
+            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full bg-indigo-500 rounded-full"
+                initial={false}
+                animate={{ width: `${((activePollIndex + 1) / polls.length) * 100}%` }}
+                transition={{ duration: 0.4, ease: 'easeInOut' }}
+              />
+            </div>
+          </div>
+        )}
 
         <div className="space-y-8">
           {asyncMode && formattedDeadline && (
@@ -285,6 +317,15 @@ const Participant = ({
                         <p className="text-amber-700 font-black">⏳ Чекај ги резултатите...</p>
                       </div>
                     )}
+                    <a
+                      href="/scoreboard"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-3 flex items-center justify-center gap-2 w-full py-3 rounded-2xl border-2 border-amber-200 bg-amber-50 text-amber-700 font-black text-sm hover:bg-amber-100 transition-all active:scale-95"
+                      onClick={() => haptic([20])}
+                    >
+                      <Trophy className="w-4 h-4" /> Погледни ги резултатите
+                    </a>
                   </>
                 ) : (
                   <div className="py-12 text-center space-y-4">
@@ -397,6 +438,7 @@ const Participant = ({
                       <button
                         key={star}
                         onClick={() => {
+                          haptic([30]);
                           setRating(star);
                           submitRating(star);
                         }}
@@ -494,8 +536,8 @@ const Participant = ({
                     {currentPoll.type === 'open' && (
                       <MathSymbolPicker onInsert={insertResponseSymbol} compact />
                     )}
-                    <button 
-                      onClick={submitResponse}
+                    <button
+                      onClick={() => { haptic([30]); submitResponse(); }}
                       disabled={response.trim().length < (currentPoll.type === 'wordcloud' ? 2 : 3)}
                       className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 disabled:opacity-50"
                     >
@@ -506,7 +548,7 @@ const Participant = ({
                   currentPoll.options.map((option, i) => (
                     <button
                       key={i}
-                      onClick={() => handleVote(i)}
+                      onClick={() => { haptic([30]); handleVote(i); }}
                       className="w-full group relative overflow-hidden p-6 rounded-3xl border-2 border-slate-100 hover:border-indigo-600 hover:bg-indigo-50 active:scale-[0.98] transition-all text-left"
                     >
                       <div className="relative z-10 flex justify-between items-center font-bold">
@@ -582,7 +624,7 @@ const Participant = ({
         {['❤️', '👍', '🔥', '👏', '😂', '😮'].map((emoji) => (
           <button
             key={emoji}
-            onClick={() => sendReaction(emoji)}
+            onClick={() => { haptic([10]); sendReaction(emoji); }}
             className="w-12 h-12 flex items-center justify-center text-2xl hover:bg-slate-50 rounded-full transition-all active:scale-75"
           >
             {emoji}
