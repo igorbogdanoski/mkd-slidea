@@ -548,6 +548,29 @@ const Host = ({ setView, user }) => {
     alert('Шаблонот е успешно објавен во Community библиотеката.');
   };
 
+  const sendPushToParticipants = async (poll) => {
+    if (!event?.code) return;
+    const label = poll.type === 'quiz' ? '🧠 Нов квиз' : poll.type === 'survey' ? '📋 Нова анкета' : '📊 Ново прашање';
+    const q = poll.question ? poll.question.slice(0, 80) : '';
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) return;
+      await fetch('/api/push-notify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          eventCode: event.code,
+          title: label,
+          body: q,
+          url: `/join/${event.code}`,
+        }),
+      });
+    } catch { /* push is best-effort */ }
+  };
+
   const setActivePoll = async (index) => {
     const nextPoll = polls[index];
     if (!nextPoll) return;
@@ -555,6 +578,9 @@ const Host = ({ setView, user }) => {
     setActivePollIndex(index);
     setEvent((prev) => (prev ? { ...prev, active_poll_id: nextPoll.id } : prev));
     announce(`Активна активност ${index + 1} од ${polls.length}: ${nextPoll.question || 'без наслов'}`);
+
+    // Notify subscribed participants via push (best-effort)
+    sendPushToParticipants(nextPoll);
 
     // Broadcast to participants (fallback sync channel)
     if (navChannelRef.current) {
