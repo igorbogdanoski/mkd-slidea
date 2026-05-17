@@ -360,43 +360,24 @@ const EventWrapper = ({ type, username, setUsername }) => {
           
           const sid = getSessionId();
           
-          // Retry vote upsert on lock conflict
-          let votesError;
-          for (let attempt = 0; attempt < 3; attempt++) {
-            try {
-              const { error } = await supabase.from('votes').upsert(
-                {
-                  poll_id: currentPoll.id,
-                  session_id: sid,
-                  username: username || 'Анонимен',
-                  answer_text: answerText,
-                  is_correct: isCorrect,
-                },
-                { onConflict: 'poll_id,session_id', ignoreDuplicates: false }
-              );
-              
-              if (!error) {
-                markVoted(currentPoll.id);
-                return;
-              }
-              
-              votesError = error;
-              const isLockError = String(error.message || '').includes('lock:sb-');
-              if (isLockError && attempt < 2) {
-                await new Promise(r => setTimeout(r, 50 + attempt * 100));
-                continue;
-              }
-              break;
-            } catch (e) {
-              votesError = e;
-              if (attempt < 2) {
-                await new Promise(r => setTimeout(r, 50 + attempt * 100));
-                continue;
-              }
-              throw e;
-            }
+          // Record vote in votes table. Use ignoreDuplicates:true (DO NOTHING on conflict)
+          // so anon users don't need UPDATE permission — INSERT is enough.
+          const { error: votesError } = await supabase.from('votes').upsert(
+            {
+              poll_id: currentPoll.id,
+              session_id: sid,
+              username: username || 'Анонимен',
+              answer_text: answerText,
+              is_correct: isCorrect,
+            },
+            { onConflict: 'poll_id,session_id', ignoreDuplicates: true }
+          );
+
+          if (votesError) {
+            // Non-fatal: vote already counted in options.votes via RPC; just log
+            console.warn('votes record failed (non-fatal):', votesError.message);
           }
-          
+
           markVoted(currentPoll.id);
         } catch (err) {
           const msg = String(err?.message || err || '');

@@ -13,52 +13,58 @@ const ParticipantStatsModal = ({ isOpen, onClose, event, polls }) => {
 
     const fetchStats = async () => {
       setLoading(true);
-      const pollIds = polls.map(p => p.id);
+      try {
+        const pollIds = polls.map(p => p.id);
 
-      const { data: votes } = await supabase
-        .from('votes')
-        .select('session_id, username, poll_id, is_correct, answer_text, created_at')
-        .in('poll_id', pollIds);
+        const { data: votes, error } = await supabase
+          .from('votes')
+          .select('session_id, username, poll_id, is_correct, answer_text, created_at')
+          .in('poll_id', pollIds);
 
-      if (!votes || votes.length === 0) {
+        if (error) throw error;
+
+        if (!votes || votes.length === 0) {
+          setStats([]);
+          return;
+        }
+
+        // Group by session_id
+        const grouped = {};
+        for (const v of votes) {
+          if (!grouped[v.session_id]) {
+            grouped[v.session_id] = {
+              session_id: v.session_id,
+              username: v.username || 'Анонимен',
+              answers: 0,
+              correct: 0,
+              lastAt: v.created_at,
+            };
+          }
+          const g = grouped[v.session_id];
+          g.answers += 1;
+          if (v.is_correct === true) g.correct += 1;
+          if (v.username && v.created_at > g.lastAt) {
+            g.username = v.username;
+            g.lastAt = v.created_at;
+          }
+        }
+
+        const quizPollsCount = polls.filter(p => p.is_quiz).length;
+
+        const result = Object.values(grouped).map(g => ({
+          ...g,
+          points: g.correct * 100,
+          completionPct: polls.length > 0 ? Math.min(100, Math.round((g.answers / polls.length) * 100)) : 0,
+          quizPollsCount,
+        }));
+
+        setStats(result);
+      } catch (err) {
+        console.error('fetchStats error:', err);
         setStats([]);
+      } finally {
         setLoading(false);
-        return;
       }
-
-      // Group by session_id
-      const grouped = {};
-      for (const v of votes) {
-        if (!grouped[v.session_id]) {
-          grouped[v.session_id] = {
-            session_id: v.session_id,
-            username: v.username || 'Анонимен',
-            answers: 0,
-            correct: 0,
-            lastAt: v.created_at,
-          };
-        }
-        const g = grouped[v.session_id];
-        g.answers += 1;
-        if (v.is_correct === true) g.correct += 1;
-        // Keep most recent username (in case they changed it)
-        if (v.username && v.created_at > g.lastAt) {
-          g.username = v.username;
-          g.lastAt = v.created_at;
-        }
-      }
-
-      const quizPollsCount = polls.filter(p => p.is_quiz).length;
-
-      const result = Object.values(grouped).map(g => ({
-        ...g,
-        points: g.correct * 100,
-        completionPct: polls.length > 0 ? Math.min(100, Math.round((g.answers / polls.length) * 100)) : 0,
-        quizPollsCount,
-      }));
-
-      setStats(result);
-      setLoading(false);
     };
 
     fetchStats();
