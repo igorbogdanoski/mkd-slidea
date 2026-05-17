@@ -17,6 +17,7 @@ class ErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
+      const msg = this.state.error?.message || String(this.state.error || '');
       return (
         <div className="min-h-[60vh] flex items-center justify-center p-8">
           <div className="text-center max-w-md">
@@ -24,9 +25,14 @@ class ErrorBoundary extends React.Component {
               <AlertTriangle className="w-10 h-10 text-red-400" />
             </div>
             <h2 className="text-2xl font-black mb-3">Настана грешка</h2>
-            <p className="text-slate-400 font-bold mb-8">
+            <p className="text-slate-400 font-bold mb-4">
               Нешто тргна наопаку. Обидете се со освежување на страницата.
             </p>
+            {msg && (
+              <pre className="text-xs text-left bg-slate-50 border border-slate-200 rounded-xl p-3 mb-6 overflow-auto max-h-32 text-red-600 font-mono whitespace-pre-wrap break-all">
+                {msg}
+              </pre>
+            )}
             <button
               onClick={() => window.location.reload()}
               className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
