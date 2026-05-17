@@ -44,7 +44,7 @@ const Onboarding = ({ user }) => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
 
-  const firstName = user?.user_metadata?.full_name?.split(' ')[0]
+  const firstName = user?.name?.split(' ')[0]
     || user?.email?.split('@')[0]
     || 'Наставник';
 
