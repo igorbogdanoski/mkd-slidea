@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Search, RefreshCw, Shield, Save } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Search, RefreshCw, Shield, Save, UserPlus, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 const roleOptions = ['user', 'admin'];
@@ -12,6 +12,8 @@ const AdminTab = ({ currentUser }) => {
   const [savingId, setSavingId] = useState(null);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [newUserAlerts, setNewUserAlerts] = useState([]);
+  const initialLoadDone = useRef(false);
 
   const loadProfiles = async () => {
     setLoading(true);
@@ -34,7 +36,19 @@ const AdminTab = ({ currentUser }) => {
   };
 
   useEffect(() => {
-    loadProfiles();
+    loadProfiles().then(() => { initialLoadDone.current = true; });
+
+    const channel = supabase
+      .channel('admin-new-users')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'profiles' }, (payload) => {
+        if (!initialLoadDone.current) return;
+        const p = payload.new;
+        setProfiles((prev) => [p, ...prev]);
+        setNewUserAlerts((prev) => [...prev, { id: p.id, name: p.name || 'Без име', email: p.email || '' }]);
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const filteredProfiles = useMemo(() => {
@@ -117,6 +131,16 @@ const AdminTab = ({ currentUser }) => {
           {notice}
         </div>
       )}
+
+      {newUserAlerts.map((alert) => (
+        <div key={alert.id} className="mb-3 flex items-center gap-3 px-5 py-4 rounded-2xl bg-indigo-600 text-white font-bold text-sm shadow-lg shadow-indigo-100">
+          <UserPlus size={18} className="shrink-0" />
+          <span className="flex-1">Нов корисник се регистрира: <strong>{alert.name}</strong> — {alert.email}</span>
+          <button onClick={() => setNewUserAlerts((prev) => prev.filter((a) => a.id !== alert.id))} className="p-1 rounded-lg hover:bg-white/20 transition-colors">
+            <X size={16} />
+          </button>
+        </div>
+      ))}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {[
