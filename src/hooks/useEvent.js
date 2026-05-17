@@ -275,23 +275,21 @@ export const useEvent = (eventCode) => {
     return await supabase.from('reactions').insert([{ event_id: event.id, emoji }]);
   };
 
-  const vote = async (optionId, pollId, textValue, isModerated = false) => {
+  const vote = async (optionId, pollId, textValue) => {
     if (textValue) {
-      // Strip HTML tags and limit length before storing
       const clean = textValue.replace(/<[^>]+>/g, '').trim().slice(0, 300);
-      if (!clean) return;
-      const { data: existing } = await supabase
-        .from('options')
-        .select('id')
-        .eq('poll_id', pollId)
-        .ilike('text', clean)
-        .single();
-
-      if (existing) {
-        return await supabase.rpc('increment_vote', { option_id: existing.id });
-      } else {
-        return await supabase.from('options').insert([{ poll_id: pollId, text: clean, votes: 1, is_approved: !isModerated }]);
+      if (!clean) return { data: null, error: null };
+      // Text votes go through a server endpoint to bypass anon RLS on the options table
+      const res = await fetch('/api/vote-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pollId, text: clean }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        return { data: null, error: { message: errData.error || 'Text vote failed' } };
       }
+      return { data: null, error: null };
     }
     return await supabase.rpc('increment_vote', { option_id: optionId });
   };

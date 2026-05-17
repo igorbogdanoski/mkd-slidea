@@ -6,17 +6,29 @@ const AutoGradeModal = lazy(() => import('../AutoGradeModal'));
 
 const PollCard = ({ poll, index, activePollIndex, setActivePoll, onEdit, onDelete, onDuplicate, onPollUpdated }) => {
   const isActive = activePollIndex === index;
-  const resultsVisible = poll.results_visible !== false;
+  // Optimistic local override so the toggle feels instant
+  const [localResultsVisible, setLocalResultsVisible] = useState(null);
+  const resultsVisible = localResultsVisible !== null ? localResultsVisible : poll.results_visible !== false;
   const needsModeration = !!poll.needs_moderation;
   const isTextPoll = ['wordcloud', 'open'].includes(poll.type);
   const isOpen = poll.type === 'open';
   const hasAnswers = (poll.options || []).some((o) => o?.text && o.is_approved !== false);
   const [gradeOpen, setGradeOpen] = useState(false);
 
+  // Keep local override in sync when parent poll prop changes
+  React.useEffect(() => { setLocalResultsVisible(null); }, [poll.results_visible]);
+
   const toggleResultsVisible = async (e) => {
     e.stopPropagation();
-    const { error } = await supabase.from('polls').update({ results_visible: !resultsVisible }).eq('id', poll.id);
-    if (!error && onPollUpdated) onPollUpdated();
+    const next = !resultsVisible;
+    setLocalResultsVisible(next); // optimistic
+    const { error } = await supabase.from('polls').update({ results_visible: next }).eq('id', poll.id);
+    if (error) {
+      setLocalResultsVisible(!next); // revert
+      console.error('Toggle results_visible failed:', error.message);
+    } else if (onPollUpdated) {
+      onPollUpdated();
+    }
   };
 
   const toggleModeration = async (e) => {
