@@ -35,3 +35,4 @@ yarn-error.log*
 .commitmsg.tmp
 .git_commit_msg.txt
 .commitmsg 
+playwright/.auth/

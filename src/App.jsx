@@ -156,8 +156,10 @@ const AppContent = () => {
     location.pathname.startsWith('/checkout');
   const showPublicShellWhileLoading = loading && isPublicRoute && !user;
 
-  // Protected route — redirects to / with login modal open if not authenticated
+  // Protected route — redirects to / with login modal open if not authenticated.
+  // Never redirects while loading=true to avoid race condition on cold start.
   const ProtectedRoute = ({ children }) => {
+    if (loading) return null;
     if (!user) {
       const nextPath = `${location.pathname}${location.search}`;
       return <Navigate to={`/?login=1&next=${encodeURIComponent(nextPath)}`} replace />;
