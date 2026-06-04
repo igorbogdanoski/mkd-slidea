@@ -176,7 +176,7 @@ export const useEvent = (eventCode) => {
       .channel(`event-details-${event.id}`)
       .on('postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'events', filter: `id=eq.${event.id}` },
-        (payload) => setEvent(payload.new)
+        (payload) => setEvent(prev => prev ? { ...prev, ...payload.new } : payload.new)
       )
       .subscribe();
 
@@ -215,35 +215,41 @@ export const useEvent = (eventCode) => {
       })
       .subscribe();
 
-    // Polling fallback — only when realtime has been quiet for a while.
-    // Uses activePollIdRef to avoid a stale closure over event.active_poll_id.
+    // syncInterval: HTTP REST fallback for active_poll_id when WebSocket is quiet.
+    // Mobile browsers drop WebSocket connections in background — this is the safety net.
+    // Does NOT use hasRealtimeNavRef as a permanent disable; only skips when realtime
+    // fired recently (time-based grace window), so recovery always works.
     const syncInterval = setInterval(async () => {
       try {
-        if (hasRealtimeNavRef.current) return;
-        if (Date.now() - lastRealtimeNavAtRef.current < 12000) return;
-        const { data } = await supabase.from('events').select('active_poll_id').eq('id', event.id).single();
+        if (Date.now() - lastRealtimeNavAtRef.current < 8000) return;
+        const { data } = await supabase
+          .from('events')
+          .select('active_poll_id, is_locked')
+          .eq('id', event.id)
+          .single();
         if (!data) return;
 
         const currentId = String(activePollIdRef.current || '');
         const nextId = String(data.active_poll_id || '');
 
         if (currentId !== nextId) {
+          lastRealtimeNavAtRef.current = Date.now();
           setEvent(prev => {
             if (!prev) return prev;
             if (String(prev.active_poll_id || '') === nextId) return prev;
-            return { ...prev, active_poll_id: data.active_poll_id };
+            return { ...prev, active_poll_id: data.active_poll_id, is_locked: data.is_locked };
           });
         }
       } catch {
         // Silently ignore polling errors
       }
-    }, 5000);
+    }, 3000);
 
-    // Polling fallback for poll results — ensures votes stay synced even if realtime misses updates
+    // resultsInterval: keeps poll vote counts fresh via HTTP REST (4s cadence).
     const resultsInterval = setInterval(async () => {
       try {
         await fetchPolls(event.id);
-      } catch (err) {
+      } catch {
         // Silently ignore
       }
     }, 4000);
