@@ -285,7 +285,6 @@ export const useHostSession = (user) => {
         if (updateError) throw updateError;
 
         if (pollData.options) {
-          await supabase.from('options').delete().eq('poll_id', editingPoll.id);
           let optionsToInsert = [];
           if (pollData.type === 'rating') {
             optionsToInsert = ['1', '2', '3', '4', '5'].map(val => ({ poll_id: editingPoll.id, text: val }));
@@ -296,8 +295,15 @@ export const useHostSession = (user) => {
               is_correct: o.is_correct || false,
             }));
           }
+          // Fetch existing IDs first, insert new options, then delete old by ID.
+          // This ensures old options survive if the insert fails.
+          const { data: existingOpts } = await supabase.from('options').select('id').eq('poll_id', editingPoll.id);
+          const oldIds = (existingOpts || []).map(o => o.id);
           const { error: optError } = await supabase.from('options').insert(optionsToInsert);
           if (optError) throw optError;
+          if (oldIds.length > 0) {
+            await supabase.from('options').delete().in('id', oldIds);
+          }
         }
       } else {
         const { data: newPoll, error: pollError } = await supabase.from('polls').insert([{
@@ -388,7 +394,13 @@ export const useHostSession = (user) => {
 
   const onDeletePoll = async (pollId) => {
     if (window.confirm('Дали сте сигурни дека сакате да ја избришете оваа активност?')) {
+      const isActive = polls[activePollIndex]?.id === pollId;
       await supabase.from('polls').delete().eq('id', pollId);
+      if (isActive && polls.length > 1) {
+        // Navigate away before realtime removes it from the array
+        const safeIndex = activePollIndex > 0 ? activePollIndex - 1 : 1;
+        setActivePoll(safeIndex);
+      }
     }
   };
 
