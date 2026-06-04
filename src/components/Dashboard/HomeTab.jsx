@@ -220,7 +220,7 @@ const HomeTab = ({ setView, setActiveTab, user, useTemplate }) => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                 <button
-                  onClick={() => { closeOnboarding(); setView('host'); }}
+                  onClick={() => { closeOnboarding(); localStorage.removeItem('active_event_code'); setView('host'); }}
                   className="px-6 py-4 rounded-2xl bg-slate-900 text-white font-black hover:bg-slate-800 transition-all"
                 >
                   Нова презентација
@@ -390,7 +390,7 @@ const HomeTab = ({ setView, setActiveTab, user, useTemplate }) => {
       {/* Action Buttons */}
       <div className="flex gap-6 mb-16">
         <button
-          onClick={() => setView('host')}
+          onClick={() => { localStorage.removeItem('active_event_code'); setView('host'); }}
           className="flex items-center gap-4 px-10 py-6 bg-slate-900 text-white rounded-3xl font-black text-xl hover:bg-slate-800 transition-all shadow-2xl shadow-slate-200 active:scale-95 group"
         >
           <Plus size={28} className="group-hover:rotate-90 transition-transform" /> Нова презентација
@@ -430,7 +430,7 @@ const HomeTab = ({ setView, setActiveTab, user, useTemplate }) => {
             <p className="text-slate-400 font-bold mb-8">Избери најбрз пат до твојот прв интерактивен час</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
               <button
-                onClick={() => { localStorage.setItem('pending_host_action', 'templates'); setView('host'); }}
+                onClick={() => { localStorage.removeItem('active_event_code'); localStorage.setItem('pending_host_action', 'templates'); setView('host'); }}
                 className="p-6 bg-white border-2 border-slate-100 hover:border-indigo-500 hover:bg-indigo-50/50 rounded-3xl text-left transition-all group"
               >
                 <div className="text-3xl mb-3">📚</div>
@@ -438,7 +438,7 @@ const HomeTab = ({ setView, setActiveTab, user, useTemplate }) => {
                 <p className="text-xs text-slate-400 font-bold">Еден клик → готов час</p>
               </button>
               <button
-                onClick={() => { localStorage.setItem('pending_host_action', 'ai'); setView('host'); }}
+                onClick={() => { localStorage.removeItem('active_event_code'); localStorage.setItem('pending_host_action', 'ai'); setView('host'); }}
                 className="p-6 bg-white border-2 border-slate-100 hover:border-violet-500 hover:bg-violet-50/50 rounded-3xl text-left transition-all group"
               >
                 <div className="text-3xl mb-3">✨</div>
@@ -446,7 +446,7 @@ const HomeTab = ({ setView, setActiveTab, user, useTemplate }) => {
                 <p className="text-xs text-slate-400 font-bold">Опиши тема → активност</p>
               </button>
               <button
-                onClick={() => { localStorage.setItem('pending_host_action', 'import'); setView('host'); }}
+                onClick={() => { localStorage.removeItem('active_event_code'); localStorage.setItem('pending_host_action', 'import'); setView('host'); }}
                 className="p-6 bg-white border-2 border-slate-100 hover:border-emerald-500 hover:bg-emerald-50/50 rounded-3xl text-left transition-all group"
               >
                 <div className="text-3xl mb-3">📥</div>
@@ -455,7 +455,7 @@ const HomeTab = ({ setView, setActiveTab, user, useTemplate }) => {
               </button>
             </div>
             <button
-              onClick={() => setView('host')}
+              onClick={() => { localStorage.removeItem('active_event_code'); setView('host'); }}
               className="mt-8 px-8 py-3 text-slate-400 font-black text-sm hover:text-indigo-600 transition-all"
             >
               или почни од празно →
@@ -558,6 +558,7 @@ const HomeTab = ({ setView, setActiveTab, user, useTemplate }) => {
           user={user}
           onClose={() => setFirstSuccessOpen(false)}
           onLaunch={(template) => {
+            localStorage.removeItem('active_event_code');
             localStorage.setItem('pending_starter_template_id', template.id);
             setFirstSuccessOpen(false);
             setView('host');

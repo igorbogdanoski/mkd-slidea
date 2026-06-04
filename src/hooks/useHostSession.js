@@ -521,6 +521,7 @@ export const useHostSession = (user) => {
     setEvent(prev => ({ ...prev, is_locked: true, active_poll_id: null }));
     setActivePollIndex(0);
     pollIndexInitialized.current = false;
+    localStorage.removeItem('active_event_code');
   };
 
   const toggleLock = async () => {

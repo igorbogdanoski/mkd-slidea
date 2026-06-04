@@ -34,7 +34,7 @@ const PresentationsTab = ({ allEvents, eventsLoading, setSelectedEvent, setView 
         <h2 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">Мои настани</h2>
         <p className="text-slate-400 font-bold">Кликни на настан за да ги видиш резултатите или да го отвориш повторно.</p>
       </div>
-      <button onClick={() => setView('host')} className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-lg hover:bg-slate-800 transition-all shadow-xl shadow-slate-200">
+      <button onClick={() => { localStorage.removeItem('active_event_code'); setView('host'); }} className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-lg hover:bg-slate-800 transition-all shadow-xl shadow-slate-200">
         + Нов настан
       </button>
     </div>
@@ -48,7 +48,7 @@ const PresentationsTab = ({ allEvents, eventsLoading, setSelectedEvent, setView 
         <div className="text-7xl mb-6">📭</div>
         <h3 className="text-2xl font-black text-slate-300 mb-2">Сè уште нема настани</h3>
         <p className="text-slate-200 font-bold mb-8">Создај го твојот прв интерактивен час</p>
-        <button onClick={() => setView('host')} className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">
+        <button onClick={() => { localStorage.removeItem('active_event_code'); setView('host'); }} className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">
           + Нова презентација
         </button>
       </div>
