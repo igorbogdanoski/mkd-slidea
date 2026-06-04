@@ -11,6 +11,7 @@ export const useEvent = (eventCode) => {
   const [reactions, setReactions] = useState([]);
   const lastRealtimeNavAtRef = useRef(0);
   const hasRealtimeNavRef = useRef(false);
+  const lastRealtimePollsAtRef = useRef(0);
 
   const fetchPolls = useCallback(async (eventId) => {
     const { data } = await supabase
@@ -129,11 +130,12 @@ export const useEvent = (eventCode) => {
       .channel(`event-polls-${event.id}`)
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'polls', filter: `event_id=eq.${event.id}` },
-        () => fetchPolls(event.id)
+        () => { lastRealtimePollsAtRef.current = Date.now(); fetchPolls(event.id); }
       )
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'options' },
         () => {
+          lastRealtimePollsAtRef.current = Date.now();
           fetchPolls(event.id);
         }
       )
@@ -245,14 +247,16 @@ export const useEvent = (eventCode) => {
       }
     }, 3000);
 
-    // resultsInterval: keeps poll vote counts fresh via HTTP REST (4s cadence).
+    // resultsInterval: HTTP fallback for vote counts. Skipped when realtime
+    // delivered a polls/options change recently — avoids redundant DB hits.
     const resultsInterval = setInterval(async () => {
       try {
+        if (Date.now() - lastRealtimePollsAtRef.current < 5000) return;
         await fetchPolls(event.id);
       } catch {
         // Silently ignore
       }
-    }, 4000);
+    }, 6000);
 
     return () => {
       clearInterval(syncInterval);
