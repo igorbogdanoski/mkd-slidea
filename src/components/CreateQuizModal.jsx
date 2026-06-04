@@ -33,7 +33,7 @@ const CreateQuizModal = ({ isOpen, onClose, onSave, initialData = null }) => {
   }, [initialData, isOpen]);
 
   const addOption = () => {
-    if (options.length < 6) {
+    if (options.length < 8) {
       setOptions([...options, { text: '', isCorrect: false }]);
     }
   };
@@ -119,33 +119,33 @@ const CreateQuizModal = ({ isOpen, onClose, onSave, initialData = null }) => {
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="relative bg-white rounded-[3rem] p-10 max-w-lg w-full shadow-2xl"
+            className="relative bg-white rounded-2xl max-w-xl w-full shadow-2xl flex flex-col max-h-[92vh]"
           >
-            <button
-              onClick={onClose}
-              className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all"
-            >
-              <X className="w-6 h-6" />
-            </button>
-
-            <div className="flex items-center gap-3 mb-8">
-              <div className="bg-amber-100 p-2 rounded-xl text-amber-600">
-                <Trophy className="w-6 h-6" />
+            {/* Header */}
+            <div className="flex items-center justify-between px-7 pt-6 pb-4 border-b border-slate-100 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="bg-amber-100 p-2 rounded-xl text-amber-600">
+                  <Trophy className="w-5 h-5" />
+                </div>
+                <h3 className="text-xl font-black">{initialData ? 'Измени квиз прашање' : 'Ново квиз прашање'}</h3>
               </div>
-              <h3 className="text-2xl font-black">{initialData ? 'Измени квиз прашање' : 'Ново Квиз Прашање'}</h3>
+              <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all">
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            <div className="space-y-6">
+            {/* Scrollable body */}
+            <div className="overflow-y-auto flex-1 px-7 py-5 space-y-5">
               <div>
                 <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Прашање</label>
                 <textarea
                   ref={questionRef}
-                  rows={3}
+                  rows={2}
                   placeholder="Пр. Ако x² + 4 = 13, колку е x?"
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
                   onFocus={() => { activeFieldRef.current = { kind: 'question' }; }}
-                  className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all resize-none"
+                  className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 font-bold text-sm focus:border-indigo-600 focus:bg-white outline-none transition-all resize-none"
                 />
                 <div className="mt-3">
                   <MathSymbolPicker onInsert={insertSymbol} />
@@ -153,52 +153,53 @@ const CreateQuizModal = ({ isOpen, onClose, onSave, initialData = null }) => {
               </div>
 
               <div>
-                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Опции (избери точен одговор)</label>
-                <div className="space-y-3">
+                <div className="flex items-center justify-between mb-2 px-1">
+                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Опции — клик на ✓ за точен одговор</label>
+                  <span className="text-xs font-bold text-slate-300">{options.length}/8</span>
+                </div>
+                <div className="space-y-2">
                   {options.map((opt, i) => (
-                    <div key={i} className="flex gap-2">
-                      <button 
+                    <div key={i} className="flex gap-2 items-center">
+                      <button
                         onClick={() => setCorrectOption(i)}
-                        className={`p-3 rounded-xl transition-all ${opt.isCorrect ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-50 text-slate-300 hover:text-slate-400'}`}
+                        className={`p-2 rounded-xl transition-all shrink-0 ${opt.isCorrect ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-50 text-slate-300 hover:text-slate-400'}`}
+                        title={opt.isCorrect ? 'Точен одговор' : 'Означи како точен'}
                       >
-                        <CheckCircle2 className="w-6 h-6" />
+                        <CheckCircle2 className="w-5 h-5" />
                       </button>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         ref={(el) => { if (el) optionRefs.current[i] = el; else delete optionRefs.current[i]; }}
                         placeholder={`Опција ${i + 1}`}
                         value={opt.text}
                         onChange={(e) => handleOptionChange(i, e.target.value)}
                         onFocus={() => { activeFieldRef.current = { kind: 'option', index: i }; }}
-                        className={`flex-1 border-2 rounded-2xl px-6 py-3 font-bold outline-none transition-all ${opt.isCorrect ? 'border-emerald-200 bg-emerald-50/30' : 'bg-slate-50 border-slate-100 focus:border-indigo-600 focus:bg-white'}`}
+                        className={`flex-1 border-2 rounded-xl px-4 py-2.5 font-bold text-sm outline-none transition-all ${opt.isCorrect ? 'border-emerald-300 bg-emerald-50/40' : 'bg-slate-50 border-slate-100 focus:border-indigo-600 focus:bg-white'}`}
                       />
                       {options.length > 2 && (
-                        <button 
-                          onClick={() => removeOption(i)}
-                          className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                        >
-                          <Trash2 className="w-5 h-5" />
+                        <button onClick={() => removeOption(i)} className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all shrink-0">
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       )}
                     </div>
                   ))}
                 </div>
-                {options.length < 6 && (
-                  <button 
-                    onClick={addOption}
-                    className="mt-4 flex items-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-700 px-1"
-                  >
+                {options.length < 8 && (
+                  <button onClick={addOption} className="mt-3 flex items-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-700 px-1">
                     <Plus className="w-4 h-4" /> Додај опција
                   </button>
                 )}
               </div>
+            </div>
 
+            {/* Footer — sticky save */}
+            <div className="px-7 py-4 border-t border-slate-100 shrink-0">
               <button
                 onClick={handleSave}
                 disabled={isSaving || !question.trim() || options.some(opt => !opt.text.trim())}
-                className="w-full py-5 bg-slate-900 text-white rounded-[1.5rem] font-black text-xl flex items-center justify-center gap-3 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl shadow-slate-200 active:scale-[0.98] mt-4"
+                className="w-full py-4 bg-slate-900 text-white rounded-xl font-black text-base flex items-center justify-center gap-2 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-slate-200 active:scale-[0.98]"
               >
-                <Save className="w-6 h-6" /> {isSaving ? 'Се зачувува...' : initialData ? 'Зачувај промени' : 'Зачувај квиз'}
+                <Save className="w-5 h-5" /> {isSaving ? 'Се зачувува...' : initialData ? 'Зачувај промени' : 'Зачувај квиз'}
               </button>
             </div>
           </motion.div>
