@@ -113,19 +113,27 @@ export const useEvent = (eventCode) => {
     };
   }, [eventCode, fetchPolls, fetchQuestions]);
 
+  // Ref to track current active_poll_id without including it in the subscription
+  // effect's dependency array. Including it in deps would tear down and re-build
+  // all 6 channels on every host poll-navigation, creating a brief gap where
+  // participant votes could be missed.
+  const activePollIdRef = useRef(event?.active_poll_id);
+  useEffect(() => {
+    activePollIdRef.current = event?.active_poll_id;
+  }, [event?.active_poll_id]);
+
   useEffect(() => {
     if (!event?.id) return;
 
     const pollChannel = supabase
       .channel(`event-polls-${event.id}`)
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'polls', filter: `event_id=eq.${event.id}` }, 
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'polls', filter: `event_id=eq.${event.id}` },
         () => fetchPolls(event.id)
       )
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'options' },
         () => {
-          // Always refetch polls on option changes to keep live results synced
           fetchPolls(event.id);
         }
       )
@@ -207,17 +215,18 @@ export const useEvent = (eventCode) => {
       })
       .subscribe();
 
-    // Polling fallback — only when realtime has been quiet for a while
+    // Polling fallback — only when realtime has been quiet for a while.
+    // Uses activePollIdRef to avoid a stale closure over event.active_poll_id.
     const syncInterval = setInterval(async () => {
       try {
         if (hasRealtimeNavRef.current) return;
         if (Date.now() - lastRealtimeNavAtRef.current < 12000) return;
         const { data } = await supabase.from('events').select('active_poll_id').eq('id', event.id).single();
         if (!data) return;
-        
-        const currentId = String(event.active_poll_id || '');
+
+        const currentId = String(activePollIdRef.current || '');
         const nextId = String(data.active_poll_id || '');
-        
+
         if (currentId !== nextId) {
           setEvent(prev => {
             if (!prev) return prev;
@@ -225,7 +234,7 @@ export const useEvent = (eventCode) => {
             return { ...prev, active_poll_id: data.active_poll_id };
           });
         }
-      } catch (err) {
+      } catch {
         // Silently ignore polling errors
       }
     }, 5000);
@@ -249,7 +258,7 @@ export const useEvent = (eventCode) => {
       supabase.removeChannel(navChannel);
       supabase.removeChannel(presenceNavChannel);
     };
-  }, [event?.id, event?.active_poll_id, fetchPolls, fetchQuestions]);
+  }, [event?.id, fetchPolls, fetchQuestions]);
 
   // Sprint 8.3.2 — primary path: Realtime broadcast (zero DB cost).
   // Ако broadcast потфрли (rare), fallback на DB insert.

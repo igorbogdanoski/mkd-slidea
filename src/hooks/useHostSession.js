@@ -44,7 +44,23 @@ export const useHostSession = (user) => {
         }
       } else {
         const { data } = await supabase.from('events').select('*').eq('code', eventCode).single();
-        setEvent(data);
+        if (data) {
+          setEvent(data);
+        } else {
+          // Stored code no longer exists — clear it and create a fresh event
+          localStorage.removeItem('active_event_code');
+          eventCode = Array.from(crypto.getRandomValues(new Uint8Array(4)))
+            .map(b => b.toString(36)).join('').toUpperCase().slice(0, 6);
+          const { data: newData, error } = await supabase
+            .from('events')
+            .insert([{ code: eventCode, title: 'Мојот настан', user_id: user?.id || null }])
+            .select()
+            .single();
+          if (!error) {
+            localStorage.setItem('active_event_code', eventCode);
+            setEvent(newData);
+          }
+        }
       }
       setLoading(false);
     };
