@@ -88,6 +88,9 @@ const Participant = ({
   };
 
   React.useEffect(() => {
+    setResponse('');
+    setRating(0);
+    setSurveyAnswers({});
     if (currentPoll.type === 'ranking') {
       setRankingOrder((currentPoll.options || []).map((_, i) => i));
     }

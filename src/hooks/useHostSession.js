@@ -86,16 +86,17 @@ export const useHostSession = (user) => {
   }, []);
 
   useEffect(() => {
-    if (!event) return;
+    if (!event?.id) return;
+    const eventId = event.id;
     const fetchPolls = async () => {
-      const { data } = await supabase.from('polls').select('*, options(*)').eq('event_id', event.id).order('position', { ascending: true }).order('created_at', { ascending: true });
+      const { data } = await supabase.from('polls').select('*, options(*)').eq('event_id', eventId).order('position', { ascending: true }).order('created_at', { ascending: true });
       if (data) setPolls(data);
     };
     const fetchPendingQuestions = async () => {
       const { data, error } = await supabase
         .from('questions')
         .select('*')
-        .eq('event_id', event.id)
+        .eq('event_id', eventId)
         .order('created_at', { ascending: true });
 
       if (error) {
@@ -116,13 +117,15 @@ export const useHostSession = (user) => {
     fetchPolls();
     fetchPendingQuestions();
     const sub = supabase
-      .channel(`host_polls_${event.id}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'polls', filter: `event_id=eq.${event.id}` }, fetchPolls)
+      .channel(`host_polls_${eventId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'polls', filter: `event_id=eq.${eventId}` }, fetchPolls)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'options' }, fetchPolls)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'questions', filter: `event_id=eq.${event.id}` }, fetchPendingQuestions)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'questions', filter: `event_id=eq.${eventId}` }, fetchPendingQuestions)
       .subscribe();
-    return () => { sub.unsubscribe(); };
-  }, [event]);
+    // Polling fallback: realtime alone can miss bursts of new wordcloud options
+    const interval = setInterval(fetchPolls, 4000);
+    return () => { sub.unsubscribe(); clearInterval(interval); };
+  }, [event?.id]);
 
   useEffect(() => {
     if (pollIndexInitialized.current || !event?.active_poll_id || polls.length === 0) return;
