@@ -121,120 +121,6 @@ const Landing = ({ code, setCode, setView }) => {
     { title: 'Вебинари', desc: 'Ангажирај ја онлајн публиката исто како во сала.', icon: <MonitorPlay className="w-6 h-6" />, color: 'bg-rose-50 text-rose-600' },
   ];
 
-  useEffect(() => {
-    const cleanups = [];
-    const description = 'MKD Slidea е македонска интерактивна платформа за настава, обуки и презентации во живо со анкети, квизови, Q&A и word cloud активности во реално време.';
-    const title = 'MKD Slidea | Интерактивни презентации, анкети и квизови во живо';
-    const canonicalUrl = `${window.location.origin}/`;
-    const updateMeta = (attr, key, value) => {
-      let element = document.head.querySelector(`meta[${attr}="${key}"]`);
-      const created = !element;
-      if (!element) {
-        element = document.createElement('meta');
-        element.setAttribute(attr, key);
-        document.head.appendChild(element);
-      }
-      const previous = element.getAttribute('content');
-      element.setAttribute('content', value);
-      cleanups.push(() => {
-        if (created) {
-          element.remove();
-        } else if (previous === null) {
-          element.removeAttribute('content');
-        } else {
-          element.setAttribute('content', previous);
-        }
-      });
-    };
-    const updateLink = (rel, href) => {
-      let element = document.head.querySelector(`link[rel="${rel}"]`);
-      const created = !element;
-      if (!element) {
-        element = document.createElement('link');
-        element.setAttribute('rel', rel);
-        document.head.appendChild(element);
-      }
-      const previous = element.getAttribute('href');
-      element.setAttribute('href', href);
-      cleanups.push(() => {
-        if (created) {
-          element.remove();
-        } else if (previous === null) {
-          element.removeAttribute('href');
-        } else {
-          element.setAttribute('href', previous);
-        }
-      });
-    };
-
-    const previousTitle = document.title;
-    document.title = title;
-    cleanups.push(() => {
-      document.title = previousTitle;
-    });
-
-    updateMeta('name', 'description', description);
-    updateMeta('name', 'robots', 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1');
-    updateMeta('property', 'og:title', title);
-    updateMeta('property', 'og:description', description);
-    updateMeta('property', 'og:type', 'website');
-    updateMeta('property', 'og:url', canonicalUrl);
-    updateMeta('name', 'twitter:title', title);
-    updateMeta('name', 'twitter:description', description);
-    updateMeta('name', 'twitter:card', 'summary_large_image');
-    updateLink('canonical', canonicalUrl);
-
-    const previousSchema = document.getElementById('landing-seo-schema');
-    if (previousSchema) {
-      previousSchema.remove();
-    }
-    const schema = document.createElement('script');
-    schema.id = 'landing-seo-schema';
-    schema.type = 'application/ld+json';
-    schema.textContent = JSON.stringify([
-      {
-        '@context': 'https://schema.org',
-        '@type': 'WebSite',
-        name: 'MKD Slidea',
-        url: canonicalUrl,
-        inLanguage: 'mk-MK',
-      },
-      {
-        '@context': 'https://schema.org',
-        '@type': 'SoftwareApplication',
-        name: 'MKD Slidea',
-        applicationCategory: 'BusinessApplication',
-        operatingSystem: 'Web',
-        inLanguage: 'mk-MK',
-        description,
-        offers: {
-          '@type': 'Offer',
-          price: '0',
-          priceCurrency: 'EUR',
-        },
-      },
-      {
-        '@context': 'https://schema.org',
-        '@type': 'FAQPage',
-        mainEntity: faqItems.map((item) => ({
-          '@type': 'Question',
-          name: item.question,
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: item.answer,
-          },
-        })),
-      },
-    ]);
-    document.head.appendChild(schema);
-    cleanups.push(() => {
-      schema.remove();
-    });
-
-    return () => {
-      cleanups.reverse().forEach((cleanup) => cleanup());
-    };
-  }, []);
 
   const scrollToSection = (sectionId) => {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -341,8 +227,8 @@ const Landing = ({ code, setCode, setView }) => {
               transition={{ delay: 0.3 }}
               className="flex flex-wrap gap-4 pt-4"
             >
-              <button 
-                onClick={() => setView('host')}
+              <button
+                onClick={() => { localStorage.removeItem('active_event_code'); setView('host'); }}
                 className="group relative px-10 py-5 bg-slate-900 text-white rounded-[2rem] font-black text-xl hover:bg-slate-800 transition-all shadow-2xl shadow-slate-200 active:scale-95 flex items-center gap-3"
               >
                 Започни сега <ArrowRight className="group-hover:translate-x-1 transition-transform" />
@@ -713,7 +599,7 @@ const Landing = ({ code, setCode, setView }) => {
                 <p className="text-sm text-slate-400 font-bold leading-relaxed mb-8 text-left">
                   {sol.desc}
                 </p>
-                <button className="flex items-center gap-2 text-indigo-600 font-black text-xs uppercase tracking-widest group-hover:translate-x-1 transition-transform">
+                <button onClick={() => setView('pricing')} className="flex items-center gap-2 text-indigo-600 font-black text-xs uppercase tracking-widest group-hover:translate-x-1 transition-transform">
                   Дознај повеќе <ChevronRight size={16} />
                 </button>
               </motion.div>
@@ -769,8 +655,8 @@ const Landing = ({ code, setCode, setView }) => {
                 </li>
               ))}
             </ul>
-            <button 
-              onClick={() => setView('host')}
+            <button
+              onClick={() => { localStorage.removeItem('active_event_code'); setView('host'); }}
               className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black text-lg hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100"
             >
               Креирај настан бесплатно
@@ -814,8 +700,8 @@ const Landing = ({ code, setCode, setView }) => {
             <p className="text-slate-300 font-bold">Започнете бесплатно, тестирајте со публика во живо и одлучете без ризик.</p>
           </div>
           <div className="flex flex-wrap gap-4">
-            <button 
-              onClick={() => setView('host')}
+            <button
+              onClick={() => { localStorage.removeItem('active_event_code'); setView('host'); }}
               className="px-10 py-4 bg-white text-slate-900 rounded-2xl font-black text-lg hover:bg-slate-100 transition-all active:scale-95"
             >
               Започни бесплатно
