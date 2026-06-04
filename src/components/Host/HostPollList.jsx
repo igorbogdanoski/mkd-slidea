@@ -116,7 +116,7 @@ const HostPollList = ({
             onDragOver={(e) => { e.preventDefault(); setDragOverIndex(index); }}
             onDragEnd={() => { setDraggedIndex(null); setDragOverIndex(null); }}
             onDrop={() => handleDrop(index)}
-            className={`transition-all ${dragOverIndex === index && draggedIndex !== index ? 'scale-[1.02] ring-2 ring-indigo-400 ring-offset-2 rounded-[2rem]' : ''} ${draggedIndex === index ? 'opacity-40' : ''}`}
+            className={`transition-all ${dragOverIndex === index && draggedIndex !== index ? 'scale-[1.02] ring-2 ring-indigo-400 ring-offset-2 rounded-xl' : ''} ${draggedIndex === index ? 'opacity-40' : ''}`}
           >
             <PollCard
               poll={poll}
