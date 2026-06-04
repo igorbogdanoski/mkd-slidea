@@ -3,12 +3,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, Clock, ChevronRight,
   Presentation, Bell, Zap, MoreVertical, LayoutGrid,
-  MessageSquare, CheckCheck, X, Sparkles
+  MessageSquare, CheckCheck, X, Sparkles, Camera
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { templates } from '../../data/templates';
 import FirstSuccessWizard, { shouldShowFirstSuccess } from '../FirstSuccessWizard';
 import ErrorBoundary from '../ErrorBoundary';
+import IllustrationPickerModal from '../IllustrationPickerModal';
 
 const BrokenEventCard = () => (
   <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden opacity-50">
@@ -50,6 +51,7 @@ const HomeTab = ({ setView, setActiveTab, user, useTemplate }) => {
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(0);
   const [firstSuccessOpen, setFirstSuccessOpen] = useState(false);
+  const [pickerTarget, setPickerTarget] = useState(null);
   const bellRef = useRef(null);
   const featuredTemplates = templates.slice(0, 3);
   const onboardingSteps = [
@@ -477,6 +479,13 @@ const HomeTab = ({ setView, setActiveTab, user, useTemplate }) => {
                   style={ev.cover_image ? { backgroundImage: `url(${ev.cover_image})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
                 >
                   {ev.cover_image && <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/10" />}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setPickerTarget(ev); }}
+                    className="absolute top-3 left-3 z-20 opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 hover:bg-black/70 backdrop-blur-sm text-white rounded-xl px-3 py-1.5 flex items-center gap-1.5 font-black text-xs"
+                    title="Смени слика на насловот"
+                  >
+                    <Camera size={13} /> Смени слика
+                  </button>
                   <div className="absolute top-6 right-6 z-10 text-white/50 hover:text-white transition-colors">
                     <MoreVertical size={24} />
                   </div>
@@ -552,6 +561,18 @@ const HomeTab = ({ setView, setActiveTab, user, useTemplate }) => {
           ))}
         </div>
       </section>
+
+      <IllustrationPickerModal
+        isOpen={!!pickerTarget}
+        onClose={() => setPickerTarget(null)}
+        initialQuery={pickerTarget?.title || ''}
+        onSelect={async (url) => {
+          if (!pickerTarget) return;
+          await supabase.from('events').update({ cover_image: url }).eq('id', pickerTarget.id);
+          setRecentEvents(prev => prev.map(e => e.id === pickerTarget.id ? { ...e, cover_image: url } : e));
+          setPickerTarget(null);
+        }}
+      />
 
       {firstSuccessOpen && (
         <FirstSuccessWizard

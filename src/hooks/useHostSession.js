@@ -11,6 +11,23 @@ const getHostSessionId = () => {
   return sid;
 };
 
+const autoGenerateCover = async (eventId, title) => {
+  try {
+    const seed = Math.floor(Math.random() * 1_000_000);
+    const safeTitle = (title || 'education').replace(/[^\w\s]/g, '').trim() || 'education';
+    const prompt = `${safeTitle}, educational presentation cover, vibrant flat illustration, clean colorful background`;
+    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=576&nologo=true&seed=${seed}`;
+    await new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = url;
+      setTimeout(reject, 45000);
+    });
+    await supabase.from('events').update({ cover_image: url }).eq('id', eventId);
+  } catch { /* best-effort — never blocks the UI */ }
+};
+
 export const useHostSession = (user) => {
   const { announce } = useLiveAnnouncer();
   const [event, setEvent] = useState(null);
@@ -41,6 +58,7 @@ export const useHostSession = (user) => {
         if (!error) {
           localStorage.setItem('active_event_code', eventCode);
           setEvent(data);
+          autoGenerateCover(data.id, data.title);
         }
       } else {
         const { data } = await supabase.from('events').select('*').eq('code', eventCode).single();
