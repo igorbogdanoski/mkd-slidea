@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Zap, ArrowRight, Presentation,
@@ -98,6 +98,30 @@ const Landing = ({ code, setCode, setView }) => {
   const [coHostCode, setCoHostCode] = useState('');
   const [coHostError, setCoHostError] = useState('');
   const [coHostLoading, setCoHostLoading] = useState(false);
+  const [codeStatus, setCodeStatus] = useState('idle'); // idle | checking | valid | locked | invalid
+  const validationTimer = useRef(null);
+
+  const handleCodeChange = (val) => {
+    const cleaned = val.replace(/^#/, '').toUpperCase().trim();
+    setCode(cleaned);
+    setCodeStatus('idle');
+    clearTimeout(validationTimer.current);
+    if (cleaned.length >= 5) {
+      setCodeStatus('checking');
+      validationTimer.current = setTimeout(async () => {
+        const { data } = await supabase
+          .from('events')
+          .select('id, is_locked')
+          .ilike('code', cleaned)
+          .limit(1);
+        if (data?.length > 0) {
+          setCodeStatus(data[0].is_locked ? 'locked' : 'valid');
+        } else {
+          setCodeStatus('invalid');
+        }
+      }, 500);
+    }
+  };
   const [demoWords, setDemoWords] = useState([
     { text: 'Интеракција', size: 40 },
     { text: 'Учење', size: 30 },
@@ -141,49 +165,17 @@ const Landing = ({ code, setCode, setView }) => {
       className="relative"
     >
       {/* Hero Section */}
-      <section id="hero" className="relative pt-32 pb-20 overflow-hidden" aria-label="Почетна секција">
+      <section id="hero" className="relative pt-16 pb-16 overflow-hidden" aria-label="Почетна секција">
         {/* Background Accents */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10">
           <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-100/50 rounded-full blur-[120px]" />
           <div className="absolute bottom-[10%] right-[-5%] w-[30%] h-[30%] bg-pink-100/30 rounded-full blur-[100px]" />
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          <div className="text-left space-y-8">
-            <motion.div 
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-gradient-to-r from-indigo-600 to-violet-600 p-4 rounded-[2.5rem] flex items-center gap-4 mb-8 shadow-2xl shadow-indigo-100 max-w-lg"
-            >
-              <span className="text-white font-black text-xs uppercase tracking-widest pl-4 hidden md:block">Приклучи се како учесник:</span>
-              <div className="flex-1 flex gap-2">
-                <input 
-                  type="text" 
-                  maxLength={7}
-                  placeholder="Внеси код..."
-                  value={code}
-                  onChange={(e) => setCode(e.target.value.replace(/^#/, '').toUpperCase())}
-                  className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-6 py-3 text-white font-black placeholder:text-white/40 focus:bg-white/20 outline-none w-full"
-                />
-                <button 
-                  onClick={() => setView('join')}
-                  className="bg-white text-indigo-600 px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-all active:scale-95"
-                >
-                  Влези
-                </button>
-              </div>
-            </motion.div>
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="text-left space-y-6">
 
-            {/* Co-host entry */}
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
-              <button
-                onClick={() => setIsCoHostOpen(true)}
-                className="flex items-center gap-2 text-slate-400 hover:text-indigo-600 font-black text-xs uppercase tracking-widest transition-colors"
-              >
-                <UserPlus className="w-4 h-4" /> Сте Ко-домаќин? Влезте тука →
-              </button>
-            </motion.div>
-
+            {/* Badge */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -191,53 +183,118 @@ const Landing = ({ code, setCode, setView }) => {
             >
               <Sparkles size={14} /> Новата ера на презентации
             </motion.div>
-            
-            <motion.h1 
+
+            {/* H1 — first above-fold element */}
+            <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="text-6xl md:text-8xl font-black tracking-tight text-slate-900 leading-[0.95]"
+              transition={{ delay: 0.05 }}
+              className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-slate-900 leading-[0.95]"
             >
               Слајдови кои <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600 italic">слушаат.</span><br />
               Идеи кои <span className="text-indigo-600">водат.</span>
             </motion.h1>
 
-            <motion.p 
+            <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="text-xl text-slate-500 max-w-xl leading-relaxed font-medium"
+              transition={{ delay: 0.1 }}
+              className="text-lg text-slate-500 max-w-xl leading-relaxed font-medium"
             >
-              Трансформирајте ја училницата, обуката или состанокот во интерактивно доживување.
-              Создавајте анкети, квизови и активности во живо за публика што навистина учествува.
+              Анкети, квизови и word cloud во живо — за класот, обуката или настанот.
+              Без инсталација, директно од прелистувач.
             </motion.p>
 
-            <div className="flex flex-wrap gap-3">
-              {['Без инсталација', 'Во живо на секој уред', 'Целосно на македонски'].map((item) => (
-                <div key={item} className="px-4 py-2 rounded-full bg-white/80 border border-slate-200 text-sm font-black text-slate-700 shadow-sm">
-                  {item}
-                </div>
-              ))}
-            </div>
-
-            <motion.div 
+            {/* Creator CTAs */}
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="flex flex-wrap gap-4 pt-4"
+              transition={{ delay: 0.15 }}
+              className="flex flex-wrap gap-3"
             >
               <button
                 onClick={() => { localStorage.removeItem('active_event_code'); setView('host'); }}
-                className="group relative px-10 py-5 bg-slate-900 text-white rounded-[2rem] font-black text-xl hover:bg-slate-800 transition-all shadow-2xl shadow-slate-200 active:scale-95 flex items-center gap-3"
+                className="group px-8 py-4 bg-slate-900 text-white rounded-[2rem] font-black text-lg hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 active:scale-95 flex items-center gap-2"
               >
-                Започни сега <ArrowRight className="group-hover:translate-x-1 transition-transform" />
+                Започни сега <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
               </button>
-              <button 
+              <button
                 onClick={() => setView('demo')}
-                className="px-10 py-5 bg-white text-slate-700 rounded-[2rem] font-black text-xl border-2 border-slate-100 hover:border-indigo-600 hover:text-indigo-600 transition-all active:scale-95"
+                className="px-8 py-4 bg-white text-slate-700 rounded-[2rem] font-black text-lg border-2 border-slate-100 hover:border-indigo-600 hover:text-indigo-600 transition-all active:scale-95"
               >
                 Пробај без регистрација
+              </button>
+            </motion.div>
+
+            {/* PIN Entry — big, prominent, for participants */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-gradient-to-br from-indigo-600 to-violet-600 p-5 rounded-[2rem] shadow-2xl shadow-indigo-200"
+            >
+              <p className="text-white/70 font-black text-xs uppercase tracking-widest mb-3 pl-1">
+                Имаш код за настан? Приклучи се веднаш →
+              </p>
+              <div className="flex gap-3">
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    maxLength={7}
+                    placeholder="Внеси код..."
+                    value={code}
+                    onChange={(e) => handleCodeChange(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && codeStatus === 'valid' && setView('join')}
+                    className="w-full bg-white/15 backdrop-blur-md border-2 border-white/20 rounded-xl px-5 py-4 text-white font-black text-lg placeholder:text-white/40 focus:bg-white/25 focus:border-white/40 outline-none transition-all tracking-widest"
+                    autoComplete="off"
+                  />
+                  {/* Validation indicator */}
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                    {codeStatus === 'checking' && (
+                      <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                    )}
+                    {codeStatus === 'valid' && (
+                      <CheckCircle2 className="w-5 h-5 text-emerald-300" />
+                    )}
+                    {codeStatus === 'invalid' && (
+                      <X className="w-5 h-5 text-red-300" />
+                    )}
+                    {codeStatus === 'locked' && (
+                      <span className="text-amber-300 text-xs font-black">ПАУЗИРАН</span>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setView('join')}
+                  disabled={code.length < 3}
+                  className={`px-7 py-4 rounded-xl font-black text-sm uppercase tracking-widest transition-all active:scale-95 ${
+                    codeStatus === 'valid'
+                      ? 'bg-emerald-400 text-emerald-900 shadow-lg shadow-emerald-500/30 scale-105'
+                      : 'bg-white text-indigo-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed'
+                  }`}
+                >
+                  Влези
+                </button>
+              </div>
+              {codeStatus === 'valid' && (
+                <p className="text-emerald-300 font-black text-xs mt-2 pl-1">✓ Сесијата е активна — притисни Влези или Enter</p>
+              )}
+              {codeStatus === 'invalid' && code.length >= 5 && (
+                <p className="text-red-300 font-black text-xs mt-2 pl-1">Кодот не постои. Провери го со презентерот.</p>
+              )}
+              {codeStatus === 'locked' && (
+                <p className="text-amber-300 font-black text-xs mt-2 pl-1">Сесијата е паузирана. Почекај инструкции.</p>
+              )}
+            </motion.div>
+
+            {/* Co-host entry */}
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }}>
+              <button
+                onClick={() => setIsCoHostOpen(true)}
+                className="flex items-center gap-2 text-slate-400 hover:text-indigo-600 font-black text-xs uppercase tracking-widest transition-colors"
+              >
+                <UserPlus className="w-4 h-4" /> Сте Ко-домаќин? Влезте тука →
               </button>
             </motion.div>
 
