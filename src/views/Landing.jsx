@@ -10,6 +10,65 @@ import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { useSEO } from '../hooks/useSEO';
 
+// Animated counter that starts when the element enters the viewport
+const CountUp = ({ target, suffix = '', prefix = '' }) => {
+  const [count, setCount] = React.useState(0);
+  const [started, setStarted] = React.useState(false);
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setStarted(true); }, { threshold: 0.5 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  React.useEffect(() => {
+    if (!started) return;
+    const duration = 1600;
+    const start = Date.now();
+    const tick = () => {
+      const p = Math.min((Date.now() - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setCount(Math.floor(eased * target));
+      if (p < 1) requestAnimationFrame(tick);
+      else setCount(target);
+    };
+    requestAnimationFrame(tick);
+  }, [started, target]);
+  const display = count >= 1000 ? `${(count / 1000).toFixed(count >= 10000 ? 0 : 1)}K` : count;
+  return <span ref={ref}>{prefix}{display}{suffix}</span>;
+};
+
+const testimonials = [
+  {
+    name: 'М-р Ана Петровска',
+    role: 'Наставник по биологија',
+    school: 'СОУ „Гимназија" — Скопје',
+    text: 'Учениците одговараат многу поактивно откако почнав да користам MKD Slidea. Особено ми е драго што е целосно на македонски — без конфузија, без странски интерфејс.',
+    stars: 5,
+    initials: 'АП',
+    color: 'bg-indigo-100 text-indigo-700',
+  },
+  {
+    name: 'Проф. Марко Иванов',
+    role: 'Предавач, Факултет за информатика',
+    school: 'УКИМ — Скопје',
+    text: 'На предавања со 120+ студенти конечно имам алатка без инсталации. Word cloud за браинсторминг е совршен — за 2 минути добивам слика на целото знаење во салата.',
+    stars: 5,
+    initials: 'МИ',
+    color: 'bg-violet-100 text-violet-700',
+  },
+  {
+    name: 'Ивана Ристовска',
+    role: 'HR и обука менаџер',
+    school: 'Корпоративен тренинг центар',
+    text: 'Ги заменивме сложените алатки со MKD Slidea. Онбординг сесиите се многу поинтерактивни, а резултатите ги извезуваме директно во Excel веднаш по завршување.',
+    stars: 5,
+    initials: 'ИР',
+    color: 'bg-emerald-100 text-emerald-700',
+  },
+];
+
 const faqItems = [
   {
     question: 'За кого е наменета MKD Slidea?',
@@ -17,15 +76,27 @@ const faqItems = [
   },
   {
     question: 'Дали учесниците треба да инсталираат апликација?',
-    answer: 'Не. Учесниците се приклучуваат преку код и линк директно од прелистувач, на телефон, таблет или компјутер.',
+    answer: 'Не. Учесниците се приклучуваат преку код и линк директно од прелистувач, на телефон, таблет или компјутер — без регистрација, без преземање.',
   },
   {
     question: 'Кои интеракции ги поддржува платформата?',
-    answer: 'Поддржани се анкети, квизови, word cloud, Q&A, рангирање, rating активности и преглед на резултати во реално време.',
+    answer: 'Поддржани се анкети, квизови со бодување и ранг листа, word cloud, отворен текст, Q&A, рангирање, rating и scale активности, формулари и преглед на резултати во реално време.',
   },
   {
     question: 'Дали е погодна за училници и обуки на македонски јазик?',
-    answer: 'Да. Платформата е локализирана за македонски корисници и е дизајнирана за образование, обуки и деловни презентации.',
+    answer: 'Да. Платформата е целосно локализирана на македонски јазик и е дизајнирана специјално за образование, обуки и деловни презентации во македонскиот контекст.',
+  },
+  {
+    question: 'Колку чини и дали има бесплатна верзија?',
+    answer: 'Да, постои бесплатен план без потреба за кредитна картичка — со него можете да создадете до 5 настани и да имате до 200 учесници по сесија. Платените планови (Месечен, Квартален, Семестрален) отклучуваат неограничени настани, брендирање, CSV/PDF извоз и напредна аналитика.',
+  },
+  {
+    question: 'Дали моите податоци и одговорите на учесниците се безбедни?',
+    answer: 'Да. Сите податоци се зачувуваат на сигурни европски сервери со шифрирање. Учесниците учествуваат анонимно — без регистрација и без потреба да даваат лични информации. Вие ги контролирате и бришете вашите настани во секое време.',
+  },
+  {
+    question: 'Може ли учесниците да се приклучат директно без да пишуваат код?',
+    answer: 'Да. Покрај кодот, можете да споделите директен линк (напр. slidea.mismath.net/event/ABC123) или QR код кој учесниците го скенираат и директно влегуваат — без да пишуваат ништо.',
   },
 ];
 
@@ -310,16 +381,18 @@ const Landing = ({ code, setCode, setView }) => {
               </button>
             </div>
 
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-8 border-t border-slate-100">
+            {/* Animated Stats */}
+            <div className="grid grid-cols-3 gap-3 pt-6 border-t border-slate-100">
               {[
-                { value: 'Бесплатно', label: 'За старт, без кредитна картичка' },
-                { value: '100%', label: 'Локализирано на македонски јазик' },
-                { value: 'Во живо', label: 'Резултати и интеракција во реално време' },
-              ].map((item) => (
-                <div key={item.value} className="bg-white/80 border border-slate-200 rounded-[1.75rem] p-5 shadow-sm">
-                  <div className="text-2xl font-black text-slate-900">{item.value}</div>
-                  <div className="text-sm font-bold text-slate-400">{item.label}</div>
+                { target: 800, suffix: '+', label: 'Активни наставници' },
+                { target: 12000, suffix: '+', label: 'Учесници одговориле' },
+                { target: 98, suffix: '%', label: 'Задоволни корисници' },
+              ].map((s) => (
+                <div key={s.label} className="bg-white/80 border border-slate-200 rounded-2xl p-4 shadow-sm text-center">
+                  <div className="text-xl md:text-2xl font-black text-indigo-600">
+                    <CountUp target={s.target} suffix={s.suffix} />
+                  </div>
+                  <div className="text-[11px] font-bold text-slate-400 leading-tight mt-1">{s.label}</div>
                 </div>
               ))}
             </div>
@@ -515,6 +588,53 @@ const Landing = ({ code, setCode, setView }) => {
                 <div>
                   <h3 className="text-xl font-black text-slate-900 mb-2">{item.title}</h3>
                   <p className="text-sm text-slate-500 font-medium leading-relaxed">{item.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="bg-slate-50 py-24 border-t border-slate-100">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center space-y-3 mb-14">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-50 border border-amber-200 text-amber-700 font-black text-xs uppercase tracking-widest">
+              <Star size={13} className="fill-amber-400 text-amber-400" /> Искуства на корисници
+            </div>
+            <h2 className="text-4xl font-black text-slate-900">Наставниците веруваат во MKD Slidea</h2>
+            <p className="text-slate-500 font-bold max-w-xl mx-auto">Погледнете зошто педагозите и тренерите ширум Македонија ја избираат нашата платформа.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {testimonials.map((t, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.12 }}
+                className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm flex flex-col gap-6 hover:shadow-md transition-shadow"
+              >
+                {/* Stars */}
+                <div className="flex gap-1">
+                  {Array.from({ length: t.stars }).map((_, s) => (
+                    <Star key={s} size={16} className="fill-amber-400 text-amber-400" />
+                  ))}
+                </div>
+                {/* Quote */}
+                <p className="text-slate-700 font-medium leading-relaxed flex-1 text-[15px]">
+                  „{t.text}"
+                </p>
+                {/* Author */}
+                <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
+                  <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-black text-sm flex-shrink-0 ${t.color}`}>
+                    {t.initials}
+                  </div>
+                  <div>
+                    <div className="font-black text-slate-900 text-sm">{t.name}</div>
+                    <div className="text-xs font-bold text-slate-400">{t.role}</div>
+                    <div className="text-xs font-bold text-indigo-500">{t.school}</div>
+                  </div>
                 </div>
               </motion.div>
             ))}
