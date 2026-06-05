@@ -4,7 +4,7 @@ import {
   Zap, ArrowRight, Presentation,
   MonitorPlay, Users, Cloud, PieChart, MessageSquare,
   Trophy, CheckCircle2, Star, Sparkles, ChevronRight, UserPlus, X,
-  BookOpen, GraduationCap, School, BarChart2, MousePointerClick, Layout
+  BookOpen, GraduationCap, School, BarChart2, MousePointerClick, Layout, XCircle
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
@@ -761,26 +761,94 @@ const Landing = ({ code, setCode, setView }) => {
             </div>
           </div>
 
-          {/* Use case tabs */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { label: 'Основно училиште', icon: '🏫' },
-              { label: 'Средно училиште', icon: '📚' },
-              { label: 'Факултет', icon: '🎓' },
-              { label: 'Корпоративни обуки', icon: '💼' },
-            ].map((uc, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.07 }}
-                className="bg-white border border-slate-100 rounded-2xl p-6 text-center hover:border-indigo-300 hover:shadow-md transition-all cursor-default"
-              >
-                <div className="text-3xl mb-2">{uc.icon}</div>
-                <div className="text-sm font-black text-slate-700">{uc.label}</div>
-              </motion.div>
-            ))}
+          {/* Activity type showcase — Show don't tell */}
+          <div className="mt-8">
+            <p className="text-center text-slate-400 font-black text-xs uppercase tracking-widest mb-8">Типови активности — изберете го вистинскиот формат</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                {
+                  type: 'Word Cloud',
+                  color: 'from-indigo-500 to-violet-500',
+                  icon: <Cloud size={18} className="text-white" />,
+                  desc: 'Учесниците внесуваат зборови — се гради облак во живо',
+                  preview: (
+                    <div className="flex flex-wrap gap-1.5 justify-center items-center h-20 overflow-hidden">
+                      {['Учење','Квиз','Забава','Знаење','Тим'].map((w,i)=>(
+                        <span key={i} style={{fontSize: [18,14,20,12,16][i]}} className="font-black text-indigo-600/80">{w}</span>
+                      ))}
+                    </div>
+                  ),
+                },
+                {
+                  type: 'Анкета',
+                  color: 'from-emerald-500 to-teal-500',
+                  icon: <PieChart size={18} className="text-white" />,
+                  desc: 'Повеќекратен избор со резултати во реално време',
+                  preview: (
+                    <div className="space-y-1.5 w-full">
+                      {[['Да, веднаш', 64], ['Можеби', 24], ['Не', 12]].map(([l,v])=>(
+                        <div key={l} className="flex items-center gap-2">
+                          <div className="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden">
+                            <div className="h-full bg-emerald-500 rounded-full" style={{width:`${v}%`}} />
+                          </div>
+                          <span className="text-[10px] font-black text-slate-500 w-6">{v}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  ),
+                },
+                {
+                  type: 'Квиз',
+                  color: 'from-amber-500 to-orange-500',
+                  icon: <Trophy size={18} className="text-white" />,
+                  desc: 'Натпревар со точни одговори и ранг листа',
+                  preview: (
+                    <div className="space-y-1.5 w-full">
+                      {[['Python','✓',true],['Java','✗',false],['C++','✗',false]].map(([l,m,c])=>(
+                        <div key={l} className={`flex items-center justify-between rounded-lg px-3 py-1.5 text-xs font-black ${c ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                          <span>{l}</span><span>{m}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ),
+                },
+                {
+                  type: 'Q&A',
+                  color: 'from-rose-500 to-pink-500',
+                  icon: <MessageSquare size={18} className="text-white" />,
+                  desc: 'Анонимни прашања со upvote од публиката',
+                  preview: (
+                    <div className="space-y-1.5 w-full">
+                      {[['Кога следен квиз?',12],['Може ли повторување?',8]].map(([q,v])=>(
+                        <div key={q} className="flex items-center justify-between bg-slate-100 rounded-lg px-3 py-1.5">
+                          <span className="text-[10px] font-bold text-slate-600 truncate flex-1">{q}</span>
+                          <span className="text-[10px] font-black text-rose-600 ml-2">▲{v}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ),
+                },
+              ].map((act, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  whileHover={{ y: -4 }}
+                  className="bg-white rounded-[2rem] border border-slate-100 overflow-hidden shadow-sm hover:shadow-lg transition-all"
+                >
+                  <div className={`bg-gradient-to-r ${act.color} px-5 py-4 flex items-center gap-2`}>
+                    <div className="bg-white/20 w-7 h-7 rounded-lg flex items-center justify-center">{act.icon}</div>
+                    <span className="font-black text-white text-sm">{act.type}</span>
+                  </div>
+                  <div className="p-5">
+                    <div className="mb-4">{act.preview}</div>
+                    <p className="text-[11px] text-slate-400 font-bold leading-snug">{act.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -816,6 +884,89 @@ const Landing = ({ code, setCode, setView }) => {
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Comparison Section */}
+      <section className="py-24 bg-white border-t border-slate-100">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="text-center space-y-3 mb-14">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 font-black text-xs uppercase tracking-widest">
+              <Zap size={13} /> Зошто MKD Slidea?
+            </div>
+            <h2 className="text-4xl font-black text-slate-900">Споредба со конкурентите</h2>
+            <p className="text-slate-500 font-bold max-w-xl mx-auto">Направена специјално за македонскиот пазар — со функции кои другите ги немаат.</p>
+          </div>
+
+          {/* Table */}
+          <div className="overflow-x-auto rounded-[2rem] border border-slate-200 shadow-sm">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-200">
+                  <th className="text-left p-5 font-black text-slate-500 text-xs uppercase tracking-widest w-[38%]">Функционалност</th>
+                  <th className="p-5 text-center w-[20%]">
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="w-8 h-8 bg-indigo-600 rounded-xl flex items-center justify-center"><Zap size={14} className="text-white" /></div>
+                      <span className="font-black text-indigo-600 text-sm">MKD Slidea</span>
+                    </div>
+                  </th>
+                  <th className="p-5 text-center w-[20%]">
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="w-8 h-8 bg-slate-200 rounded-xl flex items-center justify-center text-slate-500 font-black text-xs">M</div>
+                      <span className="font-black text-slate-400 text-sm">Mentimeter</span>
+                    </div>
+                  </th>
+                  <th className="p-5 text-center w-[20%]">
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="w-8 h-8 bg-slate-200 rounded-xl flex items-center justify-center text-slate-500 font-black text-xs">K</div>
+                      <span className="font-black text-slate-400 text-sm">Kahoot</span>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { feature: 'Целосно на македонски јазик', mkd: true, menti: false, kahoot: false, highlight: true },
+                  { feature: 'Бесплатно до 200 учесници', mkd: true, menti: false, kahoot: 'partial' },
+                  { feature: 'Без апликација за учесниците', mkd: true, menti: true, kahoot: true },
+                  { feature: 'Word Cloud активност', mkd: true, menti: true, kahoot: false },
+                  { feature: 'Отворени прашања (Open Q)', mkd: true, menti: true, kahoot: false },
+                  { feature: 'Q&A со upvote од учесниците', mkd: true, menti: true, kahoot: false },
+                  { feature: 'Квизови со ранг листа', mkd: true, menti: false, kahoot: true },
+                  { feature: 'Модерација на одговори', mkd: true, menti: false, kahoot: false, highlight: true },
+                  { feature: 'Офлајн резервна копија (гласови)', mkd: true, menti: false, kahoot: false },
+                  { feature: 'CSV / PDF извоз на резултати', mkd: true, menti: 'partial', kahoot: 'partial' },
+                  { feature: 'Поддршка на македонски јазик', mkd: true, menti: false, kahoot: false, highlight: true },
+                ].map((row, i) => {
+                  const Cell = ({ val }) => val === true
+                    ? <CheckCircle2 size={20} className="text-emerald-500 mx-auto" />
+                    : val === 'partial'
+                    ? <span className="text-amber-500 font-black text-xs mx-auto block text-center">Делумно</span>
+                    : <XCircle size={20} className="text-slate-300 mx-auto" />;
+                  return (
+                    <motion.tr
+                      key={i}
+                      initial={{ opacity: 0, x: -10 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i * 0.04 }}
+                      className={`border-b border-slate-100 last:border-0 ${row.highlight ? 'bg-indigo-50/60' : i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}`}
+                    >
+                      <td className="p-4 pl-5 font-bold text-slate-700 text-[13px]">
+                        {row.highlight && <span className="inline-block w-1.5 h-1.5 bg-indigo-500 rounded-full mr-2 mb-0.5" />}
+                        {row.feature}
+                      </td>
+                      <td className="p-4 text-center"><Cell val={row.mkd} /></td>
+                      <td className="p-4 text-center"><Cell val={row.menti} /></td>
+                      <td className="p-4 text-center"><Cell val={row.kahoot} /></td>
+                    </motion.tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <p className="text-center text-slate-400 text-xs font-bold mt-5">* Споредбата е базирана на јавно достапните бесплатни планови (јуни 2026)</p>
         </div>
       </section>
 

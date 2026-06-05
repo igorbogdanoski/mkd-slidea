@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Zap, ChevronDown, PieChart, MessageSquare, Cloud, 
+import {
+  Zap, ChevronDown, PieChart, MessageSquare, Cloud,
   ClipboardList, Trophy, LineChart, Presentation, Globe,
   Users, School, Briefcase, Calendar, LayoutGrid, LogIn,
-  Sun, Moon
+  Sun, Moon, Menu, X
 } from 'lucide-react';
 import LoginModal from './LoginModal';
 import LanguageSwitcher from './LanguageSwitcher';
@@ -65,6 +65,7 @@ const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout }) => {
   const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState(null);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const { isDark, toggle: toggleDark } = useDarkMode();
   const { t } = useI18n();
 
@@ -217,6 +218,15 @@ const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout }) => {
         </div>
 
         <div className="flex items-center gap-4">
+          {/* Hamburger — mobile only */}
+          <button
+            className="lg:hidden p-2.5 rounded-xl text-slate-500 hover:bg-slate-50 transition-all"
+            onClick={() => setMobileOpen(v => !v)}
+            aria-label="Мени"
+          >
+            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+
           <LanguageSwitcher />
           <button
             onClick={toggleDark}
@@ -274,6 +284,52 @@ const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout }) => {
           )}
         </div>
       </div>
+
+      {/* Mobile menu dropdown */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.22, ease: 'easeInOut' }}
+            className="lg:hidden overflow-hidden border-t border-slate-100 bg-white/95 backdrop-blur-md"
+          >
+            <div className="max-w-7xl mx-auto px-6 py-5 space-y-1">
+              {[
+                { label: t('nav.product'),    action: () => { setView('host'); setMobileOpen(false); } },
+                { label: t('nav.solutions'),  action: () => { document.getElementById('solutions')?.scrollIntoView({ behavior: 'smooth' }); setMobileOpen(false); } },
+                { label: t('nav.pricing'),    action: () => { setView('pricing'); setMobileOpen(false); } },
+                { label: t('nav.templates'),  action: () => { navigate('/templates'); setMobileOpen(false); } },
+                { label: t('nav.scoreboard'), action: () => { navigate('/scoreboard'); setMobileOpen(false); } },
+              ].map((item) => (
+                <button
+                  key={item.label}
+                  onClick={item.action}
+                  className="w-full text-left px-4 py-3 rounded-xl text-sm font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+                >
+                  {item.label}
+                </button>
+              ))}
+              <div className="pt-3 border-t border-slate-100 flex gap-3">
+                <button
+                  onClick={() => { setIsLoginOpen(true); setMobileOpen(false); }}
+                  className="flex-1 py-3 text-center text-sm font-black text-slate-700 border border-slate-200 rounded-2xl hover:border-indigo-400 transition-all"
+                >
+                  {t('nav.login')}
+                </button>
+                <button
+                  onClick={() => { setIsLoginOpen(true); setMobileOpen(false); }}
+                  className="flex-1 py-3 text-center text-sm font-black text-white bg-indigo-600 rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
+                >
+                  {t('nav.register')}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <LoginModal
         isOpen={isLoginOpen}
         onClose={closeLogin}
