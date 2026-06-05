@@ -231,13 +231,91 @@ const AppContent = () => {
       </main>
 
       {isPublicRoute && (
-        <footer className="py-12 text-center text-slate-500 text-sm font-medium border-t border-slate-100 mt-20">
-          <div className="flex items-center justify-center gap-6 mb-4">
-            <a href="#" className="hover:text-indigo-600 transition-colors">{t('footer.privacy')}</a>
-            <a href="#" className="hover:text-indigo-600 transition-colors">{t('footer.terms')}</a>
-            <a href="#" className="hover:text-indigo-600 transition-colors text-indigo-600">{t('footer.madeIn')}</a>
+        <footer className="bg-slate-900 text-slate-400 pt-16 pb-8 mt-0">
+          <div className="max-w-7xl mx-auto px-6">
+            {/* Top grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-12">
+              {/* Brand */}
+              <div className="col-span-2 md:col-span-1 space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-indigo-600 rounded-xl flex items-center justify-center">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                  </div>
+                  <span className="font-black text-white text-lg">MKD Slidea</span>
+                </div>
+                <p className="text-sm leading-relaxed">Интерактивни презентации, анкети и квизови во живо. Направено во Македонија 🇲🇰</p>
+                {/* Social */}
+                <div className="flex gap-3 pt-2">
+                  {[
+                    { label: 'LinkedIn', href: 'https://linkedin.com', icon: 'in' },
+                    { label: 'Facebook', href: 'https://facebook.com', icon: 'f' },
+                    { label: 'Instagram', href: 'https://instagram.com', icon: '✦' },
+                  ].map((s) => (
+                    <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer"
+                      className="w-9 h-9 bg-slate-800 hover:bg-indigo-600 rounded-xl flex items-center justify-center text-xs font-black text-slate-300 hover:text-white transition-all"
+                      aria-label={s.label}
+                    >{s.icon}</a>
+                  ))}
+                </div>
+              </div>
+
+              {/* Производ */}
+              <div className="space-y-3">
+                <h4 className="text-white font-black text-sm uppercase tracking-widest mb-4">Производ</h4>
+                {[
+                  { label: 'Функционалности', view: 'host' },
+                  { label: 'Шаблони', path: '/templates' },
+                  { label: 'Ценовник', view: 'pricing' },
+                  { label: 'Скорборд', path: '/scoreboard' },
+                ].map((l) => (
+                  <div key={l.label}>
+                    {l.path ? (
+                      <a href={l.path} className="text-sm hover:text-white transition-colors block">{l.label}</a>
+                    ) : (
+                      <button onClick={() => setView(l.view)} className="text-sm hover:text-white transition-colors text-left">{l.label}</button>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Решенија */}
+              <div className="space-y-3">
+                <h4 className="text-white font-black text-sm uppercase tracking-widest mb-4">Решенија</h4>
+                {['За образование', 'За бизнис и HR', 'За вебинари', 'За обуки'].map((l) => (
+                  <div key={l} className="text-sm hover:text-white transition-colors cursor-pointer">{l}</div>
+                ))}
+              </div>
+
+              {/* Поддршка */}
+              <div className="space-y-3">
+                <h4 className="text-white font-black text-sm uppercase tracking-widest mb-4">Поддршка</h4>
+                {[
+                  { label: 'Брз старт', path: '/' },
+                  { label: 'Блог', path: '/blog' },
+                  { label: 'Интеграции', path: '/integrations' },
+                  { label: 'Пријави проблем', href: 'mailto:support@slidea.mismath.net' },
+                ].map((l) => (
+                  <div key={l.label}>
+                    {l.href ? (
+                      <a href={l.href} className="text-sm hover:text-white transition-colors block">{l.label}</a>
+                    ) : (
+                      <a href={l.path} className="text-sm hover:text-white transition-colors block">{l.label}</a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Bottom bar */}
+            <div className="border-t border-slate-800 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
+              <p className="font-bold">© {new Date().getFullYear()} MKD Slidea. Сите права задржани.</p>
+              <div className="flex gap-6">
+                <a href="/privacy" className="hover:text-white transition-colors">{t('footer.privacy')}</a>
+                <a href="/terms" className="hover:text-white transition-colors">{t('footer.terms')}</a>
+                <span className="text-indigo-400 font-bold">Направено со ❤️ во МК</span>
+              </div>
+            </div>
           </div>
-          <p className="font-bold">{t('footer.copyright')}</p>
         </footer>
       )}
 

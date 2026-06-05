@@ -163,6 +163,7 @@ const Landing = ({ code, setCode, setView }) => {
     },
   });
   const navigate = useNavigate();
+  const [openFaq, setOpenFaq] = useState(null);
   const [activeDemo, setActiveDemo] = useState('wordcloud');
   const [demoValue, setDemoValue] = useState('');
   const [isCoHostOpen, setIsCoHostOpen] = useState(false);
@@ -193,18 +194,33 @@ const Landing = ({ code, setCode, setView }) => {
       }, 500);
     }
   };
-  const [demoWords, setDemoWords] = useState([
-    { text: 'Интеракција', size: 40 },
-    { text: 'Учење', size: 30 },
-    { text: 'Квиз', size: 25 },
-    { text: 'Забава', size: 35 },
-    { text: 'Скопје', size: 20 },
-    { text: 'Дигитално', size: 28 },
-  ]);
+  const autoWords = [
+    'Интеракција', 'Учење', 'Квиз', 'Забава', 'Скопје', 'Дигитално',
+    'Анкета', 'Тимска работа', 'Иновација', 'Едукација', 'Резултати',
+    'Презентација', 'Активност', 'Знаење', 'Соработка', 'Напредок',
+  ];
+  const [demoWords, setDemoWords] = useState(
+    autoWords.slice(0, 6).map((text, i) => ({ text, size: [40, 30, 25, 35, 20, 28][i] }))
+  );
+
+  useEffect(() => {
+    const remaining = [...autoWords.slice(6)];
+    let idx = 0;
+    const timer = setInterval(() => {
+      const word = remaining[idx % remaining.length];
+      idx++;
+      setDemoWords(prev => {
+        if (prev.find(w => w.text === word)) return prev;
+        const updated = [...prev, { text: word, size: Math.random() * 18 + 20 }];
+        return updated.length > 14 ? updated.slice(1) : updated;
+      });
+    }, 2200);
+    return () => clearInterval(timer);
+  }, []);
 
   const addWord = (e) => {
     if (e.key === 'Enter' && demoValue.trim()) {
-      setDemoWords([...demoWords, { text: demoValue.trim(), size: Math.random() * 20 + 20 }]);
+      setDemoWords(prev => [...prev, { text: demoValue.trim(), size: Math.random() * 20 + 20 }]);
       setDemoValue('');
     }
   };
@@ -271,7 +287,7 @@ const Landing = ({ code, setCode, setView }) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-lg text-slate-500 max-w-xl leading-relaxed font-medium"
+              className="text-xl text-slate-500 max-w-md leading-relaxed font-medium"
             >
               Анкети, квизови и word cloud во живо — за класот, обуката или настанот.
               Без инсталација, директно од прелистувач.
@@ -380,6 +396,23 @@ const Landing = ({ code, setCode, setView }) => {
                 ЧПП
               </button>
             </div>
+
+            {/* Trusted by strip */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="pt-2"
+            >
+              <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3">Користат наставници од:</p>
+              <div className="flex flex-wrap gap-2">
+                {['УКИМ', 'ДУИ', 'Гимназија „Скопје"', 'ФИНКИ', 'МОН обуки', 'Корпоративни тренинзи'].map((inst) => (
+                  <span key={inst} className="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-[11px] font-black">
+                    {inst}
+                  </span>
+                ))}
+              </div>
+            </motion.div>
 
             {/* Animated Stats */}
             <div className="grid grid-cols-3 gap-3 pt-6 border-t border-slate-100">
@@ -664,14 +697,14 @@ const Landing = ({ code, setCode, setView }) => {
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="bg-white rounded-[3rem] p-12 border border-slate-100 shadow-sm flex flex-col gap-8"
+              className="bg-gradient-to-br from-indigo-700 to-violet-800 rounded-[3rem] p-12 shadow-2xl shadow-indigo-200 flex flex-col gap-8"
             >
-              <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-100">
+              <div className="w-16 h-16 bg-white/15 rounded-2xl flex items-center justify-center">
                 <School className="w-8 h-8 text-white" />
               </div>
               <div>
-                <h3 className="text-2xl font-black text-slate-900 mb-4">Секој ученик добива глас</h3>
-                <p className="text-slate-500 font-medium leading-relaxed mb-6">
+                <h3 className="text-2xl font-black text-white mb-4">Секој ученик добива глас</h3>
+                <p className="text-indigo-200 font-medium leading-relaxed mb-6 text-[15px]">
                   Анонимното гласање ги охрабрува поплашливите ученици да учествуваат. Сите се чувствуваат безбедно да одговорат — без страв од грешка.
                 </p>
                 <ul className="space-y-3">
@@ -681,9 +714,9 @@ const Landing = ({ code, setCode, setView }) => {
                     'Q&A: учениците поставуваат прашања анонимно',
                     'Работи на секој уред — без апликација',
                   ].map((f, i) => (
-                    <li key={i} className="flex items-center gap-3 text-sm font-bold text-slate-700">
-                      <div className="bg-emerald-100 p-1 rounded-full flex-shrink-0">
-                        <CheckCircle2 size={14} className="text-emerald-600" />
+                    <li key={i} className="flex items-center gap-3 text-sm font-bold text-white/90">
+                      <div className="bg-white/20 p-1 rounded-full flex-shrink-0">
+                        <CheckCircle2 size={14} className="text-emerald-300" />
                       </div>
                       {f}
                     </li>
@@ -762,23 +795,24 @@ const Landing = ({ code, setCode, setView }) => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {solutions.map((sol, i) => (
-              <motion.div 
+              <motion.div
                 key={i}
-                whileHover={{ y: -10 }}
-                className="bg-slate-50 p-10 rounded-[3rem] border border-slate-100 group cursor-pointer hover:bg-white hover:shadow-2xl hover:shadow-indigo-50 transition-all"
+                whileHover={{ y: -8, boxShadow: '0 24px 48px -12px rgba(99,102,241,0.18)' }}
+                onClick={() => setView('pricing')}
+                className="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100 group cursor-pointer hover:bg-white transition-all"
               >
-                <div className={`${sol.color} w-16 h-16 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform`}>
+                <div className={`${sol.color} w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
                   {sol.icon}
                 </div>
-                <h3 className="text-xl font-black text-slate-900 mb-4">{sol.title}</h3>
-                <p className="text-sm text-slate-400 font-bold leading-relaxed mb-8 text-left">
+                <h3 className="text-lg font-black text-slate-900 mb-3">{sol.title}</h3>
+                <p className="text-sm text-slate-400 font-medium leading-relaxed mb-6">
                   {sol.desc}
                 </p>
-                <button onClick={() => setView('pricing')} className="flex items-center gap-2 text-indigo-600 font-black text-xs uppercase tracking-widest group-hover:translate-x-1 transition-transform">
-                  Дознај повеќе <ChevronRight size={16} />
-                </button>
+                <span className="flex items-center gap-1 text-indigo-600 font-black text-xs uppercase tracking-widest group-hover:translate-x-1 transition-transform">
+                  Дознај повеќе <ChevronRight size={14} />
+                </span>
               </motion.div>
             ))}
           </div>
@@ -855,16 +889,41 @@ const Landing = ({ code, setCode, setView }) => {
             </p>
           </div>
 
-          <div className="grid gap-4">
-            {faqItems.map((item) => (
-              <details key={item.question} className="group bg-slate-50 border border-slate-200 rounded-[2rem] p-6 open:bg-white open:shadow-sm">
-                <summary className="list-none cursor-pointer flex items-center justify-between gap-4 text-lg font-black text-slate-900">
-                  <span>{item.question}</span>
-                  <span className="text-indigo-600 text-2xl leading-none group-open:rotate-45 transition-transform">+</span>
-                </summary>
-                <p className="mt-4 text-slate-500 font-medium leading-relaxed pr-8">{item.answer}</p>
-              </details>
-            ))}
+          <div className="grid gap-3">
+            {faqItems.map((item, i) => {
+              const isOpen = openFaq === i;
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.06 }}
+                  className={`border rounded-[1.75rem] overflow-hidden transition-all duration-300 ${isOpen ? 'bg-white border-indigo-200 shadow-md shadow-indigo-50' : 'bg-slate-50 border-slate-200 hover:border-indigo-200'}`}
+                >
+                  <button
+                    className="w-full flex items-center justify-between gap-4 text-left px-7 py-5 cursor-pointer"
+                    onClick={() => setOpenFaq(isOpen ? null : i)}
+                  >
+                    <span className="text-base md:text-lg font-black text-slate-900">{item.question}</span>
+                    <span className={`text-indigo-600 text-2xl leading-none transition-transform duration-300 flex-shrink-0 ${isOpen ? 'rotate-45' : ''}`}>+</span>
+                  </button>
+                  <AnimatePresence initial={false}>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.25, ease: 'easeInOut' }}
+                        className="overflow-hidden"
+                      >
+                        <p className="px-7 pb-6 text-slate-500 font-medium leading-relaxed text-[15px]">{item.answer}</p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>
