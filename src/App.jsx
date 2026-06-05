@@ -32,6 +32,9 @@ const Schools = lazy(() => import('./views/Schools'));
 const Integrations = lazy(() => import('./views/Integrations'));
 const EventScoreboard = lazy(() => import('./views/EventScoreboard'));
 const Onboarding = lazy(() => import('./views/Onboarding'));
+const PrivacyPolicy = lazy(() => import('./views/PrivacyPolicy'));
+const Terms = lazy(() => import('./views/Terms'));
+const NotFound = lazy(() => import('./views/NotFound'));
 
 // Suppress Supabase auth lock violations and permissions policy violations
 if (typeof window !== 'undefined') {
@@ -149,7 +152,7 @@ const AppContent = () => {
   };
 
   const isPublicRoute =
-    ['/', '/join', '/pricing', '/scoreboard', '/schools', '/integrations', '/demo'].includes(location.pathname) ||
+    ['/', '/join', '/pricing', '/scoreboard', '/schools', '/integrations', '/demo', '/privacy', '/terms'].includes(location.pathname) ||
     location.pathname === '/templates' ||
     location.pathname.startsWith('/templates/') ||
     location.pathname.startsWith('/blog') ||
@@ -223,7 +226,9 @@ const AppContent = () => {
                 <Route path="/blog/:slug" element={<BlogPost />} />
                 <Route path="/schools" element={<Schools />} />
                 <Route path="/integrations" element={<Integrations />} />
-                <Route path="*" element={<Navigate to="/" />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
           </ErrorBoundary>
