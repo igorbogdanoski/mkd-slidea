@@ -142,7 +142,15 @@
   - Global fallback CSS во `src/index.css` (покрива сите компоненти без explicit `dark:` variants)
   - Explicit `dark:` classes на: `Dashboard.jsx`, `Sidebar.jsx`, `ProfileTab.jsx` (карти, форми, прекинувачи)
 
+### DRAW-1: Drawing Annotations — ✅ ЗАВРШЕНО (веќе беше имплементирано)
+
+- `src/components/DrawingCanvas.jsx` (203 линии) — пенкало, гума, 5 бои, дебелина, clear all
+- Touch/pointer events поддршка
+- Вграден во `src/views/Presenter.jsx` — toggle клавиш `D`
+- Само HOST го гледа (overlay на презентерскиот екран, не учесниците)
+
 ### REGION-1: Регионален Push
+
 - Маркетинг за SQ, SR, BG пазари
 - Localized landing pages per language
 
@@ -167,19 +175,19 @@
 |------|--------|-----|
 | Landing renders | ✅ | ✅ |
 | Join page | ✅ | ✅ |
-| Participant view | ✅ (smoke) | Потребен детален тест |
-| Presenter view | ✅ (smoke) | Потребен детален тест |
-| Auth login/logout | ✅ | ✅ |
+| Participant view | ✅ `tests/participant.spec.js` (P-01–15) | ✅ |
+| Presenter view | ✅ `tests/host.spec.js` (H-09–12) | ✅ |
+| Auth login/logout | ✅ `tests/auth.spec.js` | ✅ |
 | Password reset | ✅ `tests/password-reset.spec.js` (PWR-01–07) | ✅ |
 | Dashboard load | ✅ `tests/dashboard.spec.js` (DB-01–12) | ✅ |
+| Create session | ✅ `tests/host.spec.js` (H-01–02) | ✅ |
+| Add poll/quiz | ✅ `tests/host.spec.js` (H-03–04) | ✅ |
+| Cast vote | ✅ `tests/participant.spec.js` (P-08) | ✅ |
+| View results | ✅ `tests/host.spec.js` (H-08) | ✅ |
+| AI generation | ✅ `tests/host.spec.js` (H-06 — modal opens) | Partial — UI only |
 | Settings / Profile | ✅ `tests/settings.spec.js` (SET-01–10) | ✅ |
 | Pricing page | ✅ `tests/pricing.spec.js` (PR-01–10) | ✅ |
 | Templates sort | ✅ `tests/templates-sort.spec.js` (TS-01–10) | ✅ |
-| **Create session** | ❌ | Потребен |
-| **Add poll/quiz** | ❌ | Потребен |
-| **Cast vote** | ❌ | Потребен |
-| **View results** | ❌ | Потребен |
-| **AI generation** | ❌ | Потребен |
 | Export CSV (button) | ✅ `tests/settings.spec.js` SET-09 | Partial — click only |
 | Mobile viewport | ✅ `tests/mobile.spec.js` (15 тести) | ✅ |
 | Accessibility audit | ✅ `tests/accessibility.spec.js` (17 тести) | ✅ |
