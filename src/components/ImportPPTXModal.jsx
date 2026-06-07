@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Upload, FileText, Check, Loader, ChevronRight, AlertCircle, Sparkles } from 'lucide-react';
-import JSZip from 'jszip';
+// JSZip loaded on demand — only when user actually opens this modal
 
 // Extract all text nodes from a slide XML string
 const extractSlideText = (xmlStr) => {
@@ -122,6 +122,7 @@ const ImportPPTXModal = ({ isOpen, onClose, onImport, user }) => {
     try {
       let parsed = [];
       if (isPptx) {
+        const { default: JSZip } = await import('jszip');
         const zip = await JSZip.loadAsync(file);
         const slideFiles = Object.keys(zip.files)
           .filter(name => /^ppt\/slides\/slide\d+\.xml$/.test(name))

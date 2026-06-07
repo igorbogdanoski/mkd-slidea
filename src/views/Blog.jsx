@@ -20,24 +20,31 @@ export default function Blog() {
     image: 'https://slidea.mismath.net/api/og-png',
     jsonLd: {
       '@context': 'https://schema.org',
-      '@type': 'Blog',
-      'name': 'MKD Slidea Блог',
-      'description': 'Совети и водичи за интерактивна настава на македонски јазик.',
-      'url': 'https://slidea.mismath.net/blog',
-      'inLanguage': 'mk',
-      'publisher': {
-        '@type': 'Organization',
-        'name': 'MKD Slidea',
-        'url': 'https://slidea.mismath.net/',
-      },
-      'blogPost': blogPosts.map(p => ({
-        '@type': 'BlogPosting',
-        'headline': p.title,
-        'description': p.description,
-        'url': `https://slidea.mismath.net/blog/${p.slug}`,
-        'datePublished': p.date,
-        'author': { '@type': 'Organization', 'name': p.author },
-      })),
+      '@graph': [
+        {
+          '@type': 'BreadcrumbList',
+          'itemListElement': [
+            { '@type': 'ListItem', 'position': 1, 'name': 'Почетна', 'item': 'https://slidea.mismath.net/' },
+            { '@type': 'ListItem', 'position': 2, 'name': 'Блог', 'item': 'https://slidea.mismath.net/blog' },
+          ],
+        },
+        {
+          '@type': 'Blog',
+          'name': 'MKD Slidea Блог',
+          'description': 'Совети и водичи за интерактивна настава на македонски јазик.',
+          'url': 'https://slidea.mismath.net/blog',
+          'inLanguage': 'mk',
+          'publisher': { '@type': 'Organization', 'name': 'MKD Slidea', 'url': 'https://slidea.mismath.net/' },
+          'blogPost': blogPosts.map(p => ({
+            '@type': 'BlogPosting',
+            'headline': p.title,
+            'description': p.description,
+            'url': `https://slidea.mismath.net/blog/${p.slug}`,
+            'datePublished': p.date,
+            'author': { '@type': 'Organization', 'name': p.author },
+          })),
+        },
+      ],
     },
   });
 

@@ -15,14 +15,35 @@ const Pricing = ({ setView }) => {
     path: '/pricing',
     jsonLd: {
       '@context': 'https://schema.org',
-      '@type': 'Product',
-      'name': 'MKD Slidea',
-      'description': 'Македонска интерактивна платформа за настава, обуки и презентации.',
-      'brand': { '@type': 'Brand', 'name': 'MKD Slidea' },
-      'offers': [
-        { '@type': 'Offer', 'name': 'Бесплатен', 'price': '0', 'priceCurrency': 'EUR', 'availability': 'https://schema.org/InStock' },
-        { '@type': 'Offer', 'name': 'Месечен', 'price': '5', 'priceCurrency': 'EUR', 'availability': 'https://schema.org/InStock' },
-        { '@type': 'Offer', 'name': 'Годишен', 'price': '20', 'priceCurrency': 'EUR', 'availability': 'https://schema.org/InStock' },
+      '@graph': [
+        {
+          '@type': 'Product',
+          'name': 'MKD Slidea',
+          'description': 'Македонска интерактивна платформа за настава, обуки и презентации.',
+          'brand': { '@type': 'Brand', 'name': 'MKD Slidea' },
+          'offers': [
+            { '@type': 'Offer', 'name': 'Бесплатен', 'price': '0', 'priceCurrency': 'EUR', 'availability': 'https://schema.org/InStock' },
+            { '@type': 'Offer', 'name': 'Месечен', 'price': '5', 'priceCurrency': 'EUR', 'availability': 'https://schema.org/InStock' },
+            { '@type': 'Offer', 'name': 'Годишен', 'price': '20', 'priceCurrency': 'EUR', 'availability': 'https://schema.org/InStock' },
+          ],
+        },
+        {
+          '@type': 'FAQPage',
+          'mainEntity': [
+            { '@type': 'Question', 'name': 'Дали треба кредитна картичка за 14-дневниот пробен период?', 'acceptedAnswer': { '@type': 'Answer', 'text': 'Не, не е потребна кредитна картичка. Можете да го пробате Pro планот 14 дена целосно бесплатно.' } },
+            { '@type': 'Question', 'name': 'Може ли да откажам претплата?', 'acceptedAnswer': { '@type': 'Answer', 'text': 'Да, можете да откажете во секое време. Нема обврски или скриени такси.' } },
+            { '@type': 'Question', 'name': 'Каква е гаранцијата?', 'acceptedAnswer': { '@type': 'Answer', 'text': 'Нудиме 30-дневна гаранција за поврат на пари. Ако не сте задоволни, ќе ви вратиме целосен рефунд без прашања.' } },
+            { '@type': 'Question', 'name': 'Колку учесници може да гласаат во реалното?', 'acceptedAnswer': { '@type': 'Answer', 'text': 'Бесплатниот план поддржува до 200 учесници. Про планот поддржува до неограничен број учесници во зависност од планот.' } },
+            { '@type': 'Question', 'name': 'Дали MKD Slidea поддржува македонски јазик?', 'acceptedAnswer': { '@type': 'Answer', 'text': 'Да, MKD Slidea е целосно на македонски јазик и е наменета специјално за македонскиот образовен систем.' } },
+          ],
+        },
+        {
+          '@type': 'Organization',
+          'name': 'MKD Slidea',
+          'url': 'https://slidea.mismath.net',
+          'description': 'Македонска интерактивна платформа за настава и обуки.',
+          'contactPoint': { '@type': 'ContactPoint', 'contactType': 'customer support', 'email': 'support@mismath.net' },
+        },
       ],
     },
   });

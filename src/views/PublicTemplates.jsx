@@ -113,11 +113,22 @@ const PublicTemplatesIndex = () => {
     image: 'https://slidea.mismath.net/api/og-png',
     jsonLd: {
       '@context': 'https://schema.org',
-      '@type': 'CollectionPage',
-      'name': 'MKD Slidea шаблони',
-      'description': 'Бесплатна библиотека на интерактивни шаблони за наставници.',
-      'inLanguage': 'mk',
-      'isPartOf': { '@type': 'WebSite', 'name': 'MKD Slidea', 'url': 'https://slidea.mismath.net/' },
+      '@graph': [
+        {
+          '@type': 'BreadcrumbList',
+          'itemListElement': [
+            { '@type': 'ListItem', 'position': 1, 'name': 'Почетна', 'item': 'https://slidea.mismath.net/' },
+            { '@type': 'ListItem', 'position': 2, 'name': 'Шаблони', 'item': 'https://slidea.mismath.net/templates' },
+          ],
+        },
+        {
+          '@type': 'CollectionPage',
+          'name': 'MKD Slidea шаблони',
+          'description': 'Бесплатна библиотека на интерактивни шаблони за наставници.',
+          'inLanguage': 'mk',
+          'isPartOf': { '@type': 'WebSite', 'name': 'MKD Slidea', 'url': 'https://slidea.mismath.net/' },
+        },
+      ],
     },
   });
 

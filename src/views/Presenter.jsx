@@ -641,7 +641,7 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
       <div className="flex items-center justify-between mb-16">
         <div className="flex items-center gap-6">
           {logoUrl ? (
-            <img src={logoUrl} alt="Лого" className="h-16 w-auto max-w-[180px] object-contain" />
+            <img src={logoUrl} alt="Лого" loading="lazy" className="h-16 w-auto max-w-[180px] object-contain" />
           ) : (
             <div className="p-4 rounded-3xl shadow-2xl" style={{ backgroundColor: brandColor }}>
               <Zap className="w-10 h-10 text-white fill-white" />

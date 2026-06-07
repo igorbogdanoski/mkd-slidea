@@ -299,7 +299,7 @@ const IllustrationPickerModal = ({ isOpen, onClose, onSelect, initialQuery = '' 
                   </p>
                   {genUrl && (
                     <div className="space-y-3">
-                      <img src={genUrl} alt="AI генерирана илустрација" className="w-full rounded-2xl border-2 border-slate-100" />
+                      <img src={genUrl} alt="AI генерирана илустрација" loading="lazy" className="w-full rounded-2xl border-2 border-slate-100" />
                       <button
                         onClick={() => choose(genUrl, { source: 'pollinations', prompt: genPrompt })}
                         className="w-full py-3 bg-emerald-600 text-white rounded-2xl font-black text-sm hover:bg-emerald-700 transition-all flex items-center justify-center gap-2"

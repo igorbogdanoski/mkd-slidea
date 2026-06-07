@@ -106,7 +106,7 @@ const EventSettingsModal = ({
             <p className="text-sm text-slate-400 font-bold mb-3">URL на слика која се прикажува на картичката на настанот</p>
             {event.cover_image && (
               <div className="mb-3 relative group w-full h-24 rounded-xl overflow-hidden border border-slate-200">
-                <img src={event.cover_image} alt="Cover" className="w-full h-full object-cover" />
+                <img src={event.cover_image} alt="Cover" loading="lazy" className="w-full h-full object-cover" />
                 <button
                   onClick={async () => {
                     await supabase.from('events').update({ cover_image: null }).eq('id', event.id);
@@ -450,7 +450,7 @@ const EventSettingsModal = ({
             <div className={`flex items-center gap-4 ${!isPro(user) ? 'pointer-events-none' : ''}`} aria-disabled={!isPro(user)}>
               {event.logo_url ? (
                 <div className="relative group">
-                  <img src={event.logo_url} alt="Лого" className="h-14 w-auto max-w-[120px] object-contain rounded-xl bg-white border border-slate-200 p-1" />
+                  <img src={event.logo_url} alt="Лого" loading="lazy" className="h-14 w-auto max-w-[120px] object-contain rounded-xl bg-white border border-slate-200 p-1" />
                   <button
                     onClick={async () => {
                       await supabase.from('events').update({ logo_url: null }).eq('id', event.id);

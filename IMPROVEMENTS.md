@@ -110,10 +110,8 @@
 - Getting started video (30 сек) — 1 ден (снимање + embed)
 - **Фајлови:** `src/views/Onboarding.jsx`, `src/views/Dashboard.jsx`
 
-### I18N-1: Language Persistence
-- `localStorage` за јазик — 30 минути ← **веднаш**
-- Supabase user preferences за логирани корисници — 1 ден
-- **Фајлови:** `src/i18n/index.jsx`
+### I18N-1: Language Persistence — ✅ ЗАВРШЕНО (веќе беше имплементирано)
+- `localStorage` persist веќе постои во `src/i18n/index.jsx` — `detect()` + `setLocale()`
 
 ### PRICE-1: Pricing Conversion — ✅ ЗАВРШЕНО
 - "Пробај Pro 14 дена бесплатно" CTA badge на врвот + на секој платен план
@@ -139,15 +137,16 @@
 
 ## 🔵 НИЗ ПРИОРИТЕТ (Месец 3+)
 
-### PERF-1: Performance
-- Image lazy loading (Intersection Observer) — 4 часа
-- Tesseract.js dynamic import — 2 часа
-- Bundle size audit (Vite visualizer) — 1 час
+### PERF-1: Performance — ✅ ДЕЛУМНО ЗАВРШЕНО
+- `loading="lazy"` додадено на сите 5 img тагови во app
+- JSZip dynamic import во ImportPPTXModal (не се вчитува при старт)
+- Tesseract.js — нема употреба во src/, само во vite.config manual chunk; може да се отстрани од package.json
+- Bundle audit: главен vendor chunk 1.1MB (338kB gzip) — d3+framer+recharts, потребен за функционалност
 
-### SEO-1: SEO Дополнувања
-- Breadcrumb schema за Templates и Blog — 2 часа
-- Organization schema — 1 час
-- FAQ schema на Pricing — 1 час
+### SEO-1: SEO Дополнувања — ✅ ЗАВРШЕНО
+- BreadcrumbList schema на Blog и PublicTemplates
+- FAQPage schema на Pricing (5 прашања)
+- Organization schema во Pricing @graph
 
 ### SETTINGS-1: Settings
 - Notification preferences (email дигест on/off) — 1 ден

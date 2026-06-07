@@ -21,7 +21,7 @@ const TemplatesTab = ({ allTemplates, templatesLoading, useTemplate }) => (
         {allTemplates.map((temp) => (
           <div key={temp.id} className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden group cursor-pointer hover:shadow-2xl hover:shadow-indigo-50 transition-all">
             <div className="h-48 relative overflow-hidden">
-              <img src={temp.img} alt={temp.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+              <img src={temp.img} alt={temp.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
               <div className="absolute top-4 left-4">
                 <span className="bg-white/90 backdrop-blur-md px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest text-indigo-600">
                   {temp.category}
