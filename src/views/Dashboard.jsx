@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Home, BarChart2, Plus, Presentation, User } from 'lucide-react';
 import Sidebar from '../components/Dashboard/Sidebar';
 import HomeTab from '../components/Dashboard/HomeTab';
 import AnalyticsTab from '../components/Dashboard/AnalyticsTab';
@@ -97,10 +98,23 @@ const Dashboard = ({ setView, user, onLogout }) => {
     }
   };
 
+  // Mobile bottom nav items — the 5 most-used tabs
+  const mobileNavItems = [
+    { id: 'home',          icon: Home,         label: 'Почетна'   },
+    { id: 'presentations', icon: Presentation, label: 'Сесии'     },
+    { id: 'CREATE',        icon: Plus,         label: 'Ново',      special: true },
+    { id: 'analytics',     icon: BarChart2,    label: 'Аналитика' },
+    { id: 'profile',       icon: User,         label: 'Профил'    },
+  ];
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex font-sans selection:bg-indigo-100 selection:text-indigo-700">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} user={user} onLogout={onLogout} />
-      <main className="flex-1 min-h-screen relative overflow-y-auto h-screen">
+      {/* Desktop sidebar — hidden on mobile */}
+      <div className="hidden md:block">
+        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} user={user} onLogout={onLogout} />
+      </div>
+
+      <main className="flex-1 min-h-screen relative overflow-y-auto h-screen pb-20 md:pb-0">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -114,6 +128,60 @@ const Dashboard = ({ setView, user, onLogout }) => {
           </motion.div>
         </AnimatePresence>
       </main>
+
+      {/* Mobile bottom navigation — visible only on small screens */}
+      <nav
+        aria-label="Мобилна навигација"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-100 shadow-2xl flex items-stretch safe-area-inset-bottom"
+      >
+        {mobileNavItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = activeTab === item.id;
+          const isSpecial = item.special;
+          return (
+            <button
+              key={item.id}
+              onClick={() => {
+                if (isSpecial) {
+                  setView('host');
+                } else {
+                  setActiveTab(item.id);
+                }
+              }}
+              aria-label={item.label}
+              aria-current={isActive ? 'page' : undefined}
+              className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 transition-all ${
+                isSpecial
+                  ? 'relative'
+                  : isActive
+                  ? 'text-indigo-600'
+                  : 'text-slate-400'
+              }`}
+            >
+              {isSpecial ? (
+                <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200 -mt-5">
+                  <Icon className="w-6 h-6 text-white" strokeWidth={2.5} />
+                </div>
+              ) : (
+                <Icon
+                  className={`w-5 h-5 transition-all ${isActive ? 'scale-110' : ''}`}
+                  strokeWidth={isActive ? 2.5 : 1.8}
+                />
+              )}
+              <span className={`text-[10px] font-black uppercase tracking-wider leading-none ${isSpecial ? 'text-indigo-600 mt-1' : ''}`}>
+                {item.label}
+              </span>
+              {isActive && !isSpecial && (
+                <motion.div
+                  layoutId="mobile-nav-indicator"
+                  className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-indigo-600 rounded-full"
+                />
+              )}
+            </button>
+          );
+        })}
+      </nav>
+
       <EventResultsModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />
     </div>
   );

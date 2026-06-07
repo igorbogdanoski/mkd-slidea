@@ -4,8 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mail, CheckCircle, UserPlus, LogIn, Loader2 } from 'lucide-react';
 import { warmUp } from '../lib/supabase';
 
-const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin }) => {
-  const [mode, setMode] = useState('login'); // 'login' | 'register' | 'magic'
+const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin, onRequestPasswordReset }) => {
+  const [mode, setMode] = useState('login'); // 'login' | 'register' | 'magic' | 'forgot'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -14,6 +14,7 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin }) => {
   const [error, setError] = useState('');
   const [magicSent, setMagicSent] = useState(false);
   const [registered, setRegistered] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   useEffect(() => {
     const handleEsc = (e) => { if (e.key === 'Escape') onClose(); };
@@ -28,6 +29,7 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin }) => {
       setError('');
       setMagicSent(false);
       setRegistered(false);
+      setResetSent(false);
       setLoading(false);
       setLoadingMsg('');
       setEmail('');
@@ -153,6 +155,24 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin }) => {
     }
   };
 
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    if (!onRequestPasswordReset) return;
+    setLoading(true);
+    setError('');
+    try {
+      await onRequestPasswordReset(email);
+      setResetSent(true);
+    } catch (err) {
+      const msg = err.message?.includes('over_email_send_rate_limit')
+        ? 'Премногу обиди. Почекај 60 секунди.'
+        : 'Грешка при испраќање. Провери ја е-маил адресата.';
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return createPortal(
     <AnimatePresence>
       {isOpen && (
@@ -183,15 +203,19 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin }) => {
 
               <div className="text-center mb-8">
                 <h3 className="text-3xl font-black mb-2">
-                  {mode === 'register' ? 'Создај профил' : 'Добредојдовте'}
+                  {mode === 'register' ? 'Создај профил' : mode === 'forgot' ? 'Ресетирај лозинка' : 'Добредојдовте'}
                 </h3>
                 <p className="text-slate-400 font-bold">
-                  {mode === 'register' ? 'Регистрирај се на MKD Slidea' : 'Најавете се на вашиот MKD Slidea профил'}
+                  {mode === 'register'
+                    ? 'Регистрирај се на MKD Slidea'
+                    : mode === 'forgot'
+                    ? 'Ќе ти испратиме линк на е-маилот'
+                    : 'Најавете се на вашиот MKD Slidea профил'}
                 </p>
               </div>
 
               {/* Google */}
-              {onGoogleLogin && (
+              {onGoogleLogin && mode !== 'forgot' && (
                 <div className="mb-4">
                   <button
                     type="button"
@@ -218,41 +242,45 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin }) => {
                 </div>
               )}
 
-              <div className="flex items-center gap-3 mb-4">
-                <div className="flex-1 h-px bg-slate-100" />
-                <span className="text-xs font-black text-slate-300 uppercase tracking-widest">или</span>
-                <div className="flex-1 h-px bg-slate-100" />
-              </div>
+              {mode !== 'forgot' && (
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex-1 h-px bg-slate-100" />
+                  <span className="text-xs font-black text-slate-300 uppercase tracking-widest">или</span>
+                  <div className="flex-1 h-px bg-slate-100" />
+                </div>
+              )}
 
-              {/* Tab toggle */}
-              <div className="flex bg-slate-100 rounded-2xl p-1 mb-6">
-                <button
-                  onClick={() => { setMode('login'); setError(''); }}
-                  className={`flex-1 py-3 rounded-xl font-black text-sm transition-all flex items-center justify-center gap-2 ${
-                    mode === 'login' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'
-                  }`}
-                >
-                  <LogIn size={14} /> Најава
-                </button>
-                <button
-                  onClick={() => { setMode('register'); setError(''); }}
-                  className={`flex-1 py-3 rounded-xl font-black text-sm transition-all flex items-center justify-center gap-2 ${
-                    mode === 'register' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'
-                  }`}
-                >
-                  <UserPlus size={14} /> Регистрација
-                </button>
-                <button
-                  onClick={() => { setMode('magic'); setError(''); }}
-                  className={`flex-1 py-3 rounded-xl font-black text-sm transition-all flex items-center justify-center gap-2 ${
-                    mode === 'magic' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'
-                  }`}
-                >
-                  <Mail size={14} /> Magic
-                </button>
-              </div>
+              {/* Tab toggle — hidden in forgot-password mode */}
+              {mode !== 'forgot' && (
+                <div className="flex bg-slate-100 rounded-2xl p-1 mb-6">
+                  <button
+                    onClick={() => { setMode('login'); setError(''); }}
+                    className={`flex-1 py-3 rounded-xl font-black text-sm transition-all flex items-center justify-center gap-2 ${
+                      mode === 'login' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'
+                    }`}
+                  >
+                    <LogIn size={14} /> Најава
+                  </button>
+                  <button
+                    onClick={() => { setMode('register'); setError(''); }}
+                    className={`flex-1 py-3 rounded-xl font-black text-sm transition-all flex items-center justify-center gap-2 ${
+                      mode === 'register' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'
+                    }`}
+                  >
+                    <UserPlus size={14} /> Регистрација
+                  </button>
+                  <button
+                    onClick={() => { setMode('magic'); setError(''); }}
+                    className={`flex-1 py-3 rounded-xl font-black text-sm transition-all flex items-center justify-center gap-2 ${
+                      mode === 'magic' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'
+                    }`}
+                  >
+                    <Mail size={14} /> Magic
+                  </button>
+                </div>
+              )}
 
-              {error && (
+              {error && mode !== 'forgot' && (
                 <div className="mb-4 px-4 py-3 bg-red-50 border border-red-100 rounded-2xl text-red-600 font-bold text-sm">
                   {error}
                 </div>
@@ -293,6 +321,15 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin }) => {
                       className="w-full py-3 text-indigo-600 font-black text-sm hover:underline"
                     >
                       Обиди се повторно
+                    </button>
+                  )}
+                  {onRequestPasswordReset && (
+                    <button
+                      type="button"
+                      onClick={() => { setMode('forgot'); setError(''); }}
+                      className="w-full py-2 text-slate-400 hover:text-indigo-600 font-bold text-sm transition-colors"
+                    >
+                      Заборавена лозинка?
                     </button>
                   )}
                 </form>
@@ -385,6 +422,58 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin }) => {
                     >
                       <Mail className="w-6 h-6" />
                       {loading ? 'Се испраќа...' : 'Испрати Magic Link'}
+                    </button>
+                  </form>
+                )
+              )}
+
+              {/* FORGOT PASSWORD */}
+              {mode === 'forgot' && (
+                resetSent ? (
+                  <div className="text-center py-6">
+                    <CheckCircle className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
+                    <h4 className="text-xl font-black mb-2">Линкот е испратен!</h4>
+                    <p className="text-slate-400 font-bold mb-1">
+                      Проверете го е-маилот на <span className="text-indigo-600">{email}</span>.
+                    </p>
+                    <p className="text-slate-300 font-bold text-xs mb-6">
+                      Линкот за ресетирање важи 1 час.
+                    </p>
+                    <button onClick={onClose} className="px-8 py-3 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-700 transition-all active:scale-95">
+                      Затвори
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleForgotPassword} className="space-y-4">
+                    <p className="text-slate-500 font-bold text-sm px-2">
+                      Внеси ја е-маил адресата и ќе ти испратиме линк за ресетирање на лозинката.
+                    </p>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Е-маил адреса</label>
+                      <input
+                        type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                        placeholder="name@company.com" required
+                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all"
+                      />
+                    </div>
+                    {error && (
+                      <div className="px-4 py-3 bg-red-50 border border-red-100 rounded-2xl text-red-600 font-bold text-sm">
+                        {error}
+                      </div>
+                    )}
+                    <button
+                      type="submit" disabled={loading}
+                      className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black text-xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 mt-4 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                    >
+                      <Mail className="w-6 h-6" />
+                      {loading ? 'Се испраќа...' : 'Испрати линк за ресетирање'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setMode('login'); setError(''); }}
+                      className="w-full py-2 text-slate-400 hover:text-slate-600 font-bold text-sm transition-colors"
+                    >
+                      ← Назад кон најава
                     </button>
                   </form>
                 )

@@ -60,7 +60,7 @@ const MegaMenu = ({ isOpen, items, setView, setActiveMenu }) => (
   </AnimatePresence>
 );
 
-const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout }) => {
+const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout, onRequestPasswordReset }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState(null);
@@ -335,6 +335,7 @@ const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout }) => {
         onClose={closeLogin}
         onLogin={onLogin}
         onGoogleLogin={() => onGoogleLogin(nextPath)}
+        onRequestPasswordReset={onRequestPasswordReset}
       />
     </nav>
   );

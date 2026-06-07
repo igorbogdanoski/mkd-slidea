@@ -31,6 +31,7 @@ const EventWrapper = ({ type, username, setUsername }) => {
     upvoteQuestion, markQuestionAnswered,
     setQuestionPinned, setQuestionHidden,
     sendReaction, refetchLockState,
+    toggleLock, startTimer, stopTimer,
   } = useEvent(normalizedCode);
 
   const { setEvent, setPresence } = useEventStore();
@@ -166,6 +167,9 @@ const EventWrapper = ({ type, username, setUsername }) => {
         markQuestionAnswered={markQuestionAnswered}
         setQuestionPinned={setQuestionPinned}
         setQuestionHidden={setQuestionHidden}
+        onToggleLock={toggleLock}
+        onStartTimer={startTimer}
+        onStopTimer={stopTimer}
       />
     );
   }

@@ -182,5 +182,20 @@ export const useAuth = ({ enabled = true } = {}) => {
     }
   };
 
-  return { user, loading, loadingMessage, signIn, signUp, signInWithGoogle, signInWithMagicLink, signOut };
+  // Sends a password-reset email. redirectTo must be the /reset-password page URL.
+  const requestPasswordReset = async (email) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) throw error;
+  };
+
+  // Called on the /reset-password page after the user clicks the email link.
+  // Supabase sets the session automatically from the URL hash; this just updates the password.
+  const updatePassword = async (newPassword) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) throw error;
+  };
+
+  return { user, loading, loadingMessage, signIn, signUp, signInWithGoogle, signInWithMagicLink, signOut, requestPasswordReset, updatePassword };
 };

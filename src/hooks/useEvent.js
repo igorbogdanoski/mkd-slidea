@@ -394,6 +394,29 @@ export const useEvent = (eventCode) => {
     if (data) setEvent((prev) => (prev ? { ...prev, ...data } : prev));
   }, [event?.id]);
 
+  // Presenter-side lock toggle (same as host toggleLock but from useEvent context).
+  const toggleLock = useCallback(async () => {
+    if (!event?.id) return;
+    const next = !event.is_locked;
+    await supabase.from('events').update({ is_locked: next }).eq('id', event.id);
+    setEvent((prev) => (prev ? { ...prev, is_locked: next } : prev));
+    return next;
+  }, [event?.id, event?.is_locked]);
+
+  // Start a countdown timer on the active poll by setting timer_ends_at = now + seconds.
+  const startTimer = useCallback(async (seconds, pollId) => {
+    if (!pollId) return;
+    const endsAt = new Date(Date.now() + seconds * 1000).toISOString();
+    await supabase.from('polls').update({ timer_ends_at: endsAt }).eq('id', pollId);
+    setPolls((prev) => prev.map((p) => p.id === pollId ? { ...p, timer_ends_at: endsAt } : p));
+  }, []);
+
+  const stopTimer = useCallback(async (pollId) => {
+    if (!pollId) return;
+    await supabase.from('polls').update({ timer_ends_at: null }).eq('id', pollId);
+    setPolls((prev) => prev.map((p) => p.id === pollId ? { ...p, timer_ends_at: null } : p));
+  }, []);
+
   return {
     event, polls, questions, reactions,
     loading, error, vote, submitSurvey, submitQuestion,
@@ -402,5 +425,8 @@ export const useEvent = (eventCode) => {
     sendReaction,
     getSessionId,
     refetchLockState,
+    toggleLock,
+    startTimer,
+    stopTimer,
   };
 };

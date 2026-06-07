@@ -34,6 +34,7 @@ const EventScoreboard = lazy(() => import('./views/EventScoreboard'));
 const Onboarding = lazy(() => import('./views/Onboarding'));
 const PrivacyPolicy = lazy(() => import('./views/PrivacyPolicy'));
 const Terms = lazy(() => import('./views/Terms'));
+const ResetPassword = lazy(() => import('./views/ResetPassword'));
 const NotFound = lazy(() => import('./views/NotFound'));
 
 // Suppress Supabase auth lock violations and permissions policy violations
@@ -93,7 +94,7 @@ const AppContent = () => {
 
   const isEventRoute = location.pathname.startsWith('/event/');
 
-  const { user, loading, loadingMessage, signIn, signUp, signInWithGoogle, signInWithMagicLink, signOut } = useAuth({ enabled: !isEventRoute });
+  const { user, loading, loadingMessage, signIn, signUp, signInWithGoogle, signInWithMagicLink, signOut, requestPasswordReset } = useAuth({ enabled: !isEventRoute });
 
   const getSafeNextPath = () => {
     const params = new URLSearchParams(location.search);
@@ -152,7 +153,7 @@ const AppContent = () => {
   };
 
   const isPublicRoute =
-    ['/', '/join', '/pricing', '/scoreboard', '/schools', '/integrations', '/demo', '/privacy', '/terms'].includes(location.pathname) ||
+    ['/', '/join', '/pricing', '/scoreboard', '/schools', '/integrations', '/demo', '/privacy', '/terms', '/reset-password'].includes(location.pathname) ||
     location.pathname === '/templates' ||
     location.pathname.startsWith('/templates/') ||
     location.pathname.startsWith('/blog') ||
@@ -188,7 +189,7 @@ const AppContent = () => {
       </a>
 
       {isPublicRoute && (
-        <Nav setView={setView} onLogin={handleLogin} onGoogleLogin={handleGoogleLogin} user={user} onLogout={handleLogout} />
+        <Nav setView={setView} onLogin={handleLogin} onGoogleLogin={handleGoogleLogin} user={user} onLogout={handleLogout} onRequestPasswordReset={requestPasswordReset} />
       )}
 
       <main id="main-content" className={isPublicRoute ? 'pt-16' : ''}>
@@ -228,6 +229,7 @@ const AppContent = () => {
                 <Route path="/integrations" element={<Integrations />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/terms" element={<Terms />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
