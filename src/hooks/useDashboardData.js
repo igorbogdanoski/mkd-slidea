@@ -23,7 +23,7 @@ export const useDashboardData = ({ user, activeTab, setView }) => {
     setEventsLoading(true);
     supabase
       .from('events')
-      .select('id, code, title, cover_image, created_at')
+      .select('id, code, title, cover_image, created_at, starts_at')
       .eq('user_id', user?.id)
       .order('created_at', { ascending: false })
       .limit(50)

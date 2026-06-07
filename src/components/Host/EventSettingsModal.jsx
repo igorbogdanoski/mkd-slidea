@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, UserPlus, Copy, Eye, EyeOff, RotateCcw, Trophy, ArrowLeft } from 'lucide-react';
+import { X, UserPlus, Copy, Eye, EyeOff, RotateCcw, Trophy, ArrowLeft, CalendarClock } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { isPro } from '../../lib/plans';
 
@@ -98,6 +98,41 @@ const EventSettingsModal = ({
               className="w-full bg-white border-2 border-slate-100 rounded-xl px-4 py-3 font-bold focus:border-indigo-600 outline-none transition-all"
               placeholder="Мојот настан"
             />
+          </div>
+
+          {/* Schedule — starts_at */}
+          <div className="p-5 bg-slate-50 rounded-2xl">
+            <div className="flex items-center gap-2 mb-1">
+              <CalendarClock className="w-4 h-4 text-indigo-500" />
+              <p className="font-black text-slate-900">Закажи настан</p>
+            </div>
+            <p className="text-xs text-slate-400 font-bold mb-3">
+              Постави датум и час — ќе добиеш е-маил потсетник 15 минути пред почетокот.
+            </p>
+            <input
+              type="datetime-local"
+              defaultValue={toInputDateTime(event.starts_at)}
+              min={toInputDateTime(new Date().toISOString())}
+              onBlur={async (e) => {
+                const iso = fromInputDateTime(e.target.value);
+                await supabase.from('events')
+                  .update({ starts_at: iso, reminded: false })
+                  .eq('id', event.id);
+                setEvent(prev => ({ ...prev, starts_at: iso, reminded: false }));
+              }}
+              className="w-full bg-white border-2 border-slate-100 rounded-xl px-4 py-3 font-bold text-slate-700 focus:border-indigo-600 outline-none transition-all text-sm"
+            />
+            {event.starts_at && (
+              <button
+                onClick={async () => {
+                  await supabase.from('events').update({ starts_at: null, reminded: false }).eq('id', event.id);
+                  setEvent(prev => ({ ...prev, starts_at: null, reminded: false }));
+                }}
+                className="mt-2 text-xs font-black text-red-400 hover:text-red-600 transition-colors"
+              >
+                ✕ Отстрани распоред
+              </button>
+            )}
           </div>
 
           {/* Cover image */}

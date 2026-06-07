@@ -171,6 +171,17 @@
 - `src/components/Dashboard/PresentationsTab.jsx` — Share копче со `AnimatePresence` copied/idle состојба
 - `tests/public-results.spec.js` — 10 e2e тестови (PUB-01–10)
 
+### SCHED-1: Session Scheduling — ✅ ЗАВРШЕНО
+
+- `supabase/migrations/20260607_events_scheduling.sql` — `starts_at TIMESTAMPTZ` + `reminded BOOLEAN` колони + индекс
+- `supabase/functions/send-reminders/index.ts` — Deno Edge Function: email reminder 15 мин пред настан преку Resend API
+- `src/components/Host/EventSettingsModal.jsx` — "Закажи настан" `datetime-local` picker + "Отстрани распоред" копче
+- `src/components/Dashboard/HomeTab.jsx` — "Претстојни настани" секција: настани во следните 7 дена, amber pulse за ≤30 мин
+- `src/components/Dashboard/PresentationsTab.jsx` — schedule badge (CalendarClock) на картичките со countdown
+- `src/hooks/useDashboardData.js` — `starts_at` додаден во presentations query
+- `tests/scheduling.spec.js` — 8 e2e тестови (SCHED-01–08)
+- pg_cron: `*/5 * * * *` повикување на Edge Function
+
 ### REGION-1: Регионален Push
 
 - Маркетинг за SQ, SR, BG пазари

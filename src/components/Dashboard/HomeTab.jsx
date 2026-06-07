@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, Clock, ChevronRight,
   Presentation, Bell, Zap, MoreVertical, LayoutGrid,
-  MessageSquare, CheckCheck, X, Sparkles, Camera
+  MessageSquare, CheckCheck, X, Sparkles, Camera, CalendarClock, Timer,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { templates } from '../../data/templates';
@@ -39,6 +39,24 @@ const formatDate = (iso) => {
   return `Пред ${d} ${d === 1 ? 'ден' : 'дена'}`;
 };
 
+const formatUpcoming = (iso) => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const now = new Date();
+  const diffMs = d - now;
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const timeStr = d.toLocaleTimeString('mk-MK', { hour: '2-digit', minute: '2-digit' });
+  if (diffDays === 0) return `Денес во ${timeStr}`;
+  if (diffDays === 1) return `Утре во ${timeStr}`;
+  return `За ${diffDays} дена · ${d.toLocaleDateString('mk-MK', { day: 'numeric', month: 'short' })} во ${timeStr}`;
+};
+
+const isWithin30Min = (iso) => {
+  if (!iso) return false;
+  const diff = new Date(iso) - new Date();
+  return diff > 0 && diff < 30 * 60 * 1000;
+};
+
 const HomeTab = ({ setView, setActiveTab, user, useTemplate }) => {
   const userName = user?.name || 'Наставник';
   const userInitials = userName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
@@ -46,6 +64,7 @@ const HomeTab = ({ setView, setActiveTab, user, useTemplate }) => {
 
   const [recentEvents, setRecentEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [pendingQuestions, setPendingQuestions] = useState([]);
   const [bellOpen, setBellOpen] = useState(false);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
@@ -127,13 +146,25 @@ const HomeTab = ({ setView, setActiveTab, user, useTemplate }) => {
   const loadEvents = async () => {
     const { data } = await supabase
       .from('events')
-      .select('id, code, title, cover_image, created_at')
+      .select('id, code, title, cover_image, created_at, starts_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(6);
     const list = data || [];
     setRecentEvents(list);
     setLoadingEvents(false);
+
+    // Upcoming events — starts_at within next 7 days
+    const now7 = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: upcoming } = await supabase
+      .from('events')
+      .select('id, code, title, cover_image, starts_at')
+      .eq('user_id', user.id)
+      .gte('starts_at', new Date().toISOString())
+      .lte('starts_at', now7)
+      .order('starts_at', { ascending: true })
+      .limit(5);
+    setUpcomingEvents(upcoming || []);
 
     // First-success wizard: brand-new user with zero events.
     if (shouldShowFirstSuccess({ user, hasEvents: list.length > 0, loadingEvents: false })) {
@@ -404,6 +435,77 @@ const HomeTab = ({ setView, setActiveTab, user, useTemplate }) => {
           <LayoutGrid size={28} className="text-indigo-600 group-hover:scale-110 transition-transform" /> Разгледај шаблони
         </button>
       </div>
+
+      {/* ── Upcoming Events ───────────────────────────────────────── */}
+      <AnimatePresence>
+        {upcomingEvents.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            className="mb-10"
+          >
+            <div className="flex items-center gap-3 mb-5">
+              <CalendarClock size={20} className="text-indigo-600" />
+              <h2 className="text-xl font-black text-slate-900">Наскоро</h2>
+              <span className="text-[10px] font-black bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                {upcomingEvents.length}
+              </span>
+            </div>
+            <div className="space-y-3">
+              {upcomingEvents.map((ev) => {
+                const soon = isWithin30Min(ev.starts_at);
+                return (
+                  <motion.div
+                    key={ev.id}
+                    whileHover={{ x: 4 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                    className={`flex items-center gap-4 p-4 rounded-2xl border cursor-pointer transition-all
+                      ${soon
+                        ? 'bg-indigo-600 border-indigo-500 shadow-lg shadow-indigo-100'
+                        : 'bg-white border-slate-100 hover:border-indigo-200 hover:shadow-md'}`}
+                    onClick={() => {
+                      localStorage.setItem('active_event_code', ev.code);
+                      setView('host');
+                    }}
+                  >
+                    {/* Icon */}
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0
+                      ${soon ? 'bg-white/20' : 'bg-indigo-50'}`}>
+                      {soon
+                        ? <Timer size={18} className="text-white animate-pulse" />
+                        : <CalendarClock size={18} className="text-indigo-600" />}
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <p className={`font-black text-sm truncate ${soon ? 'text-white' : 'text-slate-900'}`}>
+                        {ev.title || 'Без наслов'}
+                      </p>
+                      <p className={`text-[11px] font-bold mt-0.5 ${soon ? 'text-white/75' : 'text-indigo-600'}`}>
+                        {formatUpcoming(ev.starts_at)}
+                      </p>
+                    </div>
+
+                    {/* Code + CTA */}
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className={`font-black text-xs px-2.5 py-1 rounded-lg tracking-widest
+                        ${soon ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                        #{ev.code}
+                      </span>
+                      {soon && (
+                        <span className="text-[10px] font-black bg-white text-indigo-600 px-3 py-1.5 rounded-xl uppercase tracking-wider animate-pulse">
+                          Почни →
+                        </span>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </motion.section>
+        )}
+      </AnimatePresence>
 
       {/* Recent Events */}
       <section className="mb-20">

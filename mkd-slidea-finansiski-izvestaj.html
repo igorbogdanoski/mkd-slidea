@@ -298,7 +298,7 @@
       <div class="toc-item"><span class="toc-num">6.</span>Предложена структура на претплати</div>
       <div class="toc-item"><span class="toc-num">12.</span>Нарација за презентација пред МОН и БРО</div>
       <div class="toc-item"><span class="toc-num">13.</span>Стратешки план — SWOT, ризици и акциски план 90 дена</div>
-      <div class="toc-item"><span class="toc-num">14.</span>Sprint 9 — Нови функции и влијанието врз МОН, БРО и донатори</div>
+      <div class="toc-item"><span class="toc-num">14.</span>Sprint 9 — Нови функции (Usage Dashboard, Reactions, Share, Scheduling) и влијанието врз МОН, БРО и донатори</div>
     </div>
   </div>
 
@@ -1233,7 +1233,7 @@
       </div>
 
       <p style="color:var(--gray600);line-height:1.75;margin-bottom:24px;">
-        По завршувањето на Sprint 8 (темна тема, цртање, AI генерација, финансиска стратегија), во Sprint 9 беа имплементирани три нови функции со директно влијание врз приходите, ангажираноста и институционалната прифатливост на платформата.
+        По завршувањето на Sprint 8 (темна тема, цртање, AI генерација, финансиска стратегија), во Sprint 9 беа имплементирани четири нови функции со директно влијание врз приходите, ангажираноста и институционалната прифатливост на платформата.
       </p>
 
       <div class="subsection">
@@ -1283,7 +1283,25 @@
       </div>
 
       <div class="subsection">
-        <div class="subsection-title">14.4 — Ажурирани KPI цели по Sprint 9</div>
+        <div class="subsection-title">14.4 — Session Scheduling (Закажување на сесии)</div>
+        <p style="color:var(--gray600);line-height:1.75;margin-bottom:16px;">
+          Домаќините можат да закажат настан на точна дата и час преку нов <strong>datetime picker</strong> во EventSettingsModal. Системот автоматски испраќа <strong>email reminder 15 минути пред почетокот</strong> преку Supabase Edge Function (Deno) + Resend API, активиран на секои 5 минути со pg_cron. Во HomeTab се прикажува секција <em>„Претстојни настани"</em> со countdown и amber pulse за сесии кои почнуваат во рок од 30 минути.
+        </p>
+        <ul style="color:var(--gray600);line-height:2;margin-bottom:16px;padding-left:20px;">
+          <li><code>supabase/migrations/20260607_events_scheduling.sql</code> — <code>starts_at TIMESTAMPTZ</code> + <code>reminded BOOLEAN</code> + partial index</li>
+          <li><code>supabase/functions/send-reminders/index.ts</code> — HTML email преку Resend, <code>reminded=true</code> после испраќање (без дупликати)</li>
+          <li>pg_cron: <code>*/5 * * * *</code> → Edge Function (нулта инфраструктурна цена)</li>
+          <li>Dashboard: „Претстојни настани" секција + amber pulse badge за ≤30 мин</li>
+          <li>PresentationsTab: CalendarClock badge со countdown на секоја картичка</li>
+          <li><code>tests/scheduling.spec.js</code> — 8 e2e тестови (SCHED-01–08)</li>
+        </ul>
+        <div class="highlight-box">
+          <strong>МОН / БРО порака:</strong> Распоредувањето е критичен услов за институционална примена — наставниците мора да можат однапред да планираат часови и да добиваат автоматски потсетници. Ова директно ги задоволува барањата на МОН за структуриран наставен процес и ги намалува административните пречки при воведување на платформата.
+        </div>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">14.5 — Ажурирани KPI цели по Sprint 9</div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:16px;">
           <div style="background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:16px;padding:20px;color:white;text-align:center;">
             <div style="font-size:28px;font-weight:900;margin-bottom:4px;">€75K+</div>
@@ -1309,7 +1327,7 @@
       </div>
 
       <div class="subsection">
-        <div class="subsection-title">14.5 — Аргументи за финансирање по функција</div>
+        <div class="subsection-title">14.6 — Аргументи за финансирање по функција</div>
         <table>
           <thead><tr><th>Функција</th><th>Развоен труд</th><th>Проектиран годишен приход / заштеда</th><th>ROI</th></tr></thead>
           <tbody>
@@ -1331,11 +1349,17 @@
               <td>+€9 000–15 000 (12–18% нови корисници × conversion × LTV)</td>
               <td style="color:#10b981;font-weight:900;">∞ (органски CAC = €0)</td>
             </tr>
+            <tr>
+              <td><strong>Session Scheduling</strong></td>
+              <td>1.5 дена</td>
+              <td>+€6 000–10 000 (15% повеќе retention, институционални лиценци, МОН пилот)</td>
+              <td style="color:#10b981;font-weight:900;">∞ (pg_cron + Edge Function = €0 cost)</td>
+            </tr>
             <tr style="background:#f0fdf4;">
               <td><strong>Вкупно Sprint 9</strong></td>
-              <td><strong>4 дена</strong></td>
-              <td><strong>+€21 000–33 000 / год</strong></td>
-              <td style="color:#059669;font-weight:900;"><strong>~€6 000/ден труд</strong></td>
+              <td><strong>5.5 дена</strong></td>
+              <td><strong>+€27 000–43 000 / год</strong></td>
+              <td style="color:#059669;font-weight:900;"><strong>~€7 000/ден труд</strong></td>
             </tr>
           </tbody>
         </table>

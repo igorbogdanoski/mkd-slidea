@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Share2, CheckCheck } from 'lucide-react';
+import { Camera, Share2, CheckCheck, CalendarClock } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import ErrorBoundary from '../ErrorBoundary';
 import IllustrationPickerModal from '../IllustrationPickerModal';
@@ -17,6 +17,21 @@ const BrokenCard = () => (
 );
 
 const cardColors = ['bg-indigo-600','bg-violet-600','bg-emerald-600','bg-amber-500','bg-rose-600','bg-cyan-600'];
+
+const formatSchedule = (iso) => {
+  if (!iso) return null;
+  const d = new Date(iso);
+  const now = new Date();
+  const diffMs = d - now;
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMs < 0) return null; // past — hide badge
+  if (diffMin < 60) return { label: `За ${diffMin} мин`, hot: diffMin <= 30 };
+  const diffH = Math.floor(diffMin / 60);
+  if (diffH < 24) return { label: `За ${diffH} ${diffH === 1 ? 'час' : 'часа'}`, hot: false };
+  const diffD = Math.floor(diffH / 24);
+  const time = d.toLocaleTimeString('mk-MK', { hour: '2-digit', minute: '2-digit' });
+  return { label: `${diffD === 1 ? 'Утре' : `За ${diffD} дена`} · ${time}`, hot: false };
+};
 
 const formatDate = (iso) => {
   if (!iso) return '';
@@ -87,6 +102,7 @@ const PresentationsTab = ({ allEvents, eventsLoading, setSelectedEvent, setView 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {allEvents.map((ev, idx) => {
             const cover = getCover(ev);
+            const sched = formatSchedule(ev.starts_at);
             return (
               <ErrorBoundary key={ev.id} fallback={<BrokenCard />}>
               <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden group hover:shadow-2xl hover:shadow-indigo-50 transition-all hover:-translate-y-1">
@@ -113,7 +129,17 @@ const PresentationsTab = ({ allEvents, eventsLoading, setSelectedEvent, setView 
                   <h3 className="font-black text-xl text-slate-900 mb-3 group-hover:text-indigo-600 transition-colors line-clamp-1">
                     {ev.title || 'Без наслов'}
                   </h3>
-                  <p className="text-slate-400 text-xs font-black uppercase tracking-widest mb-6">{formatDate(ev.created_at)}</p>
+                  <p className="text-slate-400 text-xs font-black uppercase tracking-widest mb-3">{formatDate(ev.created_at)}</p>
+                  {sched && (
+                    <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black mb-4 ${
+                      sched.hot
+                        ? 'bg-amber-50 text-amber-600 border border-amber-200 animate-pulse'
+                        : 'bg-indigo-50 text-indigo-600 border border-indigo-100'
+                    }`}>
+                      <CalendarClock size={11} />
+                      {sched.label}
+                    </div>
+                  )}
                   <div className="flex gap-3 mb-3">
                     <button
                       onClick={() => setSelectedEvent(ev)}
