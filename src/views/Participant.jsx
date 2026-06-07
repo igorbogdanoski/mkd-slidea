@@ -53,6 +53,22 @@ const Participant = ({
   const [rankingOrder, setRankingOrder] = React.useState([]);
   const [dragIndex, setDragIndex] = React.useState(null);
 
+  // Reaction bar — per-emoji cooldown (2 s) + burst counter for ripple key
+  const [reactionCooldowns, setReactionCooldowns] = React.useState({});
+  const [reactionBursts, setReactionBursts] = React.useState({});
+  const fireReaction = React.useCallback((emoji) => {
+    if (reactionCooldowns[emoji]) return;
+    haptic([12]);
+    sendReaction(emoji);
+    setReactionCooldowns(prev => ({ ...prev, [emoji]: true }));
+    setReactionBursts(prev => ({ ...prev, [emoji]: (prev[emoji] || 0) + 1 }));
+    setTimeout(() => setReactionCooldowns(prev => {
+      const next = { ...prev };
+      delete next[emoji];
+      return next;
+    }), 2000);
+  }, [reactionCooldowns, sendReaction]);
+
   // Offline detection
   const [isOnline, setIsOnline] = React.useState(() => typeof navigator !== 'undefined' ? navigator.onLine : true);
   const [syncing, setSyncing] = React.useState(false);
@@ -691,16 +707,73 @@ const Participant = ({
         </div>
       </motion.div>
 
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-white/80 backdrop-blur-xl p-3 rounded-[2rem] border border-slate-100 shadow-2xl z-50">
-        {['❤️', '👍', '🔥', '👏', '😂', '😮'].map((emoji) => (
-          <button
-            key={emoji}
-            onClick={() => { haptic([10]); sendReaction(emoji); }}
-            className="w-12 h-12 flex items-center justify-center text-2xl hover:bg-slate-50 rounded-full transition-all active:scale-75"
-          >
-            {emoji}
-          </button>
-        ))}
+      {/* ── Reaction Bar ── world-class design ───────────────────────── */}
+      <div
+        role="toolbar"
+        aria-label="Прати реакција"
+        className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-0.5 z-[60]
+          bg-white/88 backdrop-blur-3xl
+          px-3 py-2.5 rounded-[3rem]
+          border border-white/70
+          shadow-[0_8px_40px_rgba(0,0,0,0.14),0_2px_8px_rgba(0,0,0,0.07),inset_0_1px_0_rgba(255,255,255,0.9)]"
+      >
+        {['❤️', '👍', '🔥', '👏', '😂', '😮'].map((emoji) => {
+          const isCool = !!reactionCooldowns[emoji];
+          const burstKey = reactionBursts[emoji] || 0;
+          return (
+            <div key={emoji} className="relative">
+              <motion.button
+                aria-label={emoji}
+                disabled={isCool}
+                onClick={() => fireReaction(emoji)}
+                whileHover={isCool ? {} : { scale: 1.28, y: -6 }}
+                whileTap={isCool ? {} : { scale: 0.60 }}
+                transition={{ type: 'spring', stiffness: 550, damping: 18 }}
+                className={`relative w-[3.25rem] h-[3.25rem] flex items-center justify-center
+                  text-[1.85rem] rounded-full select-none
+                  transition-opacity duration-200
+                  ${isCool ? 'opacity-30' : 'hover:bg-black/[0.04] active:bg-black/[0.08]'}`}
+              >
+                {emoji}
+
+                {/* Cooldown ring — SVG circle depletes over 2 s */}
+                {isCool && (
+                  <svg
+                    viewBox="0 0 54 54"
+                    className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none"
+                    aria-hidden="true"
+                  >
+                    <circle
+                      cx="27" cy="27" r="23"
+                      fill="none"
+                      stroke="rgba(99,102,241,0.55)"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeDasharray="144.5"
+                      strokeDashoffset="0"
+                      style={{ animation: 'cooldown-ring 2s linear forwards' }}
+                    />
+                  </svg>
+                )}
+              </motion.button>
+
+              {/* Burst ripple — new key each time button is pressed */}
+              <AnimatePresence>
+                {burstKey > 0 && (
+                  <motion.span
+                    key={burstKey}
+                    aria-hidden="true"
+                    className="absolute inset-0 rounded-full bg-indigo-400/25 pointer-events-none"
+                    initial={{ scale: 0.7, opacity: 1 }}
+                    animate={{ scale: 2.8, opacity: 0 }}
+                    exit={{}}
+                    transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                  />
+                )}
+              </AnimatePresence>
+            </div>
+          );
+        })}
       </div>
 
       <div className="mt-12 mb-24 flex justify-center">

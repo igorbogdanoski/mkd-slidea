@@ -86,6 +86,14 @@
   }
 }
 
+/* ── Reaction animations ──────────────────────────────────────────────── */
+
+/* Cooldown ring depletes clockwise over 2 s (circumference ≈ 150.8) */
+@keyframes cooldown-ring {
+  from { stroke-dashoffset: 0;     }
+  to   { stroke-dashoffset: 150.8; }
+}
+
 @media print {
   body > * {
     display: none !important;
