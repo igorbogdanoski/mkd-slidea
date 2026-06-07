@@ -40,7 +40,7 @@ const PollCard = ({ poll, index }) => {
   const isRating    = poll.type === 'rating' || poll.type === 'scale';
   const isRanking   = poll.type === 'ranking';
 
-  const avgRating = isRating && totalVotes > 0
+  const avgRating = isRating && totalVotes > 0 && poll.options?.length
     ? (poll.options.reduce((a, o) => a + parseInt(o.text || 0) * (o.votes || 0), 0) / totalVotes).toFixed(1)
     : null;
 

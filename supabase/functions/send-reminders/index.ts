@@ -41,7 +41,7 @@ Deno.serve(async () => {
   // Find events starting in the next 15 min that haven't been reminded yet
   const { data: events, error } = await supabase
     .from('events')
-    .select('id, code, title, starts_at, user_id, profiles:user_id(name, email:auth_users(email))')
+    .select('id, code, title, starts_at, user_id')
     .gte('starts_at', now.toISOString())
     .lte('starts_at', cutoff.toISOString())
     .eq('reminded', false)
@@ -59,7 +59,8 @@ Deno.serve(async () => {
   let sent = 0;
 
   for (const ev of events) {
-    const email = (ev as any).profiles?.email ?? null;
+    const { data: { user: authUser } } = await supabase.auth.admin.getUserById(ev.user_id);
+    const email = authUser?.email ?? null;
     if (!email) continue;
 
     const startsAt = new Date(ev.starts_at);

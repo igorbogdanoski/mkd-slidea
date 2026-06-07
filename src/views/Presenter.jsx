@@ -326,12 +326,14 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
   const reactionMetaRef = useRef({});
   const getReactionMeta = (id) => {
     if (!reactionMetaRef.current[id]) {
+      const keys = Object.keys(reactionMetaRef.current);
+      if (keys.length > 500) delete reactionMetaRef.current[keys[0]];
       reactionMetaRef.current[id] = {
-        xPct:    8  + Math.random() * 80,         // % from left edge
-        drift:   (Math.random() - 0.5) * 180,     // px sideways sway
-        rot:     (Math.random() - 0.5) * 52,      // deg rotation
-        scale:   1.4 + Math.random() * 1.1,       // peak scale
-        sizePx:  54 + Math.floor(Math.random() * 38), // base font-size
+        xPct:    8  + Math.random() * 80,
+        drift:   (Math.random() - 0.5) * 180,
+        rot:     (Math.random() - 0.5) * 52,
+        scale:   1.4 + Math.random() * 1.1,
+        sizePx:  54 + Math.floor(Math.random() * 38),
       };
     }
     return reactionMetaRef.current[id];
