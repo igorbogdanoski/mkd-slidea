@@ -159,6 +159,18 @@
 - Скриен за Pro/Semester/Yearly/Admin (unlimited plans)
 - Интегрира со `PLANS.free.maxActiveEvents = 5` од `src/lib/plans.js`
 
+### SHARE-1: Јавни Резултати — ✅ ЗАВРШЕНО
+
+- `src/views/PublicResults.jsx` — јавна страница `/results/:code` (без auth)
+- Hero: gradient, event code chip, StatPills (прашања + гласови), Share копче
+- PollCard компонент: bar chart, horizontal bars, word cloud, rating stars, open text, ranking
+- `navigator.share()` + clipboard fallback; OG meta tags преку `useSEO`
+- Footer badge → landing page (органски acquisition loop)
+- 404 state за непознат код
+- `src/App.jsx` — lazy route `/results/:code` + `isPublicRoute` проширен
+- `src/components/Dashboard/PresentationsTab.jsx` — Share копче со `AnimatePresence` copied/idle состојба
+- `tests/public-results.spec.js` — 10 e2e тестови (PUB-01–10)
+
 ### REGION-1: Регионален Push
 
 - Маркетинг за SQ, SR, BG пазари

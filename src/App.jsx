@@ -36,6 +36,7 @@ const PrivacyPolicy = lazy(() => import('./views/PrivacyPolicy'));
 const Terms = lazy(() => import('./views/Terms'));
 const ResetPassword = lazy(() => import('./views/ResetPassword'));
 const NotFound = lazy(() => import('./views/NotFound'));
+const PublicResults = lazy(() => import('./views/PublicResults'));
 
 // Suppress Supabase auth lock violations and permissions policy violations
 if (typeof window !== 'undefined') {
@@ -157,7 +158,8 @@ const AppContent = () => {
     location.pathname === '/templates' ||
     location.pathname.startsWith('/templates/') ||
     location.pathname.startsWith('/blog') ||
-    location.pathname.startsWith('/checkout');
+    location.pathname.startsWith('/checkout') ||
+    location.pathname.startsWith('/results/');
   const showPublicShellWhileLoading = loading && isPublicRoute && !user;
 
   // Protected route — redirects to / with login modal open if not authenticated.
@@ -230,6 +232,7 @@ const AppContent = () => {
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/results/:code" element={<PublicResults />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

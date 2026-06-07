@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Camera } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Camera, Share2, CheckCheck } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import ErrorBoundary from '../ErrorBoundary';
 import IllustrationPickerModal from '../IllustrationPickerModal';
@@ -30,9 +30,31 @@ const formatDate = (iso) => {
   return `Пред ${d} ${d === 1 ? 'ден' : 'дена'}`;
 };
 
+// ── Share hook ─────────────────────────────────────────────────────────────
+const useShareEvent = () => {
+  const [copiedCode, setCopiedCode] = useState(null);
+
+  const share = useCallback(async (ev) => {
+    const url = `${window.location.origin}/results/${ev.code}`;
+    const title = `Резултати — ${ev.title || ev.code}`;
+    if (navigator.share) {
+      try { await navigator.share({ title, url }); return; } catch { /* user cancelled */ }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedCode(ev.code);
+      setTimeout(() => setCopiedCode(null), 2000);
+    } catch { /* ignore */ }
+  }, []);
+
+  return { share, copiedCode };
+};
+
+// ── Tab ────────────────────────────────────────────────────────────────────
 const PresentationsTab = ({ allEvents, eventsLoading, setSelectedEvent, setView }) => {
   const [pickerTarget, setPickerTarget] = useState(null);
   const [localCovers, setLocalCovers] = useState({});
+  const { share, copiedCode } = useShareEvent();
 
   const getCover = (ev) => localCovers[ev.id] !== undefined ? localCovers[ev.id] : ev.cover_image;
 
@@ -92,7 +114,7 @@ const PresentationsTab = ({ allEvents, eventsLoading, setSelectedEvent, setView 
                     {ev.title || 'Без наслов'}
                   </h3>
                   <p className="text-slate-400 text-xs font-black uppercase tracking-widest mb-6">{formatDate(ev.created_at)}</p>
-                  <div className="flex gap-3">
+                  <div className="flex gap-3 mb-3">
                     <button
                       onClick={() => setSelectedEvent(ev)}
                       className="flex-1 py-3 bg-indigo-50 text-indigo-600 rounded-xl font-black text-xs hover:bg-indigo-600 hover:text-white transition-all active:scale-95"
@@ -106,6 +128,25 @@ const PresentationsTab = ({ allEvents, eventsLoading, setSelectedEvent, setView 
                       ▶ Отвори
                     </button>
                   </div>
+                  <motion.button
+                    onClick={() => share(ev)}
+                    whileTap={{ scale: 0.95 }}
+                    className="w-full py-2.5 rounded-xl font-black text-xs transition-all active:scale-95 flex items-center justify-center gap-2
+                      bg-gradient-to-r from-indigo-50 to-violet-50 text-indigo-600
+                      hover:from-indigo-600 hover:to-violet-600 hover:text-white border border-indigo-100 hover:border-transparent"
+                  >
+                    <AnimatePresence mode="wait">
+                      {copiedCode === ev.code ? (
+                        <motion.span key="copied" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-1.5">
+                          <CheckCheck size={12} /> Линкот е копиран!
+                        </motion.span>
+                      ) : (
+                        <motion.span key="share" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-1.5">
+                          <Share2 size={12} /> Сподели јавни резултати
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </motion.button>
                 </div>
               </div>
               </ErrorBoundary>
