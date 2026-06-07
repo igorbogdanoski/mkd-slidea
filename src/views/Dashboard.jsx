@@ -20,10 +20,14 @@ import PlanTab from '../components/Dashboard/PlanTab';
 import IntegrationsTab from '../components/Dashboard/IntegrationsTab';
 import { templates } from '../data/templates';
 import { useDashboardData } from '../hooks/useDashboardData';
+import OnboardingTour, { TOUR_DONE_KEY } from '../components/OnboardingTour';
 
 const Dashboard = ({ setView, user, onLogout }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('home');
+  const [showTour, setShowTour] = useState(() => {
+    try { return !localStorage.getItem(TOUR_DONE_KEY); } catch { return false; }
+  });
   const [selectedEvent, setSelectedEvent] = useState(null);
 
   const { allEvents, eventsLoading, communityTemplates, templatesLoading, useTemplate } =
@@ -109,6 +113,8 @@ const Dashboard = ({ setView, user, onLogout }) => {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex font-sans selection:bg-indigo-100 selection:text-indigo-700">
+      {showTour && <OnboardingTour onDone={() => setShowTour(false)} />}
+
       {/* Desktop sidebar — hidden on mobile */}
       <div className="hidden md:block">
         <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} user={user} onLogout={onLogout} />

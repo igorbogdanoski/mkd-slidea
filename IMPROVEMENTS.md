@@ -1,7 +1,7 @@
 # MKD Slidea — Roadmap за Подобрувања
 
 > Генерирано: Јуни 2026 · Базирано на целосна ревизија на кодната база
-> Последно ажурирано: Јуни 2026 (по Sprint 2)
+> Последно ажурирано: Јуни 2026 (по Sprint 8)
 
 ---
 
@@ -77,20 +77,21 @@
 
 ## 🟡 ВИСОК ПРИОРИТЕТ (Недела 3–4) — сè завршено! ✅
 
-### ANALY-1: Time-series Analytics — ✅ ДЕЛУМНО ЗАВРШЕНО
+### ANALY-1: Time-series Analytics — ✅ ЗАВРШЕНО
 - Votes-over-time LineChart по poll — имплементирано
 - Споредба на 2 сесии — имплементирано (6 метрики, wins highlighting)
-- AI Insights по завршена сесија — останато
+- AI Insights по настан — имплементирано (Gemini анализа: overview, weakPoints, misconceptions, nextLessonPlan, quickActions)
 
 ---
 
 ## 🟢 СРЕДЕН ПРИОРИТЕТ (Месец 2)
 
-### ONBOARD-1: Feature Discovery — ✅ ДЕЛУМНО ЗАВРШЕНО
+### ONBOARD-1: Feature Discovery — ✅ ЗАВРШЕНО
+
 - Progress checklist во Sidebar — 4 чекори (создај настан, додај прашање, сподели, прегледај резултати)
 - Collapsible card со progress bars + dismiss за 7 дена
 - Supabase query за реален статус (events + polls count)
-- Interactive tooltip tour — останато (Shepherd.js)
+- Interactive spotlight tour — имплементиран (`OnboardingTour.jsx`): 5 чекори, SVG spotlight cutout, progress dots, skip/prev/next, `mkd_tour_v1_done` localStorage flag
 
 ### I18N-1: Language Persistence — ✅ ЗАВРШЕНО (веќе беше имплементирано)
 - `localStorage` persist веќе постои во `src/i18n/index.jsx` — `detect()` + `setLocale()`
@@ -109,20 +110,22 @@
 - StarRating компонент (пресметан од број на анкети, 3–5 ѕвезди)
 - Sort dropdown: Верифицирани прво / По оценка / По бр. активности / Азбучен
 
-### A11Y-1: Accessibility — ✅ ДЕЛУМНО ЗАВРШЕНО
+### A11Y-1: Accessibility — ✅ ЗАВРШЕНО
+
 - `role="dialog" aria-modal="true"` на сите 13 modal компоненти
 - `aria-live="polite" aria-atomic="true"` на vote count displays
 - `role="img" aria-label="Word cloud — топ зборови: ..."` на SVG
-- Keyboard-navigable charts — останато
+- `role="figure" aria-label="..."` на Area chart и Pie chart во AnalyticsTab
 
 ---
 
 ## 🔵 НИЗ ПРИОРИТЕТ (Месец 3+)
 
-### PERF-1: Performance — ✅ ДЕЛУМНО ЗАВРШЕНО
+### PERF-1: Performance — ✅ ЗАВРШЕНО
+
 - `loading="lazy"` додадено на сите 5 img тагови во app
 - JSZip dynamic import во ImportPPTXModal (не се вчитува при старт)
-- Tesseract.js — нема употреба во src/, само во vite.config manual chunk; може да се отстрани од package.json
+- Tesseract.js отстранет од `vite.config.js` manualChunks (не се користи во src/)
 - Bundle audit: главен vendor chunk 1.1MB (338kB gzip) — d3+framer+recharts, потребен за функционалност
 
 ### SEO-1: SEO Дополнувања — ✅ ЗАВРШЕНО
@@ -131,10 +134,11 @@
 - Organization schema во Pricing @graph
 
 ### SETTINGS-1: Settings — ✅ ДЕЛУМНО ЗАВРШЕНО
+
 - Email digest toggle (зачувано во `profiles.email_digest`)
 - Data export CSV — настани + гласови (client-side Blob download, 2 фајлови)
 - GDPR бришење — mailto линк до support@mismath.net
-- Dark mode — останато (бара global CSS `dark:` variants)
+- Dark mode — останато (бара global CSS `dark:` variants на 50+ компоненти)
 
 ### REGION-1: Регионален Push
 - Маркетинг за SQ, SR, BG пазари

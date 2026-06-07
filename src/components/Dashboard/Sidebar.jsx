@@ -142,9 +142,10 @@ const Sidebar = ({ activeTab, setActiveTab, user, onLogout }) => {
           <button
             key={item.id}
             onClick={() => setActiveTab(item.id)}
+            data-tour={`sidebar-${item.id}`}
             className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-black text-sm transition-all relative ${
-              activeTab === item.id 
-                ? 'bg-indigo-50 text-indigo-600 shadow-sm' 
+              activeTab === item.id
+                ? 'bg-indigo-50 text-indigo-600 shadow-sm'
                 : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
             }`}
           >

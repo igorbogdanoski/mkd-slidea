@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   TrendingUp, Users, Zap, Award,
-  BarChart2, PieChart as PieIcon, Calendar, Activity, GitCompare
+  BarChart2, PieChart as PieIcon, Calendar, Activity, GitCompare,
+  Sparkles, Lightbulb, AlertTriangle, BookOpen, CheckCircle2, ChevronDown, ChevronUp
 } from 'lucide-react';
 import {
   AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid,
@@ -39,6 +40,13 @@ const AnalyticsTab = ({ user }) => {
   const [cmpB, setCmpB] = useState('');
   const [cmpData, setCmpData] = useState(null);
   const [cmpLoading, setCmpLoading] = useState(false);
+
+  // AI Insights
+  const [aiEventId, setAiEventId] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiInsights, setAiInsights] = useState(null);
+  const [aiError, setAiError] = useState('');
+  const [aiOpenSection, setAiOpenSection] = useState({ weak: true, misc: true, plan: true, quick: true });
 
   useEffect(() => {
     if (!user?.id) return;
@@ -212,6 +220,78 @@ const AnalyticsTab = ({ user }) => {
 
   useEffect(() => { loadComparison(cmpA, cmpB); }, [cmpA, cmpB]);
 
+  const generateInsights = async () => {
+    if (!aiEventId) return;
+    setAiLoading(true);
+    setAiError('');
+    setAiInsights(null);
+    try {
+      const ev = allEventsData.find(e => e.id === aiEventId);
+
+      const { data: polls } = await supabase
+        .from('polls')
+        .select('id, question, type, options(*)')
+        .eq('event_id', aiEventId);
+
+      if (!polls?.length) {
+        setAiError('Нема анкети во овој настан за анализа.');
+        setAiLoading(false);
+        return;
+      }
+
+      const pollIds = polls.map(p => p.id);
+      const { data: votes } = await supabase
+        .from('votes')
+        .select('poll_id, option_index, session_id')
+        .in('poll_id', pollIds);
+
+      const allSessions = new Set((votes || []).map(v => v.session_id));
+      const totalParticipants = allSessions.size || 1;
+
+      const pollsForAI = polls.map(p => {
+        const pVotes = (votes || []).filter(v => v.poll_id === p.id);
+        const totalVotes = pVotes.length;
+        const uniqueSessions = new Set(pVotes.map(v => v.session_id)).size;
+        const responseRate = Math.round((uniqueSessions / totalParticipants) * 100);
+        const isQuiz = p.type === 'quiz';
+        const options = p.options || [];
+
+        const optCount = {};
+        pVotes.forEach(v => { if (v.option_index != null) optCount[v.option_index] = (optCount[v.option_index] || 0) + 1; });
+
+        const topAnswers = options.map((opt, idx) => ({
+          text: opt.text || `Опција ${idx + 1}`,
+          votes: optCount[idx] || 0,
+          isCorrect: !!opt.is_correct,
+        }));
+
+        let quizAccuracy = null;
+        if (isQuiz && totalVotes > 0) {
+          const correct = pVotes.filter(v => options[v.option_index]?.is_correct).length;
+          quizAccuracy = Math.round((correct / totalVotes) * 100);
+        }
+
+        return { question: p.question || `(${p.type})`, type: p.type, totalVotes, responseRate, isQuiz, quizAccuracy, topAnswers: topAnswers.slice(0, 4) };
+      });
+
+      const resp = await fetch('/api/insights', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventTitle: ev?.title || 'Настан', polls: pollsForAI }),
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.error || `Грешка ${resp.status}`);
+      }
+      setAiInsights(await resp.json());
+    } catch (err) {
+      setAiError(err.message || 'Не успеавме да генерираме AI Увид. Обидете се повторно.');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const formatDate = (iso) => {
     if (!iso) return '';
     return new Date(iso).toLocaleDateString('mk-MK', { day: 'numeric', month: 'short' });
@@ -278,7 +358,7 @@ const AnalyticsTab = ({ user }) => {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Area chart */}
-        <div className="lg:col-span-8 bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm h-[420px] flex flex-col">
+        <div className="lg:col-span-8 bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm h-[420px] flex flex-col" role="figure" aria-label={`Активност последни 7 дена — вкупно ${stats.votes} гласови`}>
           <div className="flex items-center justify-between mb-8">
             <h3 className="text-xl font-black flex items-center gap-2">
               <BarChart2 size={24} className="text-indigo-600" /> Активност — последни 7 дена
@@ -313,7 +393,7 @@ const AnalyticsTab = ({ user }) => {
         </div>
 
         {/* Pie chart */}
-        <div className="lg:col-span-4 bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm flex flex-col">
+        <div className="lg:col-span-4 bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm flex flex-col" role="figure" aria-label={`Типови активности — ${pieData.map(d => `${d.name}: ${d.value}`).join(', ')}`}>
           <h3 className="text-xl font-black mb-8 flex items-center gap-2">
             <PieIcon size={24} className="text-emerald-500" /> Типови активности
           </h3>
@@ -539,6 +619,186 @@ const AnalyticsTab = ({ user }) => {
                   <div className="flex items-center gap-2"><div className="w-3 h-3 bg-emerald-400 rounded-full opacity-70" /><span className="text-xs font-bold text-slate-400">Уникатни учесници</span></div>
                 </div>
               </div>
+            )}
+          </div>
+        </div>
+      )}
+      {/* AI Insights */}
+      {allEventsData.length > 0 && (
+        <div className="bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden">
+          <div className="p-8 border-b border-slate-50 flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-2xl flex items-center justify-center flex-shrink-0">
+              <Sparkles size={18} className="text-white" />
+            </div>
+            <div>
+              <h3 className="text-xl font-black">AI Увид по настан</h3>
+              <p className="text-xs font-bold text-slate-400 mt-0.5">Gemini анализира резултатите и предлага конкретни педагошки чекори</p>
+            </div>
+          </div>
+
+          <div className="p-8">
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <select
+                value={aiEventId}
+                onChange={(e) => { setAiEventId(e.target.value); setAiInsights(null); setAiError(''); }}
+                className="flex-1 bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3 font-bold text-slate-700 focus:border-violet-400 focus:bg-white outline-none transition-all text-sm"
+                aria-label="Избери настан за AI анализа"
+              >
+                <option value="">— Избери настан —</option>
+                {allEventsData.map(ev => (
+                  <option key={ev.id} value={ev.id}>{ev.title} #{ev.code}</option>
+                ))}
+              </select>
+              <button
+                onClick={generateInsights}
+                disabled={!aiEventId || aiLoading}
+                className="flex items-center gap-2 px-7 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-2xl font-black text-sm hover:from-violet-700 hover:to-indigo-700 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+              >
+                {aiLoading
+                  ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Анализирам...</>
+                  : <><Sparkles size={16} /> Генерирај AI Увид</>
+                }
+              </button>
+            </div>
+
+            {aiError && (
+              <div className="flex items-center gap-3 p-4 bg-red-50 text-red-600 rounded-2xl font-bold text-sm mb-6">
+                <AlertTriangle size={16} className="flex-shrink-0" /> {aiError}
+              </div>
+            )}
+
+            {!aiLoading && !aiInsights && !aiError && (
+              <div className="flex flex-col items-center justify-center h-36 text-slate-300 gap-3">
+                <Sparkles size={40} className="opacity-30" />
+                <p className="font-black text-sm">Избери настан и кликни „Генерирај AI Увид"</p>
+              </div>
+            )}
+
+            {aiInsights && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-5"
+              >
+                {/* Overview */}
+                <div className="p-6 bg-gradient-to-br from-indigo-50 to-violet-50 rounded-3xl border border-indigo-100">
+                  <p className="text-xs font-black text-indigo-500 uppercase tracking-widest mb-2">Резиме</p>
+                  <p className="font-bold text-slate-700 leading-relaxed">{aiInsights.overview}</p>
+                </div>
+
+                {/* Quick Actions */}
+                {aiInsights.quickActions?.length > 0 && (
+                  <div className="bg-emerald-50 rounded-3xl border border-emerald-100 overflow-hidden">
+                    <button
+                      className="w-full flex items-center justify-between p-5 text-left"
+                      onClick={() => setAiOpenSection(s => ({ ...s, quick: !s.quick }))}
+                      aria-expanded={aiOpenSection.quick}
+                    >
+                      <span className="flex items-center gap-2 font-black text-emerald-700 text-sm">
+                        <Zap size={16} /> Брзи дејствија
+                        <span className="ml-1 px-2 py-0.5 bg-emerald-200 text-emerald-800 rounded-full text-[10px] font-black">{aiInsights.quickActions.length}</span>
+                      </span>
+                      {aiOpenSection.quick ? <ChevronUp size={14} className="text-emerald-400" /> : <ChevronDown size={14} className="text-emerald-400" />}
+                    </button>
+                    {aiOpenSection.quick && (
+                      <ul className="px-5 pb-5 space-y-2">
+                        {aiInsights.quickActions.map((a, i) => (
+                          <li key={i} className="flex items-start gap-2.5 text-sm text-emerald-800 font-bold">
+                            <CheckCircle2 size={14} className="text-emerald-500 mt-0.5 flex-shrink-0" /> {a}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+
+                {/* Weak Points */}
+                {aiInsights.weakPoints?.length > 0 && (
+                  <div className="bg-amber-50 rounded-3xl border border-amber-100 overflow-hidden">
+                    <button
+                      className="w-full flex items-center justify-between p-5 text-left"
+                      onClick={() => setAiOpenSection(s => ({ ...s, weak: !s.weak }))}
+                      aria-expanded={aiOpenSection.weak}
+                    >
+                      <span className="flex items-center gap-2 font-black text-amber-700 text-sm">
+                        <Lightbulb size={16} /> Слаби точки
+                        <span className="ml-1 px-2 py-0.5 bg-amber-200 text-amber-800 rounded-full text-[10px] font-black">{aiInsights.weakPoints.length}</span>
+                      </span>
+                      {aiOpenSection.weak ? <ChevronUp size={14} className="text-amber-400" /> : <ChevronDown size={14} className="text-amber-400" />}
+                    </button>
+                    {aiOpenSection.weak && (
+                      <div className="px-5 pb-5 space-y-4">
+                        {aiInsights.weakPoints.map((w, i) => (
+                          <div key={i} className="p-4 bg-white rounded-2xl border border-amber-100">
+                            <p className="font-black text-amber-800 text-sm mb-1">{w.topic}</p>
+                            <p className="text-xs font-bold text-slate-500 mb-2">{w.signal}</p>
+                            <p className="text-xs font-bold text-amber-700">→ {w.recommendation}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Misconceptions */}
+                {aiInsights.misconceptions?.length > 0 && (
+                  <div className="bg-rose-50 rounded-3xl border border-rose-100 overflow-hidden">
+                    <button
+                      className="w-full flex items-center justify-between p-5 text-left"
+                      onClick={() => setAiOpenSection(s => ({ ...s, misc: !s.misc }))}
+                      aria-expanded={aiOpenSection.misc}
+                    >
+                      <span className="flex items-center gap-2 font-black text-rose-700 text-sm">
+                        <AlertTriangle size={16} /> Погрешни разбирања
+                        <span className="ml-1 px-2 py-0.5 bg-rose-200 text-rose-800 rounded-full text-[10px] font-black">{aiInsights.misconceptions.length}</span>
+                      </span>
+                      {aiOpenSection.misc ? <ChevronUp size={14} className="text-rose-400" /> : <ChevronDown size={14} className="text-rose-400" />}
+                    </button>
+                    {aiOpenSection.misc && (
+                      <div className="px-5 pb-5 space-y-4">
+                        {aiInsights.misconceptions.map((m, i) => (
+                          <div key={i} className="p-4 bg-white rounded-2xl border border-rose-100">
+                            <div className="flex items-start justify-between gap-3 mb-2">
+                              <p className="font-black text-rose-800 text-sm flex-1">{m.question}</p>
+                              <span className="flex-shrink-0 px-2 py-0.5 bg-rose-100 text-rose-600 rounded-full text-[10px] font-black">{m.share}% грешка</span>
+                            </div>
+                            <p className="text-xs font-bold text-slate-500 mb-1">Избрале: <span className="text-rose-600">{m.wrongAnswer}</span></p>
+                            <p className="text-xs font-bold text-slate-600 mb-2">{m.explanation}</p>
+                            <p className="text-xs font-black text-rose-700 bg-rose-50 p-2 rounded-xl">→ {m.intervention}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Next Lesson Plan */}
+                {aiInsights.nextLessonPlan?.length > 0 && (
+                  <div className="bg-violet-50 rounded-3xl border border-violet-100 overflow-hidden">
+                    <button
+                      className="w-full flex items-center justify-between p-5 text-left"
+                      onClick={() => setAiOpenSection(s => ({ ...s, plan: !s.plan }))}
+                      aria-expanded={aiOpenSection.plan}
+                    >
+                      <span className="flex items-center gap-2 font-black text-violet-700 text-sm">
+                        <BookOpen size={16} /> План за следен час
+                        <span className="ml-1 px-2 py-0.5 bg-violet-200 text-violet-800 rounded-full text-[10px] font-black">{aiInsights.nextLessonPlan.length} чекори</span>
+                      </span>
+                      {aiOpenSection.plan ? <ChevronUp size={14} className="text-violet-400" /> : <ChevronDown size={14} className="text-violet-400" />}
+                    </button>
+                    {aiOpenSection.plan && (
+                      <ol className="px-5 pb-5 space-y-2 list-none">
+                        {aiInsights.nextLessonPlan.map((step, i) => (
+                          <li key={i} className="flex items-start gap-3 text-sm text-violet-800 font-bold">
+                            <span className="w-6 h-6 bg-violet-200 text-violet-700 rounded-full text-[10px] font-black flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
+                            {step}
+                          </li>
+                        ))}
+                      </ol>
+                    )}
+                  </div>
+                )}
+              </motion.div>
             )}
           </div>
         </div>

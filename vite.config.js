@@ -14,7 +14,7 @@ export default defineConfig({
         // "Cannot read properties of undefined (reading 'forwardRef')".
         manualChunks: (id) => {
           if (!id.includes('node_modules')) return undefined;
-          if (id.includes('jszip') || id.includes('tesseract')) return 'vendor-import';
+          if (id.includes('jszip')) return 'vendor-import';
           if (id.includes('@supabase')) return 'vendor-supabase';
           if (id.includes('canvas-confetti') || id.includes('qrcode')) return 'vendor-fx';
           return 'vendor';
