@@ -1,8 +1,109 @@
-import React from 'react';
-import { 
-  Home, Presentation, LayoutGrid, Users, 
-  CreditCard, Share2, Trash2, LogOut, BarChart2, Lock, Shield, Gift, KeyRound, User, Sparkles, Building2, Receipt
+import React, { useState, useEffect } from 'react';
+import {
+  Home, Presentation, LayoutGrid, Users,
+  CreditCard, Share2, Trash2, LogOut, BarChart2, Lock, Shield, Gift, KeyRound, User, Sparkles, Building2, Receipt,
+  CheckCircle2, Circle, ChevronDown, ChevronUp, X
 } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
+
+const DISMISS_KEY = 'mkd_checklist_dismissed_until';
+
+const useOnboardingProgress = (userId) => {
+  const [steps, setSteps] = useState({ created_event: false, added_question: false, shared: false, viewed_results: false });
+
+  useEffect(() => {
+    if (!userId) return;
+    const shared = !!localStorage.getItem('mkd_shared_session');
+    const viewed = !!localStorage.getItem('mkd_viewed_results');
+    (async () => {
+      const { data: evs } = await supabase.from('events').select('id').eq('user_id', userId).limit(10);
+      const hasEvent = (evs?.length || 0) > 0;
+      let hasQuestion = false;
+      if (hasEvent) {
+        const { count } = await supabase.from('polls').select('id', { count: 'exact', head: true }).in('event_id', evs.map(e => e.id));
+        hasQuestion = (count || 0) > 0;
+      }
+      setSteps({ created_event: hasEvent, added_question: hasQuestion, shared, viewed_results: viewed });
+    })();
+  }, [userId]);
+
+  return steps;
+};
+
+const OnboardingChecklist = ({ user, setActiveTab }) => {
+  const steps = useOnboardingProgress(user?.id);
+  const [open, setOpen] = useState(true);
+
+  const isDismissed = () => {
+    try {
+      const until = localStorage.getItem(DISMISS_KEY);
+      return until && Date.now() < Number(until);
+    } catch { return false; }
+  };
+  const dismiss = (e) => {
+    e.stopPropagation();
+    try { localStorage.setItem(DISMISS_KEY, String(Date.now() + 7 * 24 * 60 * 60 * 1000)); } catch { /* ignore */ }
+    setOpen(false);
+  };
+
+  const items = [
+    { key: 'created_event',   label: 'Создај прв настан',       action: () => setActiveTab('presentations') },
+    { key: 'added_question',  label: 'Додај прашање',            action: () => setActiveTab('home') },
+    { key: 'shared',          label: 'Сподели со учесници',      action: null },
+    { key: 'viewed_results',  label: 'Прегледај резултати',      action: () => setActiveTab('analytics') },
+  ];
+  const done = items.filter(i => steps[i.key]).length;
+  const allDone = done === items.length;
+
+  if (isDismissed() || (allDone && !open)) return null;
+
+  return (
+    <div className="mx-4 mb-3 bg-gradient-to-br from-indigo-50 to-violet-50 rounded-3xl border border-indigo-100 overflow-hidden">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-5 py-3.5 text-left"
+      >
+        <div className="flex items-center gap-2.5">
+          <div className="flex gap-0.5">
+            {items.map((_, i) => (
+              <div key={i} className={`w-5 h-1.5 rounded-full transition-all ${i < done ? 'bg-indigo-600' : 'bg-indigo-200'}`} />
+            ))}
+          </div>
+          <span className="text-xs font-black text-indigo-700 uppercase tracking-widest">
+            {allDone ? '🎉 Подготвен!' : `${done}/4 чекори`}
+          </span>
+        </div>
+        <div className="flex items-center gap-1">
+          <button onClick={dismiss} className="p-1 hover:bg-indigo-100 rounded-lg transition-colors text-indigo-400">
+            <X size={12} />
+          </button>
+          {open ? <ChevronUp size={14} className="text-indigo-400" /> : <ChevronDown size={14} className="text-indigo-400" />}
+        </div>
+      </button>
+
+      {open && (
+        <div className="px-5 pb-4 space-y-2">
+          {items.map((item) => (
+            <button
+              key={item.key}
+              onClick={item.action || undefined}
+              disabled={!item.action || steps[item.key]}
+              className="w-full flex items-center gap-2.5 text-left group"
+            >
+              {steps[item.key]
+                ? <CheckCircle2 size={15} className="text-indigo-600 shrink-0" />
+                : <Circle size={15} className="text-indigo-300 shrink-0 group-hover:text-indigo-500 transition-colors" />
+              }
+              <span className={`text-xs font-bold transition-colors ${steps[item.key] ? 'text-slate-400 line-through' : 'text-slate-700 group-hover:text-indigo-600'}`}>
+                {item.label}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const Sidebar = ({ activeTab, setActiveTab, user, onLogout }) => {
   const userPlan = user?.plan || 'basic';
@@ -58,6 +159,8 @@ const Sidebar = ({ activeTab, setActiveTab, user, onLogout }) => {
           </button>
         ))}
       </nav>
+
+      <OnboardingChecklist user={user} setActiveTab={setActiveTab} />
 
       <div className="p-4 mt-auto">
         {userPlan === 'basic' && (

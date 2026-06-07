@@ -95,11 +95,18 @@ const WordCloud = ({ words }) => {
 
   const hasWords = words && words.some(w => w.votes > 0);
 
+  // Build accessible description from top words
+  const topWords = hasWords
+    ? [...words].filter(w => w.votes > 0).sort((a, b) => b.votes - a.votes).slice(0, 10).map(w => `${w.text} (${w.votes})`).join(', ')
+    : '';
+
   return (
     <div className="w-full h-full flex items-center justify-center bg-slate-800/20 rounded-[4rem] border border-slate-700/50 p-8 min-h-[400px]">
       {hasWords ? (
         <svg
           ref={svgRef}
+          role="img"
+          aria-label={`Word cloud — топ зборови: ${topWords}`}
           className="w-full h-full max-h-[560px]"
           preserveAspectRatio="xMidYMid meet"
         />

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   TrendingUp, Users, Zap, Award,
-  BarChart2, PieChart as PieIcon, Calendar, Activity
+  BarChart2, PieChart as PieIcon, Calendar, Activity, GitCompare
 } from 'lucide-react';
 import {
   AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid,
@@ -33,6 +33,12 @@ const AnalyticsTab = ({ user }) => {
   const [drillPollId, setDrillPollId] = useState('');
   const [drillLoading, setDrillLoading] = useState(false);
   const [drillChartData, setDrillChartData] = useState(null);
+
+  // Session comparison
+  const [cmpA, setCmpA] = useState('');
+  const [cmpB, setCmpB] = useState('');
+  const [cmpData, setCmpData] = useState(null);
+  const [cmpLoading, setCmpLoading] = useState(false);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -182,6 +188,29 @@ const AnalyticsTab = ({ user }) => {
     if (drillPollId) loadDrill(drillPollId);
     else setDrillChartData(null);
   }, [drillPollId]);
+
+  const loadComparison = async (idA, idB) => {
+    if (!idA || !idB) { setCmpData(null); return; }
+    setCmpLoading(true);
+    const fetchEventStats = async (eventId) => {
+      const ev = allEventsData.find(e => e.id === eventId);
+      const polls = allPollsData.filter(p => p.event_id === eventId);
+      const pollIds = polls.map(p => p.id);
+      if (!pollIds.length) return { event: ev, polls: 0, votes: 0, participants: 0 };
+      const { data: votes } = await supabase.from('votes').select('session_id').in('poll_id', pollIds);
+      return {
+        event: ev,
+        polls: polls.length,
+        votes: votes?.length || 0,
+        participants: new Set(votes?.map(v => v.session_id) || []).size,
+      };
+    };
+    const [a, b] = await Promise.all([fetchEventStats(idA), fetchEventStats(idB)]);
+    setCmpData({ a, b });
+    setCmpLoading(false);
+  };
+
+  useEffect(() => { loadComparison(cmpA, cmpB); }, [cmpA, cmpB]);
 
   const formatDate = (iso) => {
     if (!iso) return '';
@@ -359,6 +388,83 @@ const AnalyticsTab = ({ user }) => {
           </div>
         </div>
       )}
+      {/* Session comparison */}
+      {allEventsData.length >= 2 && (
+        <div className="bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden">
+          <div className="p-8 border-b border-slate-50 flex items-center gap-3">
+            <GitCompare size={22} className="text-indigo-500" />
+            <div>
+              <h3 className="text-xl font-black">Споредба на 2 сесии</h3>
+              <p className="text-xs font-bold text-slate-400 mt-0.5">Избери два настани за да ги споредиш нивните метрики</p>
+            </div>
+          </div>
+          <div className="p-8">
+            <div className="flex flex-col sm:flex-row gap-4 mb-8">
+              {[{ val: cmpA, set: setCmpA, label: 'Настан А', color: 'indigo' }, { val: cmpB, set: setCmpB, label: 'Настан Б', color: 'violet' }].map(({ val, set, label, color }) => (
+                <select
+                  key={label}
+                  value={val}
+                  onChange={e => set(e.target.value)}
+                  className={`flex-1 bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-3 font-bold text-slate-700 focus:border-${color}-400 focus:bg-white outline-none transition-all text-sm`}
+                >
+                  <option value="">— {label} —</option>
+                  {allEventsData.filter(e => e.id !== (label === 'Настан А' ? cmpB : cmpA)).map(ev => (
+                    <option key={ev.id} value={ev.id}>{ev.title} #{ev.code}</option>
+                  ))}
+                </select>
+              ))}
+            </div>
+
+            {cmpLoading && (
+              <div className="flex items-center justify-center h-32">
+                <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
+
+            {!cmpLoading && cmpData && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[
+                  { label: 'Настани', keyA: 'event.title', render: (s) => s.event?.title || '—' },
+                  { label: 'Анкети',  render: (s) => s.polls },
+                  { label: 'Гласови', render: (s) => s.votes },
+                  { label: 'Учесници', render: (s) => s.participants },
+                  { label: 'Гласови / анкета', render: (s) => s.polls > 0 ? (s.votes / s.polls).toFixed(1) : '—' },
+                  { label: 'Ангажираност', render: (s) => s.participants > 0 && s.polls > 0 ? Math.min(100, Math.round(s.votes / (s.participants * s.polls) * 100)) + '%' : '—' },
+                ].map(({ label, render }) => {
+                  const va = render(cmpData.a);
+                  const vb = render(cmpData.b);
+                  const numA = parseFloat(String(va));
+                  const numB = parseFloat(String(vb));
+                  const aWins = !isNaN(numA) && !isNaN(numB) && numA > numB;
+                  const bWins = !isNaN(numA) && !isNaN(numB) && numB > numA;
+                  return (
+                    <div key={label} className="bg-slate-50 rounded-3xl p-5">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">{label}</p>
+                      <div className="flex items-end justify-between gap-2">
+                        <div className={`flex-1 text-center px-3 py-3 rounded-2xl font-black text-lg ${aWins ? 'bg-indigo-600 text-white' : 'bg-white text-slate-900'}`}>
+                          {va}
+                        </div>
+                        <span className="text-xs font-black text-slate-300 pb-2">vs</span>
+                        <div className={`flex-1 text-center px-3 py-3 rounded-2xl font-black text-lg ${bWins ? 'bg-violet-600 text-white' : 'bg-white text-slate-900'}`}>
+                          {vb}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {!cmpLoading && !cmpData && (
+              <div className="flex flex-col items-center justify-center h-32 text-slate-300 gap-2">
+                <GitCompare size={36} className="opacity-30" />
+                <p className="font-black text-sm">Избери два настани за да ги споредиш</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Votes over time — per poll drill-down */}
       {allEventsData.length > 0 && (
         <div className="bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden">

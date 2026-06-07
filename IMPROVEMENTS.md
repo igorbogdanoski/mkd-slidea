@@ -78,20 +78,19 @@
 ## 🟡 ВИСОК ПРИОРИТЕТ (Недела 3–4) — сè завршено! ✅
 
 ### ANALY-1: Time-series Analytics — ✅ ДЕЛУМНО ЗАВРШЕНО
-- Votes-over-time LineChart по poll (drill-down: избери настан → избери анкета → види тајмлајн) — имплементирано
-- Автоматски interval: 1min / 5min / 15min во зависност од должината на сесијата
-- Споредба на 2 сесии — останато
+- Votes-over-time LineChart по poll — имплементирано
+- Споредба на 2 сесии — имплементирано (6 метрики, wins highlighting)
 - AI Insights по завршена сесија — останато
 
 ---
 
 ## 🟢 СРЕДЕН ПРИОРИТЕТ (Месец 2)
 
-### ONBOARD-1: Feature Discovery
-- Interactive tooltip tour (Shepherd.js или custom) — 2 дена
-- Progress checklist во sidebar — 2 дена
-- Getting started video (30 сек) — 1 ден (снимање + embed)
-- **Фајлови:** `src/views/Onboarding.jsx`, `src/views/Dashboard.jsx`
+### ONBOARD-1: Feature Discovery — ✅ ДЕЛУМНО ЗАВРШЕНО
+- Progress checklist во Sidebar — 4 чекори (создај настан, додај прашање, сподели, прегледај резултати)
+- Collapsible card со progress bars + dismiss за 7 дена
+- Supabase query за реален статус (events + polls count)
+- Interactive tooltip tour — останато (Shepherd.js)
 
 ### I18N-1: Language Persistence — ✅ ЗАВРШЕНО (веќе беше имплементирано)
 - `localStorage` persist веќе постои во `src/i18n/index.jsx` — `detect()` + `setLocale()`
@@ -111,10 +110,10 @@
 - Sort dropdown: Верифицирани прво / По оценка / По бр. активности / Азбучен
 
 ### A11Y-1: Accessibility — ✅ ДЕЛУМНО ЗАВРШЕНО
-- `role="dialog" aria-modal="true"` додадено на сите 13 modal компоненти
-- `aria-live="polite" aria-atomic="true"` на vote count displays во Presenter
+- `role="dialog" aria-modal="true"` на сите 13 modal компоненти
+- `aria-live="polite" aria-atomic="true"` на vote count displays
+- `role="img" aria-label="Word cloud — топ зборови: ..."` на SVG
 - Keyboard-navigable charts — останато
-- Alt text за Word Cloud — останато
 
 ---
 
@@ -131,10 +130,11 @@
 - FAQPage schema на Pricing (5 прашања)
 - Organization schema во Pricing @graph
 
-### SETTINGS-1: Settings
-- Notification preferences (email дигест on/off) — 1 ден
-- Data export / GDPR download — 2 дена
-- Dark mode preference во Supabase — 4 часа
+### SETTINGS-1: Settings — ✅ ДЕЛУМНО ЗАВРШЕНО
+- Email digest toggle (зачувано во `profiles.email_digest`)
+- Data export CSV — настани + гласови (client-side Blob download, 2 фајлови)
+- GDPR бришење — mailto линк до support@mismath.net
+- Dark mode — останато (бара global CSS `dark:` variants)
 
 ### REGION-1: Регионален Push
 - Маркетинг за SQ, SR, BG пазари
