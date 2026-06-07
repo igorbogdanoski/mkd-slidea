@@ -133,12 +133,14 @@
 - FAQPage schema на Pricing (5 прашања)
 - Organization schema во Pricing @graph
 
-### SETTINGS-1: Settings — ✅ ДЕЛУМНО ЗАВРШЕНО
+### SETTINGS-1: Settings — ✅ ЗАВРШЕНО
 
 - Email digest toggle (зачувано во `profiles.email_digest`)
 - Data export CSV — настани + гласови (client-side Blob download, 2 фајлови)
 - GDPR бришење — mailto линк до support@mismath.net
-- Dark mode — останато (бара global CSS `dark:` variants на 50+ компоненти)
+- Dark mode toggle — `ProfileTab.jsx` (Moon/Sun иконки, `useDarkMode` hook, `mkd_theme` localStorage key)
+  - Global fallback CSS во `src/index.css` (покрива сите компоненти без explicit `dark:` variants)
+  - Explicit `dark:` classes на: `Dashboard.jsx`, `Sidebar.jsx`, `ProfileTab.jsx` (карти, форми, прекинувачи)
 
 ### REGION-1: Регионален Push
 - Маркетинг за SQ, SR, BG пазари
@@ -165,18 +167,19 @@
 |------|--------|-----|
 | Landing renders | ✅ | ✅ |
 | Join page | ✅ | ✅ |
-| Participant view | ✅ (smoke) | Потребен detаilen тест |
-| Presenter view | ✅ (smoke) | Потребен detаilen тест |
+| Participant view | ✅ (smoke) | Потребен детален тест |
+| Presenter view | ✅ (smoke) | Потребен детален тест |
 | Auth login/logout | ✅ | ✅ |
-| **Password reset** | ❌ | Потребен по имплементација |
-| Dashboard load | ✅ | ✅ |
+| Password reset | ✅ `tests/password-reset.spec.js` (PWR-01–07) | ✅ |
+| Dashboard load | ✅ `tests/dashboard.spec.js` (DB-01–12) | ✅ |
+| Settings / Profile | ✅ `tests/settings.spec.js` (SET-01–10) | ✅ |
+| Pricing page | ✅ `tests/pricing.spec.js` (PR-01–10) | ✅ |
+| Templates sort | ✅ `tests/templates-sort.spec.js` (TS-01–10) | ✅ |
 | **Create session** | ❌ | Потребен |
 | **Add poll/quiz** | ❌ | Потребен |
 | **Cast vote** | ❌ | Потребен |
 | **View results** | ❌ | Потребен |
-| **Rating activity** | ❌ | Потребен по имплементација |
-| **Ranking activity** | ❌ | Потребен по имплементација |
 | **AI generation** | ❌ | Потребен |
-| **Export CSV/PDF** | ❌ | Потребен |
-| Mobile viewport | ❌ | Потребен |
-| Accessibility audit | ❌ | Потребен |
+| Export CSV (button) | ✅ `tests/settings.spec.js` SET-09 | Partial — click only |
+| Mobile viewport | ✅ `tests/mobile.spec.js` (15 тести) | ✅ |
+| Accessibility audit | ✅ `tests/accessibility.spec.js` (17 тести) | ✅ |

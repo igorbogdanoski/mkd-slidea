@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { User, Save, Globe, Check, AlertTriangle, Download, Bell, BellOff, Trash2, Shield } from 'lucide-react';
+import { User, Save, Globe, Check, AlertTriangle, Download, Bell, BellOff, Trash2, Shield, Moon, Sun } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { useDarkMode } from '../../hooks/useDarkMode';
 
 const downloadCSV = (filename, rows) => {
   const csv = rows.map(r => r.map(cell => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
@@ -13,6 +14,7 @@ const downloadCSV = (filename, rows) => {
 };
 
 const ProfileTab = ({ user }) => {
+  const { isDark, toggle: toggleDark } = useDarkMode();
   const [name, setName] = useState('');
   const [publicTeacher, setPublicTeacher] = useState(false);
   const [emailDigest, setEmailDigest] = useState(false);
@@ -109,7 +111,7 @@ const ProfileTab = ({ user }) => {
         <p className="text-slate-500 font-bold">Управувај со твоето јавно име и видливоста на скорбордот.</p>
       </div>
 
-      <form onSubmit={handleSave} className="bg-white p-8 rounded-3xl border-2 border-slate-100 shadow-sm space-y-6">
+      <form onSubmit={handleSave} className="bg-white dark:bg-slate-800 p-8 rounded-3xl border-2 border-slate-100 dark:border-slate-700 shadow-sm space-y-6">
         <div>
           <label htmlFor="profile-name" className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
             Име за прикажување
@@ -177,17 +179,18 @@ const ProfileTab = ({ user }) => {
         </div>
       </form>
 
-      {/* Notification preferences */}
-      <div className="bg-white p-8 rounded-3xl border-2 border-slate-100 shadow-sm mt-6">
-        <h3 className="font-black text-slate-900 mb-1 flex items-center gap-2">
+      {/* Notification preferences + Appearance */}
+      <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl border-2 border-slate-100 dark:border-slate-700 shadow-sm mt-6">
+        <h3 className="font-black text-slate-900 dark:text-slate-100 mb-1 flex items-center gap-2">
           {emailDigest ? <Bell className="w-4 h-4 text-indigo-500" /> : <BellOff className="w-4 h-4 text-slate-300" />}
-          Нотификации
+          Нотификации &amp; Изглед
         </h3>
-        <p className="text-sm text-slate-500 font-bold mb-5">Контролирај кои е-маил пораки сакаш да ги примаш.</p>
-        <label className="flex items-center justify-between cursor-pointer group">
+        <p className="text-sm text-slate-500 dark:text-slate-400 font-bold mb-5">Контролирај е-маил пораки и тема на интерфејсот.</p>
+
+        <label className="flex items-center justify-between cursor-pointer group mb-5">
           <div>
-            <p className="font-black text-slate-800 text-sm">Неделен дигест</p>
-            <p className="text-xs text-slate-400 font-medium mt-0.5">Резиме на твоите настани и статистики секоја недела.</p>
+            <p className="font-black text-slate-800 dark:text-slate-200 text-sm">Неделен дигест</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 font-medium mt-0.5">Резиме на твоите настани и статистики секоја недела.</p>
           </div>
           <button
             type="button"
@@ -195,11 +198,36 @@ const ProfileTab = ({ user }) => {
             aria-checked={emailDigest}
             onClick={() => setEmailDigest(v => !v)}
             disabled={loading}
-            className={`relative flex-shrink-0 w-12 h-7 rounded-full transition-all ${emailDigest ? 'bg-indigo-600' : 'bg-slate-200'}`}
+            className={`relative flex-shrink-0 w-12 h-7 rounded-full transition-all ${emailDigest ? 'bg-indigo-600' : 'bg-slate-200 dark:bg-slate-600'}`}
           >
             <span className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${emailDigest ? 'translate-x-5' : 'translate-x-0'}`} />
           </button>
         </label>
+
+        <div className="border-t border-slate-100 dark:border-slate-700 pt-5">
+          <label className="flex items-center justify-between cursor-pointer group">
+            <div className="flex items-center gap-3">
+              {isDark
+                ? <Moon className="w-4 h-4 text-indigo-400" />
+                : <Sun className="w-4 h-4 text-amber-500" />}
+              <div>
+                <p className="font-black text-slate-800 dark:text-slate-200 text-sm">Темна тема</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 font-medium mt-0.5">Прекинувач за темен/светол режим на интерфејсот.</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isDark}
+              aria-label="Вклучи/исклучи темна тема"
+              onClick={toggleDark}
+              className={`relative flex-shrink-0 w-12 h-7 rounded-full transition-all ${isDark ? 'bg-indigo-600' : 'bg-slate-200'}`}
+            >
+              <span className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${isDark ? 'translate-x-5' : 'translate-x-0'}`} />
+            </button>
+          </label>
+        </div>
+
         <div className="mt-5 flex justify-end">
           <button
             onClick={handleSave}
@@ -212,7 +240,7 @@ const ProfileTab = ({ user }) => {
       </div>
 
       {/* Data export / GDPR */}
-      <div className="bg-white p-8 rounded-3xl border-2 border-slate-100 shadow-sm mt-6">
+      <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl border-2 border-slate-100 dark:border-slate-700 shadow-sm mt-6">
         <h3 className="font-black text-slate-900 mb-1 flex items-center gap-2">
           <Shield className="w-4 h-4 text-slate-400" /> Твоите податоци (GDPR)
         </h3>

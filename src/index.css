@@ -22,6 +22,31 @@
       linear-gradient(180deg, rgba(2, 6, 23, 0.98), rgba(2, 6, 23, 1));
   }
 
+  /* Fallback dark colours for cards/panels that lack explicit dark: variants */
+  html.dark { color-scheme: dark; }
+  html.dark .bg-white          { background-color: #1e293b; }   /* slate-800 */
+  html.dark .bg-slate-50       { background-color: #0f172a; }   /* slate-900 */
+  html.dark .bg-slate-100      { background-color: #1e293b; }
+  html.dark .bg-slate-200      { background-color: #334155; }   /* slate-700 */
+  html.dark .bg-\[\#F8FAFC\]   { background-color: #020617; }   /* slate-950 */
+  html.dark .bg-gray-50        { background-color: #0f172a; }
+  html.dark .text-slate-900    { color: #f1f5f9; }
+  html.dark .text-slate-800    { color: #e2e8f0; }
+  html.dark .text-slate-700    { color: #cbd5e1; }
+  html.dark .text-slate-600    { color: #94a3b8; }
+  html.dark .border-slate-50   { border-color: #1e293b; }
+  html.dark .border-slate-100  { border-color: #334155; }
+  html.dark .border-slate-200  { border-color: #475569; }
+  html.dark input:not([class*="bg-"]),
+  html.dark textarea:not([class*="bg-"]),
+  html.dark select:not([class*="bg-"]) {
+    background-color: #334155;
+    color: #f1f5f9;
+    border-color: #475569;
+  }
+  html.dark input::placeholder,
+  html.dark textarea::placeholder { color: #475569; }
+
   ::selection {
     @apply bg-indigo-600 text-white;
   }

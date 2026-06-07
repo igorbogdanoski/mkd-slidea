@@ -129,12 +129,12 @@ const Sidebar = ({ activeTab, setActiveTab, user, onLogout }) => {
   ];
 
   return (
-    <div className="w-80 bg-white border-r border-slate-100 flex flex-col h-screen sticky top-0 overflow-hidden">
+    <div className="w-80 bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-700 flex flex-col h-screen sticky top-0 overflow-hidden">
       <div className="p-8 flex items-center gap-3">
         <div className="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-100">
           <Presentation size={20} />
         </div>
-        <span className="text-2xl font-black tracking-tight text-slate-900">MKD Slidea</span>
+        <span className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">MKD Slidea</span>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-4 space-y-2 pt-4">
@@ -145,8 +145,8 @@ const Sidebar = ({ activeTab, setActiveTab, user, onLogout }) => {
             data-tour={`sidebar-${item.id}`}
             className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-black text-sm transition-all relative ${
               activeTab === item.id
-                ? 'bg-indigo-50 text-indigo-600 shadow-sm'
-                : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+                ? 'bg-indigo-50 dark:bg-indigo-950 text-indigo-600 shadow-sm'
+                : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
             }`}
           >
             {item.icon}
@@ -185,7 +185,7 @@ const Sidebar = ({ activeTab, setActiveTab, user, onLogout }) => {
           Одјави се
         </button>
 
-        <div className="px-6 py-4 border-t border-slate-50 text-[10px] font-black text-slate-300 uppercase tracking-widest text-center leading-relaxed">
+        <div className="px-6 py-4 border-t border-slate-50 dark:border-slate-700 text-[10px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest text-center leading-relaxed">
           © 2026 MKD Slidea <br />
           Автор: Игор Богданоски
         </div>

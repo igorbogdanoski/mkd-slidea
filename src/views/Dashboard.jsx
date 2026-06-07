@@ -112,7 +112,7 @@ const Dashboard = ({ setView, user, onLogout }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex font-sans selection:bg-indigo-100 selection:text-indigo-700">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 flex font-sans selection:bg-indigo-100 selection:text-indigo-700">
       {showTour && <OnboardingTour onDone={() => setShowTour(false)} />}
 
       {/* Desktop sidebar — hidden on mobile */}
@@ -138,7 +138,7 @@ const Dashboard = ({ setView, user, onLogout }) => {
       {/* Mobile bottom navigation — visible only on small screens */}
       <nav
         aria-label="Мобилна навигација"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-100 shadow-2xl flex items-stretch safe-area-inset-bottom"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 shadow-2xl flex items-stretch safe-area-inset-bottom"
       >
         {mobileNavItems.map((item) => {
           const Icon = item.icon;

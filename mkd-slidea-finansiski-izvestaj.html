@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="mk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MKD Slidea — Финансиски Извештај и Деловна Стратегија · Јуни 2026</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:   #0a1628;
+      --blue:   #1a3a6e;
+      --mid:    #2356a8;
+      --accent: #c8a84b;
+      --gold:   #e6c96a;
+      --light:  #eef2f9;
+      --white:  #ffffff;
+      --gray50: #f8f9fc;
+      --gray100:#eef0f5;
+      --gray600:#5a6278;
+      --gray800:#2d3245;
+      --green:  #1d7a4a;
+      --red:    #b83232;
+      --teal:   #0e6b7c;
+      --purple: #5b21b6;
+      --radius: 6px;
+      --shadow: 0 2px 12px rgba(10,22,40,0.10);
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Arial', sans-serif;
+      font-size: 13px;
+      line-height: 1.65;
+      color: var(--gray800);
+      background: var(--gray50);
+    }
+
+    .page { max-width: 1000px; margin: 0 auto; background: var(--white); }
+
+    /* ─── COVER ─── */
+    .cover {
+      background: linear-gradient(155deg, #0a0f1e 0%, #1a2a5e 50%, #2a4a9e 100%);
+      color: var(--white);
+      padding: 72px 64px 64px;
+      position: relative;
+      overflow: hidden;
+      min-height: 540px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .cover::before {
+      content:''; position:absolute; top:-100px; right:-100px;
+      width:420px; height:420px; border-radius:50%;
+      background:rgba(200,168,75,0.10); pointer-events:none;
+    }
+    .cover::after {
+      content:''; position:absolute; bottom:-60px; left:-80px;
+      width:300px; height:300px; border-radius:50%;
+      background:rgba(255,255,255,0.04); pointer-events:none;
+    }
+    .cover-badge {
+      display:inline-flex; align-items:center; gap:8px;
+      background:rgba(200,168,75,0.20); border:1px solid rgba(200,168,75,0.45);
+      border-radius:20px; padding:6px 16px; font-size:11px; font-weight:600;
+      letter-spacing:0.08em; text-transform:uppercase; color:var(--gold);
+      margin-bottom:32px; width:fit-content;
+    }
+    .cover-logo {
+      font-size:40px; font-weight:900; letter-spacing:-1.5px;
+      color:var(--white); margin-bottom:6px;
+    }
+    .cover-logo span { color:var(--gold); }
+    .cover-subtitle { font-size:15px; color:rgba(255,255,255,0.70); margin-bottom:6px; }
+    .cover-title {
+      font-size:26px; font-weight:700; line-height:1.25;
+      color:var(--white); margin-bottom:32px; max-width:580px;
+    }
+    .cover-audience {
+      background:rgba(255,255,255,0.08); border-left:3px solid var(--gold);
+      border-radius:0 4px 4px 0; padding:14px 20px; margin-top:36px;
+      font-size:12px; color:rgba(255,255,255,0.85);
+    }
+    .cover-audience strong { color:var(--gold); }
+    .cover-meta { display:flex; gap:32px; flex-wrap:wrap; margin-top:24px; }
+    .cover-meta-item { display:flex; flex-direction:column; gap:2px; }
+    .cover-meta-label { font-size:10px; text-transform:uppercase; letter-spacing:0.10em; color:rgba(255,255,255,0.45); }
+    .cover-meta-value { font-size:13px; font-weight:600; color:var(--gold); }
+
+    /* ─── METRICS STRIP ─── */
+    .metrics-strip {
+      background:var(--navy); padding:20px 64px;
+      display:grid; grid-template-columns:repeat(6,1fr); gap:16px;
+    }
+    .metric-item { display:flex; flex-direction:column; align-items:center; gap:4px; text-align:center; }
+    .metric-value { font-size:20px; font-weight:800; color:var(--gold); line-height:1; }
+    .metric-label { font-size:9.5px; text-transform:uppercase; letter-spacing:0.06em; color:rgba(255,255,255,0.52); }
+
+    /* ─── TOC ─── */
+    .toc-wrap { padding:40px 64px; background:var(--gray50); border-bottom:1px solid var(--gray100); }
+    .toc-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:var(--mid); margin-bottom:20px; }
+    .toc-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px 32px; }
+    .toc-item { display:flex; align-items:baseline; gap:8px; font-size:12px; color:var(--gray600); }
+    .toc-num { font-weight:700; color:var(--mid); min-width:18px; }
+
+    /* ─── CONTENT ─── */
+    .content { padding:0 64px 64px; }
+    .section { margin-top:56px; }
+    .section-header { display:flex; align-items:center; gap:14px; margin-bottom:24px; padding-bottom:12px; border-bottom:2px solid var(--light); }
+    .section-num { display:flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:50%; background:var(--blue); color:var(--white); font-size:13px; font-weight:800; flex-shrink:0; }
+    .section-title { font-size:20px; font-weight:800; color:var(--navy); letter-spacing:-0.3px; }
+    .subsection { margin-top:28px; }
+    .subsection-title {
+      font-size:12.5px; font-weight:700; color:var(--blue);
+      text-transform:uppercase; letter-spacing:0.06em; margin-bottom:12px;
+      display:flex; align-items:center; gap:8px;
+    }
+    .subsection-title::before { content:''; display:inline-block; width:3px; height:14px; background:var(--accent); border-radius:2px; }
+
+    /* ─── CALLOUTS ─── */
+    .callout { background:var(--light); border-left:4px solid var(--mid); border-radius:0 var(--radius) var(--radius) 0; padding:16px 20px; margin:16px 0; font-size:12.5px; }
+    .callout.gold { background:#fffbee; border-left-color:var(--accent); }
+    .callout.green { background:#f0faf5; border-left-color:var(--green); }
+    .callout.red { background:#fff5f5; border-left-color:var(--red); }
+    .callout strong { color:var(--navy); }
+
+    /* ─── EXEC BOX ─── */
+    .exec-box { background:linear-gradient(135deg,var(--navy) 0%,var(--blue) 100%); color:var(--white); border-radius:var(--radius); padding:28px 32px; margin:24px 0; }
+    .exec-box h3 { color:var(--gold); font-size:13px; text-transform:uppercase; letter-spacing:0.10em; margin-bottom:12px; }
+    .exec-box p { font-size:13px; line-height:1.70; color:rgba(255,255,255,0.88); }
+
+    /* ─── TABLES ─── */
+    table { width:100%; border-collapse:collapse; margin:16px 0; font-size:12px; border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); }
+    thead tr { background:var(--blue); color:var(--white); }
+    thead th { padding:10px 12px; text-align:left; font-size:11px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase; }
+    tbody tr { background:var(--white); }
+    tbody tr:nth-child(even) { background:var(--gray50); }
+    tbody tr:hover { background:var(--light); }
+    tbody td { padding:9px 12px; border-bottom:1px solid var(--gray100); vertical-align:top; }
+    tfoot tr { background:var(--navy); color:var(--gold); }
+    tfoot td { padding:10px 12px; font-weight:700; font-size:12px; }
+    .check { color:var(--green); font-weight:700; }
+    .cross { color:var(--red); font-weight:700; }
+    .num { font-weight:700; color:var(--blue); }
+    .highlight-row td { background:#fffbee !important; font-weight:600; }
+
+    /* ─── CARDS ─── */
+    .card-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:16px 0; }
+    .card-grid-2 { grid-template-columns:repeat(2,1fr); }
+    .card-grid-4 { grid-template-columns:repeat(4,1fr); }
+    .card { background:var(--white); border:1px solid var(--gray100); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); }
+    .card-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--mid); margin-bottom:8px; }
+    .card-value { font-size:22px; font-weight:900; color:var(--navy); line-height:1; margin-bottom:4px; }
+    .card-sub { font-size:11px; color:var(--gray600); }
+    .card.accent-card { background:linear-gradient(135deg,var(--blue) 0%,var(--mid) 100%); border:none; }
+    .card.accent-card .card-title,
+    .card.accent-card .card-sub { color:rgba(255,255,255,0.65); }
+    .card.accent-card .card-value { color:var(--gold); }
+
+    /* ─── PRICE CARDS ─── */
+    .price-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin:20px 0; }
+    .price-card { border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); }
+    .price-card.featured { border:2px solid var(--accent); }
+    .price-header { padding:14px 16px 10px; background:var(--blue); color:var(--white); }
+    .price-card.featured .price-header { background:var(--navy); }
+    .price-name { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; }
+    .price-amount { font-size:26px; font-weight:900; color:var(--gold); margin:6px 0 2px; line-height:1; }
+    .price-period { font-size:10px; color:rgba(255,255,255,0.6); }
+    .price-badge { font-size:9px; background:var(--accent); color:var(--navy); font-weight:800; padding:2px 7px; border-radius:8px; text-transform:uppercase; letter-spacing:0.05em; float:right; margin-top:2px; }
+    .price-body { padding:14px 16px; background:var(--white); border:1px solid var(--gray100); border-top:none; }
+    .price-feature { display:flex; align-items:baseline; gap:6px; font-size:11px; color:var(--gray800); padding:3px 0; }
+    .price-feature::before { content:'✓'; color:var(--green); font-weight:700; flex-shrink:0; }
+
+    /* ─── SCENARIOS ─── */
+    .scenario-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin:20px 0; }
+    .scenario-card { border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); }
+    .scenario-header { padding:14px 16px; color:var(--white); font-weight:800; font-size:13px; }
+    .scenario-card.conservative .scenario-header { background:var(--teal); }
+    .scenario-card.realistic   .scenario-header { background:var(--blue); }
+    .scenario-card.optimistic  .scenario-header { background:var(--navy); }
+    .scenario-body { background:var(--white); border:1px solid var(--gray100); border-top:none; padding:14px 16px; }
+    .scenario-amount { font-size:20px; font-weight:900; color:var(--navy); margin-bottom:4px; }
+    .scenario-eur { font-size:12px; color:var(--gray600); margin-bottom:12px; }
+    .scenario-rows { display:flex; flex-direction:column; gap:6px; }
+    .scenario-row { display:flex; justify-content:space-between; font-size:11px; }
+    .scenario-row-label { color:var(--gray600); }
+    .scenario-row-val { font-weight:700; color:var(--navy); }
+
+    /* ─── PHASE CARDS ─── */
+    .phase-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin:20px 0; }
+    .phase-card { background:var(--white); border:1px solid var(--gray100); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow); position:relative; }
+    .phase-num { position:absolute; top:-12px; left:16px; background:var(--accent); color:var(--navy); font-weight:900; font-size:11px; padding:3px 10px; border-radius:10px; text-transform:uppercase; letter-spacing:0.06em; }
+    .phase-title { font-size:13px; font-weight:700; color:var(--navy); margin-bottom:8px; margin-top:8px; }
+    .phase-detail { font-size:11.5px; color:var(--gray600); line-height:1.55; }
+    .phase-amount { margin-top:12px; font-size:16px; font-weight:900; color:var(--mid); }
+
+    /* ─── INVEST BARS ─── */
+    .invest-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--gray100); font-size:12px; }
+    .invest-row:last-child { border-bottom:none; }
+    .invest-label { color:var(--gray800); }
+    .invest-bar-wrap { flex:1; margin:0 16px; height:6px; background:var(--gray100); border-radius:3px; }
+    .invest-bar { height:100%; background:var(--mid); border-radius:3px; }
+    .invest-val { font-weight:700; color:var(--navy); min-width:100px; text-align:right; }
+
+    /* ─── PRIORITY ─── */
+    .priority-list { display:flex; flex-direction:column; gap:10px; margin:16px 0; }
+    .priority-item { display:flex; gap:12px; align-items:flex-start; padding:12px 14px; border-radius:var(--radius); border:1px solid var(--gray100); background:var(--white); }
+    .priority-badge { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; padding:2px 8px; border-radius:8px; white-space:nowrap; flex-shrink:0; margin-top:1px; }
+    .priority-a { background:#fee2e2; color:#991b1b; }
+    .priority-b { background:#fef3c7; color:#92400e; }
+    .priority-c { background:#dcfce7; color:#166534; }
+    .priority-text { font-size:12px; color:var(--gray800); line-height:1.55; }
+    .priority-text strong { color:var(--navy); }
+
+    /* ─── NARRATION ─── */
+    .narration-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:20px 0; }
+    .narration-card { background:var(--white); border:1px solid var(--gray100); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow); }
+    .narration-tag { display:inline-block; background:var(--light); color:var(--mid); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; padding:3px 10px; border-radius:10px; margin-bottom:10px; }
+    .narration-time { font-size:10px; color:var(--gray600); float:right; }
+    .narration-card p { font-size:12px; color:var(--gray800); line-height:1.65; font-style:italic; }
+
+    /* ─── FOOTER ─── */
+    .doc-footer { background:var(--navy); color:rgba(255,255,255,0.55); padding:24px 64px; font-size:11px; display:flex; justify-content:space-between; align-items:center; }
+    .doc-footer strong { color:var(--gold); }
+    .doc-footer a { color:var(--gold); text-decoration:none; }
+
+    /* ─── UTILITY ─── */
+    p { margin:8px 0; font-size:12.5px; }
+    ul, ol { margin:8px 0 8px 20px; }
+    li { margin-bottom:4px; font-size:12.5px; }
+    strong { font-weight:700; }
+    .tag { display:inline-block; background:var(--light); color:var(--mid); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; padding:2px 8px; border-radius:8px; margin:2px; }
+
+    /* ─── PRINT ─── */
+    @media print {
+      body { background:white; font-size:11px; }
+      .page { max-width:100%; }
+      .cover { min-height:auto; padding:48px; }
+      .metrics-strip { padding:16px 48px; }
+      .toc-wrap, .content { padding-left:48px; padding-right:48px; }
+      .doc-footer { padding:16px 48px; }
+      .section { page-break-inside:avoid; }
+      .callout, .exec-box, .card, .scenario-card, .phase-card { page-break-inside:avoid; }
+      table { page-break-inside:auto; }
+      tr { page-break-inside:avoid; }
+      @page { margin:1.5cm; size:A4; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ══ COVER ══ -->
+  <div class="cover">
+    <div>
+      <div class="cover-badge">Верзија 1.0 · Јуни 2026 · Доверливо</div>
+      <div class="cover-logo">MKD <span>Slidea</span></div>
+      <div class="cover-subtitle">Прва Македонска Интерактивна Презентациска Платформа</div>
+      <div class="cover-title">Финансиски Извештај и Деловна Стратегија</div>
+    </div>
+    <div>
+      <div class="cover-audience">
+        <strong>Подготвено за:</strong> Министерство за образование на РСМ · Биро за развој на образованието (БРО) · Потенцијални донатори и финансиери
+      </div>
+      <div class="cover-meta">
+        <div class="cover-meta-item"><div class="cover-meta-label">Контакт</div><div class="cover-meta-value">bogdanoskiigor@gmail.com</div></div>
+        <div class="cover-meta-item"><div class="cover-meta-label">Датум</div><div class="cover-meta-value">Јуни 2026</div></div>
+        <div class="cover-meta-item"><div class="cover-meta-label">Основач</div><div class="cover-meta-value">Игор Богданоски</div></div>
+        <div class="cover-meta-item"><div class="cover-meta-label">Конкурент — цена</div><div class="cover-meta-value">15× поевтин од Mentimeter</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ METRICS STRIP ══ -->
+  <div class="metrics-strip">
+    <div class="metric-item"><div class="metric-value">8</div><div class="metric-label">Типови активности</div></div>
+    <div class="metric-item"><div class="metric-value">7</div><div class="metric-label">Јазици (MK/SQ/SR/BG/HR/RO/EN)</div></div>
+    <div class="metric-item"><div class="metric-value">€20</div><div class="metric-label">Цена Pro / год</div></div>
+    <div class="metric-item"><div class="metric-value">800+</div><div class="metric-label">Активни наставници</div></div>
+    <div class="metric-item"><div class="metric-value">15×</div><div class="metric-label">Поевтин од Mentimeter</div></div>
+    <div class="metric-item"><div class="metric-value">98%</div><div class="metric-label">Задоволство корисници</div></div>
+  </div>
+
+  <!-- ══ TOC ══ -->
+  <div class="toc-wrap">
+    <div class="toc-title">Содржина</div>
+    <div class="toc-grid">
+      <div class="toc-item"><span class="toc-num">1.</span>Извршно резиме</div>
+      <div class="toc-item"><span class="toc-num">7.</span>Пазарна анализа — Македонија</div>
+      <div class="toc-item"><span class="toc-num">2.</span>Тековна состојба на платформата</div>
+      <div class="toc-item"><span class="toc-num">8.</span>Финансиски проекции — 3 сценарија</div>
+      <div class="toc-item"><span class="toc-num">3.</span>Функционален инвентар по модули</div>
+      <div class="toc-item"><span class="toc-num">9.</span>Оперативни трошоци — детална разработка</div>
+      <div class="toc-item"><span class="toc-num">4.</span>Техничка инфраструктура</div>
+      <div class="toc-item"><span class="toc-num">10.</span>Она што недостасува за комерц. подготвеност</div>
+      <div class="toc-item"><span class="toc-num">5.</span>Тековен монетизациски модел</div>
+      <div class="toc-item"><span class="toc-num">11.</span>Патот до национална лиценца</div>
+      <div class="toc-item"><span class="toc-num">6.</span>Предложена структура на претплати</div>
+      <div class="toc-item"><span class="toc-num">12.</span>Нарација за презентација пред МОН и БРО</div>
+      <div class="toc-item"><span class="toc-num">13.</span>Стратешки план — SWOT, ризици и акциски план 90 дена</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ─── 1. ИЗВРШНО РЕЗИМЕ ─── -->
+    <div class="section" id="s1">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <div class="section-title">Извршно Резиме</div>
+      </div>
+
+      <div class="exec-box">
+        <h3>MKD Slidea — Macedonian Interactive Audience Platform</h3>
+        <p>
+          Прва македонска интерактивна презентациска платформа — директен конкурент на Mentimeter, Kahoot и Slido, изградена специфично за македонскиот образовен и корпоративен пазар. Наставниците и презентерите создаваат live polls, квизови, word clouds и форми. Учесниците се приклучуваат со 6-знаковен код или QR — без регистрација, без инсталација. Платформата е усогласена со БРО/МОН наставни програми и 4К компетенции.
+        </p>
+      </div>
+
+      <div class="card-grid card-grid-4">
+        <div class="card accent-card">
+          <div class="card-title">Статус</div>
+          <div class="card-value">LIVE</div>
+          <div class="card-sub">Production · Vercel + Supabase</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Конкурентна цена</div>
+          <div class="card-value">€20/год</div>
+          <div class="card-sub">Mentimeter е €300/год — 15× поскап</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Целна популација</div>
+          <div class="card-value">37.000+</div>
+          <div class="card-sub">К–12 наставници + универзитет + корпоративни</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Регионален потенцијал</div>
+          <div class="card-value">200K+</div>
+          <div class="card-sub">Балкан: SQ, SR, BG, HR, RO пазари</div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">Клучни метрики на платформата</div>
+        <table>
+          <thead><tr><th>Метрика</th><th>Вредност</th><th>Метрика</th><th>Вредност</th></tr></thead>
+          <tbody>
+            <tr><td>Типови интерактивни активности</td><td class="num">8</td><td>Поддржани јазици (UI)</td><td class="num">7 (MK, SQ, SR, BG, HR, RO, EN)</td></tr>
+            <tr><td>AI функции</td><td class="num">5</td><td>Активни наставници (тврдено)</td><td class="num">800+</td></tr>
+            <tr><td>Стартер шаблони</td><td class="num">100+</td><td>Вкупно одговори</td><td class="num">12.000+</td></tr>
+            <tr><td>Curriculum тагови (БРО)</td><td class="num">60+</td><td>Задоволство на корисниците</td><td class="num">98%</td></tr>
+            <tr><td>Интеграции (Google/Teams/Moodle)</td><td class="num">5</td><td>Цена Pro план / год</td><td class="num">€20 (≈ 1.230 МКД)</td></tr>
+            <tr><td>Максимум учесници (Free)</td><td class="num">200/настан</td><td>Максимум учесници (Pro)</td><td class="num">Неограничено</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ─── 2. ТЕКОВНА СОСТОЈБА ─── -->
+    <div class="section" id="s2">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <div class="section-title">Тековна Состојба на Платформата</div>
+      </div>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-title">Production-Ready</div>
+          <div class="card-sub">Деплојирано на Vercel + Supabase. Real-time реакции, live voting, AI генерација — сè работи во produkcija.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">БРО/МОН Усогласеност</div>
+          <div class="card-sub">Curriculum тагови G1–G13 за сите предмети. 4К компетенции вградени. Единствена таква платформа на пазарот.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Без регистрација за учесници</div>
+          <div class="card-sub">Учениците/учесниците се приклучуваат со код или QR — нула фрикција, нема PII за малолетни.</div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">Конкурентна позиција</div>
+        <table>
+          <thead><tr><th>Платформа</th><th>Македонски UI</th><th>БРО Curriculum</th><th>AI Insights</th><th>Цена / год</th></tr></thead>
+          <tbody>
+            <tr class="highlight-row">
+              <td><strong>MKD Slidea</strong></td>
+              <td><span class="check">✅ MK/SQ/SR/BG/HR/RO</span></td>
+              <td><span class="check">✅ G1–G13 сите предмети</span></td>
+              <td><span class="check">✅ Gemini 2.5</span></td>
+              <td class="num">€20</td>
+            </tr>
+            <tr><td>Mentimeter</td><td><span class="cross">❌</span></td><td><span class="cross">❌</span></td><td>Ограничено</td><td class="num">€300</td></tr>
+            <tr><td>Kahoot!</td><td><span class="cross">❌</span></td><td><span class="cross">❌</span></td><td>Ограничено</td><td class="num">€70–200</td></tr>
+            <tr><td>Slido</td><td><span class="cross">❌</span></td><td><span class="cross">❌</span></td><td><span class="cross">❌</span></td><td class="num">€120+</td></tr>
+            <tr><td>Nearpod</td><td><span class="cross">❌</span></td><td>Само US</td><td>Делумно</td><td class="num">€100+</td></tr>
+          </tbody>
+        </table>
+        <div class="callout gold">
+          <strong>Клучна конкурентна предност:</strong> MKD Slidea е <strong>15× поевтина</strong> од Mentimeter (€20 наспроти €300/год) и единствена платформа со македонски UI, регионални јазици и директна усогласеност со БРО/МОН наставни програми.
+        </div>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">Типови корисници</div>
+        <table>
+          <thead><tr><th>#</th><th>Тип корисник</th><th>Use case</th><th>Потенцијал</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td><strong>К–12 Наставници</strong></td><td>Интерактивни часови, формативно оценување, live квизови</td><td>~30.000 во МК</td></tr>
+            <tr><td>2</td><td>Универзитетски професори</td><td>Polling во предавални (120+ студенти), UKIM, ФИНКИ</td><td>~2.000 во МК</td></tr>
+            <tr><td>3</td><td>Корпоративни тренери</td><td>Onboarding, employee engagement, town halls</td><td>~5.000 во МК</td></tr>
+            <tr><td>4</td><td>НВО и образовни центри</td><td>Донаторски проекти, обуки</td><td>~500 организации</td></tr>
+            <tr><td>5</td><td>Организатори на настани</td><td>Конференции, webinari, јавни анкети</td><td>~1.000 настани/год</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ─── 3. ФУНКЦИОНАЛЕН ИНВЕНТАР ─── -->
+    <div class="section" id="s3">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <div class="section-title">Функционален Инвентар по Модули</div>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">3.1 — Интерактивни Типови Активности (8 типа)</div>
+        <div class="card-grid">
+          <div class="card"><div class="card-title">Poll (Гласање)</div><div class="card-sub">Multiple choice · Real-time резултати · Анонимно или именувано · Реакции со емотикони</div></div>
+          <div class="card"><div class="card-title">Quiz (Натпревар)</div><div class="card-sub">Automatic градирање · Leaderboard · Timer (15/30/60/90s) · Confetti при победа</div></div>
+          <div class="card"><div class="card-title">Word Cloud</div><div class="card-sub">Зборовите се рендерираат по фреквенција · Real-time анимација · Извоз</div></div>
+          <div class="card"><div class="card-title">Open Text</div><div class="card-sub">Детални писмени одговори · AI резиме на одговорите · Sentiment анализа</div></div>
+          <div class="card"><div class="card-title">Rating · Ranking · Scale <span style="font-weight:400;color:var(--gray600)">(3 типа)</span></div><div class="card-sub">Rating: 1–5 ѕвезди · Ranking: рангирање на опции · Scale: NPS/Likert 1–10 скала</div></div>
+          <div class="card"><div class="card-title">Survey Form</div><div class="card-sub">Multi-прашање форма · Симултани одговори · PDF/CSV извоз</div></div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">3.2 — AI Функции (5 модули)</div>
+        <table>
+          <thead><tr><th>AI Функција</th><th>Опис</th><th>Достапност</th></tr></thead>
+          <tbody>
+            <tr><td><strong>AI Генерација на квизови</strong></td><td>Наставникот опишува тема → AI генерира целосна сесија за 30 секунди</td><td>Pro (ограничено Free)</td></tr>
+            <tr><td><strong>Auto-Grading</strong></td><td>AI оценува отворени одговори по рубрика — нема рачно прегледување</td><td>Pro</td></tr>
+            <tr><td><strong>AI Insights</strong></td><td>По сесијата: анализа на заблуди, learning gaps, препораки за следниот час</td><td>Pro</td></tr>
+            <tr><td><strong>RAG Генерација</strong></td><td>AI генерира прашања усогласени со БРО/МОН curriculum и community templates</td><td>Pro</td></tr>
+            <tr><td><strong>Vision / OCR</strong></td><td>Слика/скрипта → OCR → автоматски квиз. Поддржува скенирани документи.</td><td>Pro</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">3.3 — Презентерски и Учесничи функции</div>
+        <div class="card-grid">
+          <div class="card">
+            <div class="card-title">Презентер (Наставник)</div>
+            <div class="card-sub">Live counter · Timer · Скриј/прикажи резултати · Drag&amp;drop реорганизација · Remote controller (мобил) · Presenter notes · Co-host · Sentiment heatmap · Live captions</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Учесник (Ученик)</div>
+            <div class="card-sub">Без регистрација · QR или код · Real-time feedback · Live subtitle captions · Q&amp;A со upvoting · Offline mode + sync при реконекција</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Интеграции</div>
+            <div class="card-sub">Google Classroom · Microsoft Teams · Moodle (LTI) · Zoom · е-дневник (извоз во macedonski gradebook) · PowerPoint Add-in · Embed API</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">3.4 — БРО/МОН Усогласеност (уникатна на пазарот)</div>
+        <div class="callout green">
+          <strong>MKD Slidea е единствена интерактивна презентациска платформа</strong> со директна усогласеност со македонскиот образовен систем: 60+ curriculum тагови за G1–G13 (сите предмети), 4К компетенции (Критичко мислење, Комуникација, Соработка, Креативност) вградени во AI генерацијата.
+        </div>
+        <table>
+          <thead><tr><th>БРО/МОН Елемент</th><th>Имплементација во MKD Slidea</th><th>Статус</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Curriculum тагови G1–G13</strong></td><td>Секоја активност може да се означи по предмет, одделение и наставна цел</td><td><span class="check">✅ Активно</span></td></tr>
+            <tr><td><strong>4К Компетенции</strong></td><td>AI генерацијата ги следи 4К рамките прифатени од МОН</td><td><span class="check">✅ Активно</span></td></tr>
+            <tr><td><strong>Bloom-level тагирање</strong></td><td>AI препорачува прашања по Bloom-ниво (паметење до создавање)</td><td><span class="check">✅ Активно</span></td></tr>
+            <tr><td><strong>Формативно оценување</strong></td><td>Live quiz резултати → автоматски извештај за наставникот</td><td><span class="check">✅ Активно</span></td></tr>
+            <tr><td><strong>WCAG 2.1 AA Пристапност</strong></td><td>Screen reader, keyboard nav, high contrast, live captions</td><td><span class="check">✅ Активно</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ─── 4. ТЕХНИЧКА ИНФРАСТРУКТУРА ─── -->
+    <div class="section" id="s4">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <div class="section-title">Техничка Инфраструктура</div>
+      </div>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-title">Frontend Stack</div>
+          <span class="tag">React 18</span><span class="tag">JavaScript (JSX)</span><span class="tag">Vite</span><span class="tag">TailwindCSS</span><span class="tag">Framer Motion</span><span class="tag">D3.js</span><span class="tag">Recharts</span>
+        </div>
+        <div class="card">
+          <div class="card-title">Backend / Cloud</div>
+          <span class="tag">Supabase (PostgreSQL)</span><span class="tag">Supabase Realtime</span><span class="tag">Vercel Edge Functions</span><span class="tag">pgvector (RAG)</span><span class="tag">Vercel KV (Redis)</span>
+        </div>
+        <div class="card">
+          <div class="card-title">AI / Безбедност</div>
+          <span class="tag">Gemini 2.5 Flash</span><span class="tag">Gemini Embeddings</span><span class="tag">HNSW Vector Search</span><span class="tag">GDPR (EU Frankfurt)</span><span class="tag">No PII за учесници</span>
+        </div>
+      </div>
+      <div class="callout">
+        <strong>Скалабилност на тековна инфраструктура:</strong> Supabase Realtime поддржува 200 concurrent connections (~1.000 учесници/настан). Vercel bandwidth 100GB/месец (~50.000 активни сесии). Проценето: до <strong>1.000 активни наставници при нула инфраструктурни трошоци</strong> (Free tiers).
+      </div>
+    </div>
+
+    <!-- ─── 5. ТЕКОВЕН МОНЕТИЗАЦИСКИ МОДЕЛ ─── -->
+    <div class="section" id="s5">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <div class="section-title">Тековен Монетизациски Модел</div>
+      </div>
+      <table>
+        <thead><tr><th>План</th><th>Цена</th><th>Учесници</th><th>Настани/мес.</th><th>Статус</th></tr></thead>
+        <tbody>
+          <tr><td>Бесплатно (Free)</td><td>€0 / вечно</td><td>200/настан</td><td>5</td><td><span class="check">✅ Активен</span></td></tr>
+          <tr><td>Monthly</td><td>€5 / мес.</td><td>200</td><td>Неограничено</td><td><span class="check">✅ Активен</span></td></tr>
+          <tr><td>Quarterly</td><td>€10 / 3 мес.</td><td>500</td><td>Неограничено</td><td><span class="check">✅ Активен</span></td></tr>
+          <tr><td>Semester</td><td>€15 / 6 мес.</td><td>1.000</td><td>Неограничено</td><td><span class="check">✅ Активен</span></td></tr>
+          <tr class="highlight-row"><td><strong>Yearly (Pro)</strong></td><td><strong>€20 / год</strong> (≈ 1.230 МКД)</td><td>Неограничено</td><td>Неограничено</td><td><span class="check">✅ Активен</span></td></tr>
+          <tr><td>Enterprise / School</td><td>По договор (~€200–500/год)</td><td>Неограничено</td><td>Неограничено</td><td><span class="check">✅ Форма активна</span></td></tr>
+        </tbody>
+      </table>
+      <div class="callout gold">
+        <strong>Позиционирање:</strong> €20/год = 1.230 МКД = цена на <strong>2–3 учебника</strong>. Годишниот Pro план чини помалку од 0,3% од месечната плата на наставникот — практично бесплатен за буџетите на педагошкиот кадар.
+      </div>
+    </div>
+
+    <!-- ─── 6. ПРЕДЛОЖЕНА СТРУКТУРА НА ПРЕТПЛАТИ ─── -->
+    <div class="section" id="s6">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <div class="section-title">Предложена Структура на Претплати</div>
+      </div>
+
+      <div class="price-grid">
+        <div class="price-card">
+          <div class="price-header">
+            <div class="price-name">Free</div>
+            <div class="price-amount">€0</div>
+            <div class="price-period">Вечно · Без кредитна картичка</div>
+          </div>
+          <div class="price-body">
+            <div class="price-feature">200 учесници / настан</div>
+            <div class="price-feature">5 активни настани / мес.</div>
+            <div class="price-feature">10 активности / настан</div>
+            <div class="price-feature">7 типа активности</div>
+            <div class="price-feature">Basic аналитики</div>
+            <div class="price-feature">AI генерација (ограничено)</div>
+          </div>
+        </div>
+        <div class="price-card">
+          <div class="price-header">
+            <div class="price-name">Quarterly</div>
+            <div class="price-amount">€10</div>
+            <div class="price-period">3 месеци · За пробни периоди</div>
+          </div>
+          <div class="price-body">
+            <div class="price-feature">500 учесници / настан</div>
+            <div class="price-feature">Неограничени настани</div>
+            <div class="price-feature">Неограничени активности</div>
+            <div class="price-feature">CSV / PDF извоз</div>
+            <div class="price-feature">Custom брендирање</div>
+            <div class="price-feature">AI генерација (полно)</div>
+          </div>
+        </div>
+        <div class="price-card featured">
+          <div class="price-header">
+            <div class="price-badge">Најпопуларен</div>
+            <div class="price-name">Yearly Pro</div>
+            <div class="price-amount">€20</div>
+            <div class="price-period">12 месеци · ≈ 1.230 МКД</div>
+          </div>
+          <div class="price-body">
+            <div class="price-feature">Неограничени учесници</div>
+            <div class="price-feature">Неограничени настани</div>
+            <div class="price-feature">AI Insights + Auto-grading</div>
+            <div class="price-feature">RAG curriculum генерација</div>
+            <div class="price-feature">Sentiment heatmap</div>
+            <div class="price-feature">Unlimited тим членови</div>
+          </div>
+        </div>
+        <div class="price-card">
+          <div class="price-header">
+            <div class="price-name">Enterprise</div>
+            <div class="price-amount">По договор</div>
+            <div class="price-period">10+ наставници / школа</div>
+          </div>
+          <div class="price-body">
+            <div class="price-feature">Centrален admin конзол</div>
+            <div class="price-feature">Unlimited наставници</div>
+            <div class="price-feature">AI неограничено</div>
+            <div class="price-feature">Фактури за јавна набавка</div>
+            <div class="price-feature">МК приоритетна поддршка</div>
+            <div class="price-feature">White-label брендирање</div>
+          </div>
+        </div>
+      </div>
+
+      <table>
+        <thead><tr><th>Функција</th><th>Free</th><th>Quarterly (€10)</th><th>Yearly Pro (€20)</th><th>Enterprise</th></tr></thead>
+        <tbody>
+          <tr><td>Учесници / настан</td><td>200</td><td>500</td><td>Неограничено</td><td>Неограничено</td></tr>
+          <tr><td>Активности / настан</td><td>10</td><td>Неограничено</td><td>Неограничено</td><td>Неограничено</td></tr>
+          <tr><td>CSV / PDF извоз</td><td><span class="cross">❌</span></td><td><span class="check">✅</span></td><td><span class="check">✅</span></td><td><span class="check">✅</span></td></tr>
+          <tr><td>AI генерација (полно)</td><td>Ограничено</td><td><span class="check">✅</span></td><td><span class="check">✅</span></td><td><span class="check">✅</span></td></tr>
+          <tr><td>AI Insights / Auto-grading</td><td><span class="cross">❌</span></td><td><span class="cross">❌</span></td><td><span class="check">✅</span></td><td><span class="check">✅</span></td></tr>
+          <tr><td>Custom брендирање</td><td><span class="cross">❌</span></td><td><span class="check">✅</span></td><td><span class="check">✅</span></td><td>White-label</td></tr>
+          <tr><td>Admin конзол</td><td><span class="cross">❌</span></td><td><span class="cross">❌</span></td><td><span class="cross">❌</span></td><td><span class="check">✅</span></td></tr>
+          <tr><td>VAT фактура (јавна набавка)</td><td><span class="cross">❌</span></td><td><span class="cross">❌</span></td><td><span class="cross">❌</span></td><td><span class="check">✅</span></td></tr>
+          <tr><td>Поддршка</td><td>Community</td><td>E-mail</td><td>Приоритетна</td><td>Посветен менаџер</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ─── 7. ПАЗАРНА АНАЛИЗА ─── -->
+    <div class="section" id="s7">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <div class="section-title">Пазарна Анализа — Македонија и Регион</div>
+      </div>
+
+      <div class="card-grid card-grid-4">
+        <div class="card accent-card">
+          <div class="card-title">К–12 Наставници (МК)</div>
+          <div class="card-value">~30.000</div>
+          <div class="card-sub">Примарен сегмент · сите предмети</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Универзитетски кадар</div>
+          <div class="card-value">~2.000</div>
+          <div class="card-sub">УКИМ, ФИНКИ, ЕУРМ и останати</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Корпоративни тренери</div>
+          <div class="card-value">~5.000</div>
+          <div class="card-sub">L&amp;D, HR, обуки, настани</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Регионален потенцијал</div>
+          <div class="card-value">200K+</div>
+          <div class="card-sub">Балкан: SQ/SR/BG/HR/RO јазичен простор</div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">Пазарна сегментација и приходен потенцијал</div>
+        <table>
+          <thead><tr><th>Сегмент</th><th>Опис</th><th>Таргет конверзија</th><th>Потенцијален приход/год</th></tr></thead>
+          <tbody>
+            <tr><td><strong>B2C — Индивидуални корисници</strong></td><td>~37.000 наставници + универзитетски кадар; конверзија Free→Pro 5–15%</td><td>1.850–5.550 Pro корисници</td><td class="num">€37.000–€111.000</td></tr>
+            <tr><td><strong>B2B — Школи / Институции</strong></td><td>~630 основни + 100 средни + 25 факултети; Enterprise ~€300/институција</td><td>30–100 институции</td><td class="num">€9.000–€30.000</td></tr>
+            <tr><td><strong>B2B — Корпоративен</strong></td><td>~5.000 корпоративни тренери; enterprise план ~€500+</td><td>20–80 компании</td><td class="num">€10.000–€40.000</td></tr>
+            <tr><td><strong>B2G — МОН / општини</strong></td><td>Национален договор за сите наставници</td><td>1 пилот → лиценца</td><td class="num">€30.000–€100.000</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">Конкурентна предност — зошто MKD Slidea победува</div>
+        <div class="card-grid">
+          <div class="card">
+            <div class="card-title">Ценовна предност</div>
+            <div class="card-sub">€20/год наспроти €300 (Mentimeter) и €200 (Kahoot). Буџетот на секое училиште може да го покрие за сите наставници.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Јазична локализација</div>
+            <div class="card-sub">7 јазики на Балканот. Конкурентите немаат MK/SQ/SR/BG/HR/RO UI — директна пречка за нивна употреба во државните школи.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Curriculum Lock-in</div>
+            <div class="card-sub">60+ БРО/МОН curriculum тагови и RAG-генерација значат дека платформата е вредна САМО АКО ја користи македонски наставник.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 8. ФИНАНСИСКИ ПРОЕКЦИИ ─── -->
+    <div class="section" id="s8">
+      <div class="section-header">
+        <div class="section-num">8</div>
+        <div class="section-title">Финансиски Проекции — 3 Сценарија</div>
+      </div>
+      <p style="font-size:11px;color:var(--gray600);margin-bottom:16px;">Сите цени во EUR · 1 EUR ≈ 61,5 МКД</p>
+
+      <div class="scenario-grid">
+        <div class="scenario-card conservative">
+          <div class="scenario-header">Сценарио 1 — Конзервативно</div>
+          <div class="scenario-body">
+            <div class="scenario-amount">€8.000 / год</div>
+            <div class="scenario-eur">≈ 492.000 МКД · Период: 0–12 месеци</div>
+            <div class="scenario-rows">
+              <div class="scenario-row"><span class="scenario-row-label">Pro Yearly (400 корисници × €20)</span><span class="scenario-row-val">€8.000</span></div>
+              <div class="scenario-row"><span class="scenario-row-label">Quarterly (100 × €10)</span><span class="scenario-row-val">€1.000</span></div>
+              <div class="scenario-row"><span class="scenario-row-label">Enterprise (10 школи × €300)</span><span class="scenario-row-val">€3.000</span></div>
+              <div class="scenario-row"><span class="scenario-row-label"><strong>Вкупно</strong></span><span class="scenario-row-val"><strong>€12.000</strong></span></div>
+            </div>
+          </div>
+        </div>
+        <div class="scenario-card realistic">
+          <div class="scenario-header">Сценарио 2 — Реалистично</div>
+          <div class="scenario-body">
+            <div class="scenario-amount">€35.000 / год</div>
+            <div class="scenario-eur">≈ 2.152.500 МКД · Период: 12–24 месеци</div>
+            <div class="scenario-rows">
+              <div class="scenario-row"><span class="scenario-row-label">Pro Yearly (1.200 × €20)</span><span class="scenario-row-val">€24.000</span></div>
+              <div class="scenario-row"><span class="scenario-row-label">Enterprise (30 институции × €350)</span><span class="scenario-row-val">€10.500</span></div>
+              <div class="scenario-row"><span class="scenario-row-label">Корпоративни (15 × €500)</span><span class="scenario-row-val">€7.500</span></div>
+              <div class="scenario-row"><span class="scenario-row-label">МОН пилот грант</span><span class="scenario-row-val">€5.000</span></div>
+              <div class="scenario-row"><span class="scenario-row-label"><strong>Вкупно</strong></span><span class="scenario-row-val"><strong>€47.000</strong></span></div>
+            </div>
+          </div>
+        </div>
+        <div class="scenario-card optimistic">
+          <div class="scenario-header">Сценарио 3 — Оптимистично</div>
+          <div class="scenario-body">
+            <div class="scenario-amount">€150.000+ / год</div>
+            <div class="scenario-eur">≈ 9.225.000+ МКД · Период: 24–36 месеци</div>
+            <div class="scenario-rows">
+              <div class="scenario-row"><span class="scenario-row-label">Pro Yearly (5.000 × €20)</span><span class="scenario-row-val">€100.000</span></div>
+              <div class="scenario-row"><span class="scenario-row-label">Enterprise (100 институции × €400)</span><span class="scenario-row-val">€40.000</span></div>
+              <div class="scenario-row"><span class="scenario-row-label">Корпоративни (50 × €500)</span><span class="scenario-row-val">€25.000</span></div>
+              <div class="scenario-row"><span class="scenario-row-label"><strong>МОН национален договор</strong></span><span class="scenario-row-val"><strong>€50.000–100.000</strong></span></div>
+              <div class="scenario-row"><span class="scenario-row-label"><strong>Вкупно</strong></span><span class="scenario-row-val"><strong>€215.000–265.000</strong></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout green">
+        <strong>Breakeven анализа:</strong> При тековни инфраструктурни трошоци ~€0 (Free tiers), breakeven е при <strong>само 50 Pro корисници × €20 = €1.000/год</strong>. За да се покрие junior developer (Part-time, ~€600/мес.) потребни се <strong>360 Pro корисници</strong> — реалистично за 6–9 месеци.
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">3-Годишна Проекција на Приходи (Реалистично Сценарио)</div>
+        <p style="font-size:11px;color:var(--gray600);margin-bottom:12px;">Базирано на Сценарио 2 — Реалистично · ARR = годишен приход · 1 EUR ≈ 61,5 МКД</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Приходен поток</th>
+              <th>Година 1 (2026)</th>
+              <th>Година 2 (2027)</th>
+              <th>Година 3 (2028)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>B2C — Pro Yearly корисници</strong></td><td>400 × €20 = <span class="num">€8.000</span></td><td>1.500 × €20 = <span class="num">€30.000</span></td><td>3.500 × €20 = <span class="num">€70.000</span></td></tr>
+            <tr><td>B2C — Quarterly + Monthly</td><td class="num">€2.000</td><td class="num">€6.000</td><td class="num">€12.000</td></tr>
+            <tr><td><strong>B2B — Enterprise школи</strong></td><td>10 × €300 = <span class="num">€3.000</span></td><td>35 × €350 = <span class="num">€12.250</span></td><td>80 × €400 = <span class="num">€32.000</span></td></tr>
+            <tr><td>B2B — Корпоративни клиенти</td><td class="num">€0</td><td>15 × €500 = <span class="num">€7.500</span></td><td>40 × €600 = <span class="num">€24.000</span></td></tr>
+            <tr><td><strong>B2G — МОН / општини пилот</strong></td><td class="num">€0</td><td class="num">€5.000</td><td class="num">€30.000–€80.000</td></tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td><strong>Вкупен ARR (Реалистично)</strong></td>
+              <td><strong>~€13.000</strong></td>
+              <td><strong>~€60.750</strong></td>
+              <td><strong>~€168.000–€218.000</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+        <div class="callout gold" style="margin-top:12px;">
+          <strong>Клучна пресвртница:</strong> При <strong>1.500 Pro корисници</strong> (Година 2), MKD Slidea станува целосно самоодржлива со тим од 2–3 луѓе. Националниот договор со МОН во Година 3 може да удвои ARR преку ноќ — при флет лиценца €30.000–€80.000/год.
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 9. ОПЕРАТИВНИ ТРОШОЦИ ─── -->
+    <div class="section" id="s9">
+      <div class="section-header">
+        <div class="section-num">9</div>
+        <div class="section-title">Оперативни Трошоци — Детална Разработка</div>
+      </div>
+
+      <div class="callout red">
+        <strong>Веќе вложена вредност (самофинансирано):</strong> Платформата е изградена со значителен труд и инфраструктурни трошоци. Финансирањето не е за основен развој — е за раст, комерцијализација и одржување.
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">Фаза 0 — Тековна состојба (~800 корисници · Free tiers)</div>
+        <table>
+          <thead><tr><th>Услуга</th><th>Тир</th><th>Цена/мес. (€)</th><th>Забелешка</th></tr></thead>
+          <tbody>
+            <tr><td>Supabase</td><td>Free</td><td class="num">€0</td><td>500MB DB · 2GB transfer · 200 concurrent connections</td></tr>
+            <tr><td>Vercel</td><td>Hobby / Pro</td><td class="num">€0–20</td><td>Hobby е доволен за тековна скала; Pro при раст</td></tr>
+            <tr><td>Gemini API</td><td>Free tier</td><td class="num">~€0–5</td><td>~1.000 наставници при нула или минимален трошок</td></tr>
+            <tr><td>Resend (Email)</td><td>Free</td><td class="num">€0</td><td>3.000 emails/месец — доволно за тековна база</td></tr>
+            <tr><td>Домен</td><td>Годишна</td><td class="num">~€1</td><td>~€12/год</td></tr>
+          </tbody>
+          <tfoot>
+            <tr><td colspan="2">Вкупно — Фаза 0</td><td>€0–26/мес.</td><td>€0–312/год (практично бесплатно до 1.000 корисници)</td></tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">Фаза 1 — Рана комерцијализација (1.000–5.000 корисници · 6–18 месеци)</div>
+        <table>
+          <thead><tr><th>Компонента</th><th>Цена/мес. (€)</th></tr></thead>
+          <tbody>
+            <tr><td>Supabase Pro (25GB DB · 50GB transfer)</td><td class="num">€25</td></tr>
+            <tr><td>Vercel Pro (1TB bandwidth)</td><td class="num">€20</td></tr>
+            <tr><td>Gemini API (5.000 генерации/ден)</td><td class="num">€20–50</td></tr>
+            <tr><td>Resend (email marketing)</td><td class="num">€20</td></tr>
+            <tr><td>Stripe (платежен processing)</td><td class="num">~€30 (2,9% + €0,30/трансакција)</td></tr>
+            <tr><td>Monitoring (Sentry/UptimeRobot)</td><td class="num">€15</td></tr>
+          </tbody>
+          <tfoot>
+            <tr><td><strong>Инфраструктура Фаза 1</strong></td><td><strong>~€130–160/мес. (≈ 8.000–9.800 МКД)</strong></td></tr>
+          </tfoot>
+        </table>
+        <table style="margin-top:8px">
+          <thead><tr><th>Тим</th><th>Цена/мес. (€)</th></tr></thead>
+          <tbody>
+            <tr><td>Основач (Игор) — Full-time</td><td class="num">€0 (самофинансирано)</td></tr>
+            <tr><td>Junior developer / QA — Part-time</td><td class="num">€500–800</td></tr>
+          </tbody>
+          <tfoot>
+            <tr><td><strong>Вкупен burn rate Фаза 1</strong></td><td><strong>~€630–960/мес. (≈ 38.745–59.040 МКД)</strong></td></tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">Фаза 2 — Раст (5.000–20.000 корисници)</div>
+        <table>
+          <thead><tr><th>Компонента</th><th>Цена/мес. (€)</th></tr></thead>
+          <tbody>
+            <tr><td>Supabase Team + Pro compute</td><td class="num">€100–300</td></tr>
+            <tr><td>Vercel Pro / Enterprise</td><td class="num">€100–300</td></tr>
+            <tr><td>Gemini API (оптимизирано со caching)</td><td class="num">€150–400</td></tr>
+            <tr><td>CDN + DDoS заштита (Cloudflare)</td><td class="num">€50</td></tr>
+            <tr><td>Email / CRM</td><td class="num">€50</td></tr>
+            <tr><td>Тим (3–4 позиции: Dev + UX + CS + Sales)</td><td class="num">€3.000–5.000</td></tr>
+          </tbody>
+          <tfoot>
+            <tr><td><strong>Вкупен burn rate Фаза 2</strong></td><td><strong>~€3.450–6.050/мес. (≈ €41.400–€72.600/год)</strong></td></tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">Резиме — Потреби од финансиери</div>
+        <div class="phase-grid">
+          <div class="phase-card">
+            <div class="phase-num">Сценарио А</div>
+            <div class="phase-title">Пилот + Breakeven</div>
+            <div class="phase-detail">400 Pro + 10 школи. Самоодржливост по 12 месеци при минимален тим.</div>
+            <div class="phase-amount">€8.000–€15.000</div>
+          </div>
+          <div class="phase-card">
+            <div class="phase-num">Сценарио Б</div>
+            <div class="phase-title">МОН/БРО пилот</div>
+            <div class="phase-detail">1.200 Pro + 30 школи + пилот со МОН. Полна комерцијализација.</div>
+            <div class="phase-amount">€30.000–€60.000</div>
+          </div>
+          <div class="phase-card">
+            <div class="phase-num">Сценарио В</div>
+            <div class="phase-title">Национален + Регионален раст</div>
+            <div class="phase-detail">Национален договор + балкански пазари (SQ, SR, BG, HR).</div>
+            <div class="phase-amount">€100.000–€200.000</div>
+          </div>
+        </div>
+
+        <div class="subsection-title" style="margin-top:24px;">Разбивање на Инвестицијата — Сценарио А (12 месеци)</div>
+        <div class="invest-row"><span class="invest-label">Тим (junior dev + customer success)</span><div class="invest-bar-wrap"><div class="invest-bar" style="width:50%"></div></div><span class="invest-val">€6.000–9.600</span></div>
+        <div class="invest-row"><span class="invest-label">Инфраструктура (Supabase, Vercel, Gemini)</span><div class="invest-bar-wrap"><div class="invest-bar" style="width:18%"></div></div><span class="invest-val">€1.560–1.920</span></div>
+        <div class="invest-row"><span class="invest-label">Маркетинг + конференции</span><div class="invest-bar-wrap"><div class="invest-bar" style="width:13%"></div></div><span class="invest-val">€1.500–2.500</span></div>
+        <div class="invest-row"><span class="invest-label">Правна / GDPR / Stripe интеграција</span><div class="invest-bar-wrap"><div class="invest-bar" style="width:10%"></div></div><span class="invest-val">€1.000–2.000</span></div>
+        <div class="invest-row"><span class="invest-label">Пилот обуки за школи</span><div class="invest-bar-wrap"><div class="invest-bar" style="width:8%"></div></div><span class="invest-val">€800–1.500</span></div>
+        <div class="invest-row"><span class="invest-label">Резерва (20%)</span><div class="invest-bar-wrap"><div class="invest-bar" style="width:12%"></div></div><span class="invest-val">€1.500–2.500</span></div>
+        <div class="callout gold" style="margin-top:16px;">
+          <strong>Вкупна инвестиција Сценарио А:</strong> €12.360–€20.020 ≈ <strong>760.000–1.230.000 МКД</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 10. ШТО НЕДОСТАСУВА ─── -->
+    <div class="section" id="s10">
+      <div class="section-header">
+        <div class="section-num">10</div>
+        <div class="section-title">Она Што Недостасува за Полна Комерцијална Подготвеност</div>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">Приоритет А — Критично за продажба (1–3 месеци)</div>
+        <div class="priority-list">
+          <div class="priority-item">
+            <span class="priority-badge priority-a">А-1</span>
+            <div class="priority-text"><strong>Stripe / Macedonian Merchant Account:</strong> Платежниот flow постои во код, но потребна е активација на Macedonia merchant account за автоматска наплата.</div>
+          </div>
+          <div class="priority-item">
+            <span class="priority-badge priority-a">А-2</span>
+            <div class="priority-text"><strong>Автоматски Enterprise Onboarding:</strong> Тренутно школите се активираат рачно. Потребен е automated bulk invite system (CSV upload → auto-licenses).</div>
+          </div>
+          <div class="priority-item">
+            <span class="priority-badge priority-a">А-3</span>
+            <div class="priority-text"><strong>Usage Dashboard за корисникот:</strong> Наставникот треба да гледа: колку AI генерации денес, колку настани овој месец, колку учесници — директно во интерфејсот.</div>
+          </div>
+          <div class="priority-item">
+            <span class="priority-badge priority-a">А-4</span>
+            <div class="priority-text"><strong>VAT фактури за јавна набавка:</strong> Училиштата плаќаат преку MK буџетски трансфери. Потребен е автоматски систем за генерирање МКД фактури со ДДВ.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">Приоритет Б — Важно за раст (3–6 месеци)</div>
+        <div class="priority-list">
+          <div class="priority-item">
+            <span class="priority-badge priority-b">Б-1</span>
+            <div class="priority-text"><strong>МОН/БРО edu-discount:</strong> Автоматски попуст за .edu.mk домени — наставниците со официјална школска е-маил добиваат 50% попуст или бесплатен план.</div>
+          </div>
+          <div class="priority-item">
+            <span class="priority-badge priority-b">Б-2</span>
+            <div class="priority-text"><strong>НВО бесплатен Pro:</strong> Регистрирани НВО (.org.mk верификација) добиваат бесплатен Pro за 1 година — отвора донаторски проект канал.</div>
+          </div>
+          <div class="priority-item">
+            <span class="priority-badge priority-b">Б-3</span>
+            <div class="priority-text"><strong>е-дневник интеграција:</strong> Целосна автоматска синхронизација на quiz резултати со македонскиот национален е-дневник систем.</div>
+          </div>
+          <div class="priority-item">
+            <span class="priority-badge priority-b">Б-4</span>
+            <div class="priority-text"><strong>Мобилна апликација:</strong> Тренутно Progressive Web App (PWA). Native iOS/Android апликација е критична за масовна употреба кај ученици и наставници.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">Приоритет В — Конкурентна предност (6–12 месеци)</div>
+        <div class="priority-list">
+          <div class="priority-item">
+            <span class="priority-badge priority-c">В-1</span>
+            <div class="priority-text"><strong>Breakout Rooms / Групна работа:</strong> Наставникот го дели разредот во тимови. Тимски натпревари, groupwork задачи — Nearpod/PearDeck функција.</div>
+          </div>
+          <div class="priority-item">
+            <span class="priority-badge priority-c">В-2</span>
+            <div class="priority-text"><strong>Drawing Annotations:</strong> Учесниците цртаат на слајдот (геометриски конструкции, графици) — критично за математика и природни науки.</div>
+          </div>
+          <div class="priority-item">
+            <span class="priority-badge priority-c">В-3</span>
+            <div class="priority-text"><strong>Регионален push — SQ/SR/BG пазари:</strong> Платформата веќе поддржува 7 јазици. Потребен е маркетиншки push во Косово, Србија, Бугарија.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 11. ПАТ ДО НАЦИОНАЛНА ЛИЦЕНЦА ─── -->
+    <div class="section" id="s11">
+      <div class="section-header">
+        <div class="section-num">11</div>
+        <div class="section-title">Патот до Национална Лиценца</div>
+      </div>
+
+      <div class="phase-grid">
+        <div class="phase-card">
+          <div class="phase-num">Фаза 1 · 6 мес.</div>
+          <div class="phase-title">Пилот — 0 трошок за школите</div>
+          <div class="phase-detail">
+            10–15 пилот училишта со бесплатен Enterprise план. Mix: Скопје + рурална, MK + SQ/TR средина. Месечни impact метрики.
+            <br/><br/>
+            <strong>KPIs:</strong> Употреба &gt;2×/недела · Активни наставници · Ученички резултати пред/после · NPS score
+          </div>
+          <div class="phase-amount">0 € (за школите)</div>
+        </div>
+        <div class="phase-card">
+          <div class="phase-num">Фаза 2 · 12 мес.</div>
+          <div class="phase-title">Општинска лиценца — 3–5 општини</div>
+          <div class="phase-detail">
+            Enterprise план за сите наставници во општини. Механизам: општинска буџетска ставка (просветен фонд).
+            <br/><br/>
+            <strong>Ценовен модел:</strong> €5/наставник/год за општини (30.000 нас. × €5 = €150.000/год).
+          </div>
+          <div class="phase-amount">€5 / наставник / год</div>
+        </div>
+        <div class="phase-card">
+          <div class="phase-num">Фаза 3 · 24+ мес.</div>
+          <div class="phase-title">Национален договор — МОН</div>
+          <div class="phase-detail">
+            МОН ја купува лиценцата за сите наставници:
+            <br/><strong>А)</strong> По наставник: €5 × 30.000 = €150.000/год
+            <br/><strong>Б)</strong> По ученик: €1 × 340.000 = €340.000/год
+            <br/><strong>В) Флет лиценца: €30.000–€80.000/год</strong>
+          </div>
+          <div class="phase-amount">€30.000–€80.000/год</div>
+        </div>
+      </div>
+
+      <div class="callout gold">
+        <strong>Аргумент за МОН:</strong> Mentimeter Enterprise за 30.000 наставници = €9.000.000/год. MKD Slidea нуди: флет лиценца €30.000–€80.000/год со целосно македонски UI, регионални јазици и директна усогласеност со БРО/МОН програми. <strong>100–300× поевтино од Mentimeter Enterprise.</strong>
+      </div>
+    </div>
+
+    <!-- ─── 12. НАРАЦИЈА ─── -->
+    <div class="section" id="s12">
+      <div class="section-header">
+        <div class="section-num">12</div>
+        <div class="section-title">Нарација за Презентација пред МОН и БРО</div>
+      </div>
+
+      <div class="narration-grid">
+        <div class="narration-card">
+          <span class="narration-tag">Проблемот</span><span class="narration-time">~30 секунди</span>
+          <p>"Македонските наставници предаваат на 30+ ученици, но немаат начин да знаат дали ги разбираат материјалот во реално време. Традиционалните методи — кревање рака, усмено прашување — не го мерат вистинското разбирање. Резултат: учениците со тешкотии остануваат невидливи сè до испитот."</p>
+        </div>
+        <div class="narration-card">
+          <span class="narration-tag">Решението</span><span class="narration-time">~30 секунди</span>
+          <p>"MKD Slidea им дава на наставниците live feedback од секој ученик за 10 секунди. Со еден квиз, наставникот гледа: 70% не го разбираат концептот — и може да ги прилагоди следните 10 минути на часот. Учениците се приклучуваат со QR код — без регистрација, без апликација."</p>
+        </div>
+        <div class="narration-card">
+          <span class="narration-tag">Уникатноста</span><span class="narration-time">~30 секунди</span>
+          <p>"MKD Slidea е единствена интерактивна платформа во Македонија која: (1) е целосно на македонски, албански и српски јазик, (2) е директно усогласена со БРО/МОН curriculum G1–G13 за сите предмети, (3) ги вклучува 4К компетенции во AI генерацијата, (4) чини 15 пати помалку од Mentimeter — €20 наспроти €300/год."</p>
+        </div>
+        <div class="narration-card">
+          <span class="narration-tag">Бројките</span><span class="narration-time">~30 секунди</span>
+          <p>"800+ активни наставници. 12.000+ учесници на сесии. 98% задоволство. Платформата е Production-ready со 8 типа интерактивни активности, 5 AI модули, 100+ готови шаблони усогласени со БРО наставни програми и интеграции со Google Classroom, Microsoft Teams и Moodle."</p>
+        </div>
+      </div>
+
+      <div class="narration-card" style="background:linear-gradient(135deg,var(--navy) 0%,var(--blue) 100%);color:white;margin-top:16px;padding:24px 28px;border-radius:var(--radius);box-shadow:var(--shadow);">
+        <span style="display:inline-block;background:rgba(200,168,75,0.25);color:var(--gold);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;padding:3px 10px;border-radius:10px;margin-bottom:12px;">Барањето · ~30 секунди</span>
+        <p style="font-size:13px;color:rgba(255,255,255,0.90);font-style:italic;line-height:1.75;">
+          "Бараме поддршка за пилот програма со 15 училишта во текот на 2026–2027 учебна година. <strong style="color:var(--gold);">Не бараме пари</strong> — бараме институционална поддршка: препорака до директорите, учество во евалуацијата, и разговор за национален edu-договор доколку резултатите го потврдат импактот. Инвестицијата за пилотот: <strong style="color:var(--gold);">нула</strong>. Потенцијалниот ефект: <strong style="color:var(--gold);">30.000 наставници и 340.000 ученици</strong> — со платформа 15× поевтина од конкурентите."
+        </p>
+      </div>
+    </div>
+
+    <!-- ─── 13. СТРАТЕШКИ ПЛАН ─── -->
+    <div class="section" id="s13">
+      <div class="section-header">
+        <div class="section-num">13</div>
+        <div class="section-title">Стратешки План — SWOT, Ризици и Акциски План 90 Дена</div>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">SWOT Анализа</div>
+        <div class="card-grid card-grid-2">
+          <div class="card" style="border-left:4px solid var(--green);">
+            <div class="card-title" style="color:var(--green);">Силни страни (Strengths)</div>
+            <ul style="margin-top:8px;">
+              <li><strong>First mover</strong> — единствена MK интерактивна платформа со БРО curriculum</li>
+              <li><strong>15× ценовна предност</strong> — €20 наспроти €300/год (Mentimeter)</li>
+              <li><strong>8 активности + 5 AI модули</strong> — Production-ready, без конкурент на MK пазар</li>
+              <li><strong>7 јазици</strong> — директно адресира мултиетничката образовна средина</li>
+              <li><strong>Нула инфраструктурни трошоци</strong> до 1.000 корисници (Free tiers)</li>
+              <li><strong>CI/CD + 50+ тестови</strong> — индустриски квалитет на кодот</li>
+            </ul>
+          </div>
+          <div class="card" style="border-left:4px solid var(--red);">
+            <div class="card-title" style="color:var(--red);">Слаби страни (Weaknesses)</div>
+            <ul style="margin-top:8px;">
+              <li><strong>Еден-човек тим</strong> — сè зависи од основачот (развој, поддршка, продажба)</li>
+              <li><strong>Stripe merchant account</strong> — наплатата не е автоматизирана</li>
+              <li><strong>Нема посветена продажна функција</strong> — zero outbound</li>
+              <li><strong>Непотврдени метрики</strong> — „800+ наставници" е проекциона цел, не верифицирана база</li>
+              <li><strong>Нема native мобилна апликација</strong> — тренутно само PWA</li>
+            </ul>
+          </div>
+          <div class="card" style="border-left:4px solid var(--mid);">
+            <div class="card-title" style="color:var(--mid);">Можности (Opportunities)</div>
+            <ul style="margin-top:8px;">
+              <li><strong>МОН национален договор</strong> — €30.000–€80.000/год, 30.000 наставници</li>
+              <li><strong>Балкански пазари</strong> — SQ/SR/BG/HR пазари веќе поддржани, нема конкурент</li>
+              <li><strong>Донаторски програми</strong> — USAID, ЕУ фондови за образовни технологии на Балкан</li>
+              <li><strong>е-дневник интеграција</strong> — автоматска синхронизација со МК национален систем</li>
+              <li><strong>Корпоративен сегмент</strong> — 5.000+ корпоративни тренери, нема таргетирање</li>
+            </ul>
+          </div>
+          <div class="card" style="border-left:4px solid var(--accent);">
+            <div class="card-title" style="color:var(--accent);">Закани (Threats)</div>
+            <ul style="margin-top:8px;">
+              <li><strong>Mentimeter додава MK поддршка</strong> — веројатно при доволна пазарна пенетрација</li>
+              <li><strong>Google Classroom/Forms</strong> — бесплатна алтернатива за едноставни анкети</li>
+              <li><strong>Буџетски ограничувања</strong> — школите немаат флексибилни буџети за EdTech</li>
+              <li><strong>Спор B2G циклус</strong> — јавни набавки во МК траат 12–24 месеци</li>
+              <li><strong>Копирање на концептот</strong> — низок технички barrier за competitors со поголем тим</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">Акциски План — Следни 90 Дена</div>
+        <table>
+          <thead><tr><th>Период</th><th>Активности</th><th>KPI / Резултат</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>Дена 1–30</strong><br/><span style="font-size:10px;color:var(--gray600)">Јули 2026</span></td>
+              <td>
+                <strong>А-1:</strong> Stripe Macedonia merchant account — активација<br/>
+                <strong>А-2:</strong> Онбординг на 5 пилот школи (бесплатен Enterprise план)<br/>
+                <strong>А-3:</strong> Лендинг страница со „Запиши ме" форма за школи<br/>
+                <strong>А-4:</strong> Email campaign до 200 познати наставници
+              </td>
+              <td>
+                ✓ Платежен flow активен<br/>
+                ✓ 5 школи × ~30 наставници = 150 активни корисници<br/>
+                ✓ Email листа 500+ контакти
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Дена 31–60</strong><br/><span style="font-size:10px;color:var(--gray600)">Август 2026</span></td>
+              <td>
+                <strong>Б-1:</strong> Формален meeting со БРО — демо + impact данни<br/>
+                <strong>Б-2:</strong> .edu.mk EDU попуст (50%) — автоматска верификација<br/>
+                <strong>Б-3:</strong> 3 општини — презентации пред просветните советници<br/>
+                <strong>Б-4:</strong> Прв корпоративен клиент (HR обука)
+              </td>
+              <td>
+                ✓ Официјална препорака од БРО<br/>
+                ✓ 3 општини во pipeline<br/>
+                ✓ 1 корпоративна лиценца @€500
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Дена 61–90</strong><br/><span style="font-size:10px;color:var(--gray600)">Септември 2026</span></td>
+              <td>
+                <strong>В-1:</strong> Back-to-school кампања — „Почни учебна со MKD Slidea"<br/>
+                <strong>В-2:</strong> Прва измерена impact studija (NPS, ученичка посветеност)<br/>
+                <strong>В-3:</strong> МОН формален дијалог за пилот-договор<br/>
+                <strong>В-4:</strong> Junior developer / customer success вработување
+              </td>
+              <td>
+                ✓ 100+ платени Pro корисници<br/>
+                ✓ Impact studija документирана<br/>
+                ✓ МОН договор во преговори
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">Регистер на Ризици и Митигации</div>
+        <table>
+          <thead><tr><th>Ризик</th><th>Веројатност</th><th>Импакт</th><th>Митигација</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>Stripe активација одбиена / одложена</strong></td>
+              <td style="color:var(--teal);font-weight:700;">Средна</td>
+              <td style="color:var(--red);font-weight:700;">Висок</td>
+              <td>Алтернатива: Paddle.com (MK supportiran), PayPal, банкарски трансфер за Enterprise</td>
+            </tr>
+            <tr>
+              <td><strong>Mentimeter додава MK локализација</strong></td>
+              <td style="color:var(--green);font-weight:700;">Ниска</td>
+              <td style="color:var(--teal);font-weight:700;">Среден</td>
+              <td>15× ценовна предност останува; curriculum lock-in преку БРО тагови е нашиот моат</td>
+            </tr>
+            <tr>
+              <td><strong>МОН одбива соработка</strong></td>
+              <td style="color:var(--teal);font-weight:700;">Средна</td>
+              <td style="color:var(--teal);font-weight:700;">Среден</td>
+              <td>Pivot кон општини (30–50 општини × €2.000 = €60.000–€100.000 без МОН)</td>
+            </tr>
+            <tr>
+              <td><strong>Supabase / Vercel менуваат цени</strong></td>
+              <td style="color:var(--green);font-weight:700;">Ниска</td>
+              <td style="color:var(--green);font-weight:700;">Низок</td>
+              <td>PostgreSQL и Vite се open-source; миграција на self-hosted е можна за 2–3 дена</td>
+            </tr>
+            <tr>
+              <td><strong>Основачот е sole developer (bus factor = 1)</strong></td>
+              <td style="color:var(--red);font-weight:700;">Висока</td>
+              <td style="color:var(--red);font-weight:700;">Висок</td>
+              <td>Вработување junior dev веднаш; CI/CD + тест покриеност веќе осигурени за continuity</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">KPI Табла — Мерила на Успех</div>
+        <div class="card-grid card-grid-4">
+          <div class="card">
+            <div class="card-title">Приход (ARR)</div>
+            <div class="card-value">€60K+</div>
+            <div class="card-sub">Цел Година 2 (2027)</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Pro корисници</div>
+            <div class="card-value">1.500+</div>
+            <div class="card-sub">Цел Година 2 — breakeven со тим</div>
+          </div>
+          <div class="card accent-card">
+            <div class="card-title">NPS Score</div>
+            <div class="card-value">50+</div>
+            <div class="card-sub">Цел — „Одлично" (industry: 40+)</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Enterprise склучени</div>
+            <div class="card-value">30+</div>
+            <div class="card-sub">Школи + општини до крај 2027</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── ПРИЛОГ ─── -->
+    <div class="section" id="appendix">
+      <div class="section-header">
+        <div class="section-num" style="background:var(--accent);color:var(--navy);">A</div>
+        <div class="section-title">Прилог — Конверзија на Цени и Референции</div>
+      </div>
+      <table>
+        <thead><tr><th>EUR</th><th>МКД</th><th>Контекст</th></tr></thead>
+        <tbody>
+          <tr><td>€20/год</td><td class="num">1.230 МКД/год</td><td>Yearly Pro Наставник</td></tr>
+          <tr><td>€1,67/мес.</td><td class="num">103 МКД/мес.</td><td>Yearly Pro месечно</td></tr>
+          <tr><td>€10/3 мес.</td><td class="num">615 МКД</td><td>Quarterly план</td></tr>
+          <tr><td>€300/год (Mentimeter)</td><td class="num">18.450 МКД/год</td><td>Конкурент — 15× поскап</td></tr>
+          <tr><td>€200–500/год</td><td class="num">12.300–30.750 МКД/год</td><td>Enterprise / School план</td></tr>
+          <tr><td>€30.000–€80.000/год</td><td class="num">1.845.000–4.920.000 МКД/год</td><td>МОН национален договор (проценка)</td></tr>
+          <tr><td>€150.000/год</td><td class="num">9.225.000 МКД/год</td><td>По наставник: €5 × 30.000 нас.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- ══ FOOTER ══ -->
+  <div class="doc-footer">
+    <div>
+      Документот е подготвен врз основа на целосна ревизија на кодната база на MKD Slidea · Јуни 2026 ·
+      <strong>MKD Slidea — Interactive Audience Platform</strong>
+    </div>
+    <div>
+      <a href="mailto:bogdanoskiigor@gmail.com">bogdanoskiigor@gmail.com</a> ·
+      Игор Богданоски
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
