@@ -119,6 +119,7 @@ const CreateQuizModal = ({ isOpen, onClose, onSave, initialData = null }) => {
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            role="dialog" aria-modal="true" aria-label="Создај квиз"
             className="relative bg-white rounded-2xl max-w-xl w-full shadow-2xl flex flex-col max-h-[92vh]"
           >
             {/* Header */}

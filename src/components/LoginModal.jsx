@@ -190,6 +190,7 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin, onRequestPassword
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
               onClick={(e) => e.stopPropagation()}
+              role="dialog" aria-modal="true" aria-label="Најава"
               className="relative bg-white rounded-[3rem] p-10 max-w-md w-full shadow-2xl"
             >
               <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-600 to-violet-600" />

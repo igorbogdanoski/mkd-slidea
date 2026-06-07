@@ -140,6 +140,7 @@ const ParticipantStatsModal = ({ isOpen, onClose, event, polls }) => {
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        role="dialog" aria-modal="true" aria-label="Статистики на учесник"
         className="relative bg-white rounded-[2rem] shadow-2xl z-10 w-full max-w-2xl max-h-[85vh] flex flex-col"
         onClick={e => e.stopPropagation()}
       >

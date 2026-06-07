@@ -1,6 +1,6 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Hash, PieChart, MessageSquare, Send, ThumbsUp, Trophy, CheckCircle2, XCircle, Star, GripVertical, BarChart2, Bell, BellOff } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Hash, PieChart, MessageSquare, Send, ThumbsUp, Trophy, CheckCircle2, XCircle, Star, GripVertical, BarChart2, Bell, BellOff, WifiOff, Wifi } from 'lucide-react';
 import { useEventStore } from '../lib/store';
 import PoweredByBadge from '../components/PoweredByBadge';
 import ParticipantCaptions from '../components/ParticipantCaptions';
@@ -52,6 +52,24 @@ const Participant = ({
   const [surveySubmitting, setSurveySubmitting] = React.useState(false);
   const [rankingOrder, setRankingOrder] = React.useState([]);
   const [dragIndex, setDragIndex] = React.useState(null);
+
+  // Offline detection
+  const [isOnline, setIsOnline] = React.useState(() => typeof navigator !== 'undefined' ? navigator.onLine : true);
+  const [syncing, setSyncing] = React.useState(false);
+  React.useEffect(() => {
+    const handleOffline = () => { setIsOnline(false); setSyncing(false); };
+    const handleOnline = () => {
+      setIsOnline(true);
+      setSyncing(true);
+      setTimeout(() => setSyncing(false), 3000);
+    };
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+    return () => {
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, []);
 
   // Haptic feedback when quiz result arrives
   React.useEffect(() => {
@@ -171,6 +189,44 @@ const Participant = ({
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] relative">
+      {/* Offline banner */}
+      <AnimatePresence>
+        {!isOnline && (
+          <motion.div
+            key="offline-banner"
+            initial={{ y: -60 }}
+            animate={{ y: 0 }}
+            exit={{ y: -60 }}
+            transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+            className="fixed top-0 left-0 right-0 z-50 bg-red-600 text-white flex items-center justify-center gap-2 py-3 px-4 text-sm font-black shadow-xl"
+            role="alert"
+            aria-live="assertive"
+          >
+            <WifiOff size={16} />
+            Нема интернет — гласовите ќе се зачуваат кога ќе се поврзеш
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Sync toast — briefly shown on reconnect */}
+      <AnimatePresence>
+        {syncing && isOnline && (
+          <motion.div
+            key="sync-toast"
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ duration: 0.25 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white flex items-center gap-2 py-3 px-6 rounded-2xl text-sm font-black shadow-2xl shadow-emerald-200"
+            role="status"
+            aria-live="polite"
+          >
+            <Wifi size={16} />
+            Поврзано — синхронизирање...
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <motion.div
         key="participant"
         initial={{ opacity: 0, y: 20 }}

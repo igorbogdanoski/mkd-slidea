@@ -253,7 +253,7 @@ const NumbersView = ({ options, totalVotes }) => {
         );
       })}
       {totalVotes > 0 && (
-        <p className="text-right text-slate-600 font-black text-sm uppercase tracking-widest pr-4">
+        <p aria-live="polite" aria-atomic="true" className="text-right text-slate-600 font-black text-sm uppercase tracking-widest pr-4">
           Вкупно гласови: {totalVotes}
         </p>
       )}
@@ -476,7 +476,7 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
             <div className="text-center">
               <p className="text-slate-500 font-black text-sm uppercase tracking-widest mb-2">Просек</p>
               <h3 className="text-[9rem] font-black leading-none text-teal-400">{avg}</h3>
-              <p className="text-slate-400 font-bold text-xl mt-2">{totalVotes} гласови</p>
+              <p aria-live="polite" aria-atomic="true" className="text-slate-400 font-bold text-xl mt-2">{totalVotes} гласови</p>
             </div>
           </div>
           <div className="space-y-3">
@@ -522,7 +522,7 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
               <Star key={star} className={`w-24 h-24 ${star <= Math.round(averageRating) ? 'fill-amber-400 text-amber-400' : 'text-slate-700'}`} />
             ))}
           </div>
-          <p className="text-3xl font-bold text-slate-400">{totalVotes} гласови</p>
+          <p aria-live="polite" aria-atomic="true" className="text-3xl font-bold text-slate-400">{totalVotes} гласови</p>
         </div>
       );
     }

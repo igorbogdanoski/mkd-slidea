@@ -1,14 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ShieldCheck, CheckCircle2, Zap, Star, Trophy, Users, ArrowRight } from 'lucide-react';
+import { ShieldCheck, CheckCircle2, XCircle, ArrowRight, Gift, RotateCcw, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSEO } from '../hooks/useSEO';
 
 const Pricing = ({ setView }) => {
   const navigate = useNavigate();
+  const [comparisonOpen, setComparisonOpen] = useState(false);
+
   useSEO({
     title: 'Цени | MKD Slidea — Бесплатен и Pro план за наставници и фирми',
-    description: 'Бесплатен план со 200 учесници, Pro план од €20/година. Македонска интерактивна платформа за настава, обуки и состаноци.',
+    description: 'Бесплатен план со 200 учесници, Pro план од €20/година. 14 дена бесплатен пробен период. Македонска интерактивна платформа за настава, обуки и состаноци.',
     keywords: 'цени, mentimeter алтернатива, slidea план, бесплатен квиз, pro план',
     path: '/pricing',
     jsonLd: {
@@ -24,6 +26,7 @@ const Pricing = ({ setView }) => {
       ],
     },
   });
+
   const plans = [
     {
       code: null,
@@ -56,10 +59,11 @@ const Pricing = ({ setView }) => {
         "AI Генерирање (ограничено)",
         "Приоритетна поддршка"
       ],
-      button: "Избери Месечно",
+      button: "Пробај 14 дена бесплатно",
       color: "bg-white text-slate-900 border-2 border-slate-100",
       btnColor: "bg-indigo-600 text-white",
-      tag: "FLEX"
+      tag: "FLEX",
+      trial: true
     },
     {
       code: 'quarterly',
@@ -74,10 +78,11 @@ const Pricing = ({ setView }) => {
         "Напредна аналитика",
         "Тимска соработка"
       ],
-      button: "Избери Квартално",
+      button: "Пробај 14 дена бесплатно",
       color: "bg-white text-slate-900 border-2 border-slate-100",
       btnColor: "bg-indigo-600 text-white",
-      tag: "SAVER"
+      tag: "SAVER",
+      trial: true
     },
     {
       code: 'semester',
@@ -92,11 +97,12 @@ const Pricing = ({ setView }) => {
         "Сопствени бои",
         "До 5 тимски членови"
       ],
-      button: "Избери Семестрално",
+      button: "Пробај 14 дена бесплатно",
       color: "bg-white text-slate-900 border-2 border-indigo-100 shadow-xl shadow-indigo-50",
       btnColor: "bg-indigo-600 text-white",
       tag: "ПОПУЛАРНО",
-      popular: true
+      popular: true,
+      trial: true
     },
     {
       code: 'yearly',
@@ -111,11 +117,26 @@ const Pricing = ({ setView }) => {
         "Експорт на податоци",
         "Интеграции: PowerPoint, Google и e-дневник"
       ],
-      button: "Активирај Годишно",
+      button: "Пробај 14 дена бесплатно",
       color: "bg-slate-900 text-white",
       btnColor: "bg-emerald-500 text-white",
-      tag: "НАЈДОБРА ПОНУДА"
+      tag: "НАЈДОБРА ПОНУДА",
+      trial: true
     }
+  ];
+
+  const comparison = [
+    { feature: "Цена / година",          mkd: "€0–€20",  menti: "€300+",        mkdWins: true },
+    { feature: "Учесници (бесплатен)",   mkd: "200",      menti: "2",            mkdWins: true },
+    { feature: "Македонски јазик",       mkd: "✓",        menti: "✗",            mkdWins: true },
+    { feature: "AI генерирање прашања",  mkd: "✓ Pro",    menti: "✗",            mkdWins: true },
+    { feature: "Анонимно гласање",       mkd: "✓",        menti: "✓",            mkdWins: false },
+    { feature: "Реално-временски резулт", mkd: "✓",       menti: "✓",            mkdWins: false },
+    { feature: "Рангирање & Рејтинг",    mkd: "✓",        menti: "✓ Pro",        mkdWins: true },
+    { feature: "Извоз на податоци",      mkd: "✓ Pro",    menti: "✓ Pro",        mkdWins: false },
+    { feature: "Локална поддршка (МК)",  mkd: "✓",        menti: "✗",            mkdWins: true },
+    { feature: "Податоци во ЕУ",         mkd: "✓ Supabase EU", menti: "✗ US",    mkdWins: true },
+    { feature: "30-ден гаранција",       mkd: "✓",        menti: "✗",            mkdWins: true },
   ];
 
   const goToCheckout = (plan) => {
@@ -132,13 +153,24 @@ const Pricing = ({ setView }) => {
       animate={{ opacity: 1 }}
       className="pt-32 pb-24 px-6 min-h-screen bg-[#F8FAFC]"
     >
-      <div className="max-w-7xl mx-auto text-center mb-20">
+      {/* Header */}
+      <div className="max-w-7xl mx-auto text-center mb-12">
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 font-black text-xs uppercase tracking-widest px-5 py-2.5 rounded-full mb-6 border border-emerald-200"
+        >
+          <Gift size={14} />
+          14 дена бесплатен пробен период — без кредитна картичка
+        </motion.div>
         <h1 className="text-5xl md:text-6xl font-black text-slate-900 mb-6">Едноставни цени за секого</h1>
         <p className="text-xl text-slate-500 max-w-2xl mx-auto font-medium leading-relaxed">
-          Изберете го планот што најдобро одговара на вашите потреби. Од мали училници до големи конференции.
+          Изберете го планот што најдобро одговара на вашите потреби. Сите Pro планови доаѓаат со 14 дена бесплатен период и 30-дневна гаранција.
         </p>
       </div>
 
+      {/* Plans grid */}
       <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         {plans.map((plan, i) => (
           <motion.div
@@ -154,12 +186,18 @@ const Pricing = ({ setView }) => {
               </div>
             )}
             <h3 className="text-2xl font-black mb-1">{plan.name}</h3>
-            <p className={`font-bold text-xs mb-8 uppercase tracking-widest ${plan.name === 'Годишен' ? 'text-slate-400' : 'text-slate-400'}`}>{plan.target}</p>
-            
+            <p className="font-bold text-xs mb-8 uppercase tracking-widest text-slate-400">{plan.target}</p>
+
             <div className="flex items-baseline gap-1 mb-10">
               <span className={`text-5xl font-black ${plan.name === 'Годишен' ? 'text-emerald-400' : 'text-slate-900'}`}>€{plan.price}</span>
               <span className="text-lg font-bold opacity-40">{plan.period}</span>
             </div>
+
+            {plan.trial && (
+              <div className={`mb-6 text-[11px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl text-center ${plan.name === 'Годишен' ? 'bg-emerald-900/50 text-emerald-300' : 'bg-indigo-50 text-indigo-600'}`}>
+                14 дена бесплатно
+              </div>
+            )}
 
             <ul className="space-y-5 mb-12 flex-1">
               {plan.features.map((feat, j) => (
@@ -170,7 +208,7 @@ const Pricing = ({ setView }) => {
               ))}
             </ul>
 
-            <button 
+            <button
               onClick={() => goToCheckout(plan)}
               className={`w-full py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl transition-all active:scale-95 ${plan.btnColor}`}
             >
@@ -180,13 +218,100 @@ const Pricing = ({ setView }) => {
         ))}
       </div>
 
-      {/* Comparison Table Link */}
-      <div className="mt-20 text-center">
-        <p className="text-slate-400 font-bold mb-4 uppercase tracking-widest text-xs">Имате специфични потреби?</p>
-        <button className="text-indigo-600 font-black flex items-center gap-2 mx-auto hover:gap-3 transition-all">
-          Контактирајте нè за Enterprise решение <ArrowRight size={18} />
-        </button>
-      </div>
+      {/* Trust badges */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+        className="max-w-3xl mx-auto mt-14 grid grid-cols-1 sm:grid-cols-3 gap-4"
+      >
+        {[
+          { icon: RotateCcw, title: "30-дневна гаранција", sub: "Не сте задоволни? Целосен рефунд без прашања." },
+          { icon: Gift, title: "14 дена бесплатно", sub: "Пробај го секој Pro план без кредитна картичка." },
+          { icon: Zap, title: "Откажи кога сакаш", sub: "Без договор. Откажувањето е со еден клик." },
+        ].map(({ icon: Icon, title, sub }, i) => (
+          <div key={i} className="flex items-start gap-4 bg-white rounded-3xl px-6 py-5 border border-slate-100 shadow-sm">
+            <div className="w-10 h-10 bg-indigo-50 rounded-2xl flex items-center justify-center shrink-0">
+              <Icon className="text-indigo-600" size={18} />
+            </div>
+            <div>
+              <p className="font-black text-slate-900 text-sm">{title}</p>
+              <p className="text-xs text-slate-400 font-medium mt-0.5 leading-snug">{sub}</p>
+            </div>
+          </div>
+        ))}
+      </motion.div>
+
+      {/* Mentimeter comparison */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.7 }}
+        className="max-w-3xl mx-auto mt-20"
+      >
+        <div className="text-center mb-8">
+          <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">Зошто MKD Slidea?</p>
+          <h2 className="text-3xl md:text-4xl font-black text-slate-900">MKD Slidea наспроти Mentimeter</h2>
+          <p className="text-slate-500 font-medium mt-3">Иста функционалност. 15× пониска цена. На македонски.</p>
+        </div>
+
+        <div className="bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-xl shadow-slate-100/50">
+          {/* Table header */}
+          <div className="grid grid-cols-[1fr_auto_auto] bg-slate-50 border-b border-slate-100">
+            <div className="px-8 py-5 text-xs font-black uppercase tracking-widest text-slate-400">Функција</div>
+            <div className="px-8 py-5 text-xs font-black uppercase tracking-widest text-indigo-600 text-center min-w-[120px]">MKD Slidea</div>
+            <div className="px-8 py-5 text-xs font-black uppercase tracking-widest text-slate-400 text-center min-w-[120px]">Mentimeter</div>
+          </div>
+
+          {comparison.map((row, i) => (
+            <div
+              key={i}
+              className={`grid grid-cols-[1fr_auto_auto] items-center border-b border-slate-50 last:border-0 ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}
+            >
+              <div className="px-8 py-4 text-sm font-bold text-slate-700">{row.feature}</div>
+              <div className={`px-8 py-4 text-sm font-black text-center min-w-[120px] ${row.mkdWins ? 'text-emerald-600' : 'text-slate-500'}`}>
+                {row.mkdWins ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <CheckCircle2 size={15} className="text-emerald-500" />
+                    {row.mkd}
+                  </span>
+                ) : (
+                  row.mkd
+                )}
+              </div>
+              <div className={`px-8 py-4 text-sm font-bold text-center min-w-[120px] ${row.mkdWins ? 'text-slate-400' : 'text-slate-500'}`}>
+                {row.mkdWins && (row.menti === '✗' || row.menti.startsWith('✗')) ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <XCircle size={15} className="text-red-300" />
+                    {row.menti.replace('✗', '').trim() || 'Не'}
+                  </span>
+                ) : (
+                  row.menti
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <p className="text-center text-xs text-slate-400 font-medium mt-5">
+          * Цените за Mentimeter се приближни врз основа на нивниот јавен ценовник. Последно проверено: Јуни 2026.
+        </p>
+      </motion.div>
+
+      {/* Bottom CTA */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.8 }}
+        className="mt-20 text-center"
+      >
+        <div className="inline-flex flex-col items-center gap-4">
+          <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Имате специфични потреби?</p>
+          <button className="text-indigo-600 font-black flex items-center gap-2 hover:gap-3 transition-all">
+            Контактирајте нè за Enterprise решение <ArrowRight size={18} />
+          </button>
+        </div>
+      </motion.div>
     </motion.div>
   );
 };

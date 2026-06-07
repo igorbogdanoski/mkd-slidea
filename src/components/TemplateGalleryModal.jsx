@@ -35,6 +35,7 @@ export default function TemplateGalleryModal({ isOpen, onClose, onApply }) {
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
           onClick={(e) => e.stopPropagation()}
+          role="dialog" aria-modal="true" aria-label="Галерија на шаблони"
           className="bg-white rounded-[2rem] shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col overflow-hidden"
         >
           {/* Header */}

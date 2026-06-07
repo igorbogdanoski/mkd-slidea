@@ -28,6 +28,7 @@ const QRCodeModal = ({ isOpen, onClose, eventCode }) => {
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            role="dialog" aria-modal="true" aria-label="QR код за настанот"
             className="relative bg-white rounded-[3rem] p-10 max-w-sm w-full shadow-2xl text-center"
           >
             <button

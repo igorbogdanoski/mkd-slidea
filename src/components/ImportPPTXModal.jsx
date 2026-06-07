@@ -268,6 +268,7 @@ const ImportPPTXModal = ({ isOpen, onClose, onImport, user }) => {
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             onClick={e => e.stopPropagation()}
+            role="dialog" aria-modal="true" aria-label="Увоз на PowerPoint"
             className="relative bg-white rounded-[3rem] w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden"
           >
             {/* Top bar */}

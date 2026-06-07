@@ -34,7 +34,7 @@ const PublishTemplateModal = ({ isOpen, onClose, onPublish, polls = [] }) => {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[120] flex items-center justify-center p-4">
-      <div className="w-full max-w-xl bg-white rounded-3xl border border-slate-100 shadow-2xl overflow-hidden">
+      <div role="dialog" aria-modal="true" aria-label="Објави шаблон" className="w-full max-w-xl bg-white rounded-3xl border border-slate-100 shadow-2xl overflow-hidden">
         <div className="p-6 md:p-8 border-b border-slate-100 flex items-center justify-between">
           <div>
             <h3 className="text-2xl font-black text-slate-900">Објави како Community Template</h3>

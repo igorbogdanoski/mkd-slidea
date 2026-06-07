@@ -115,28 +115,25 @@
 - Supabase user preferences за логирани корисници — 1 ден
 - **Фајлови:** `src/i18n/index.jsx`
 
-### PRICE-1: Pricing Conversion
-- "Пробај Pro 14 дена бесплатно" CTA — 1 ден
-- Money-back guarantee badge — 30 минути
-- "Наспроти Mentimeter" споредба колона — 2 часа
-- **Фајлови:** `src/views/Pricing.jsx`
+### PRICE-1: Pricing Conversion — ✅ ЗАВРШЕНО
+- "Пробај Pro 14 дена бесплатно" CTA badge на врвот + на секој платен план
+- Money-back guarantee, trial badge и "Откажи кога сакаш" trust strip
+- "Наспроти Mentimeter" comparison table (11 редови)
 
-### PART-1: Participant Offline UX
-- Toast notification при offline — 2 часа
-- Banner + sync progress при реконекција — 1 ден
-- **Фајлови:** `src/views/Participant.jsx`
+### PART-1: Participant Offline UX — ✅ ЗАВРШЕНО
+- Offline banner (fixed top, red, aria-live="assertive") при загуба на мрежа
+- Reconnect toast (emerald, aria-live="polite", 3s auto-dismiss) при реконекција
 
 ### TMPL-1: Templates Quality
 - 5-star rating + sort by rating — 2 дена
 - "Verified by БРО" badge — 1 ден
 - **Фајлови:** `src/components/TemplatesTab.jsx`
 
-### A11Y-1: Accessibility
-- `aria-live="polite"` на vote count updates — 2 часа
-- Keyboard-navigable charts — 2 дена
-- Alt text за Word Cloud — 1 ден
-- `role="dialog"` на сите modals — 4 часа
-- **Фајлови:** `src/views/Presenter.jsx`, `src/components/*.jsx`
+### A11Y-1: Accessibility — ✅ ДЕЛУМНО ЗАВРШЕНО
+- `role="dialog" aria-modal="true"` додадено на сите 13 modal компоненти
+- `aria-live="polite" aria-atomic="true"` на vote count displays во Presenter
+- Keyboard-navigable charts — останато
+- Alt text за Word Cloud — останато
 
 ---
 

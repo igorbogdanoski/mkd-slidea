@@ -238,6 +238,7 @@ const ExportPDFModal = ({ isOpen, onClose, event, polls }) => {
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        role="dialog" aria-modal="true" aria-label="Извоз на PDF"
         className="relative bg-white rounded-[2rem] p-8 max-w-lg w-full shadow-2xl z-10"
         onClick={e => e.stopPropagation()}
       >

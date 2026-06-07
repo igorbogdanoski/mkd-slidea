@@ -38,7 +38,7 @@ const EventSettingsModal = ({
   return (
     <div className="fixed inset-0 z-[300] flex items-center justify-center p-4" onClick={onClose}>
       <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" />
-      <div className="relative bg-white rounded-[2rem] p-8 max-w-md w-full shadow-2xl z-10 overflow-y-auto max-h-[90vh]" onClick={e => e.stopPropagation()}>
+      <div role="dialog" aria-modal="true" aria-label="Поставки на настан" className="relative bg-white rounded-[2rem] p-8 max-w-md w-full shadow-2xl z-10 overflow-y-auto max-h-[90vh]" onClick={e => e.stopPropagation()}>
         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-600 to-violet-600 rounded-t-[2rem]" />
         <div className="flex items-center justify-between mb-8">
           <h3 className="text-2xl font-black">Поставки на настанот</h3>

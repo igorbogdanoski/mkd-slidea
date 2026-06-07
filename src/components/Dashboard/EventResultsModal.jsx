@@ -179,6 +179,7 @@ const EventResultsModal = ({ event, onClose }) => {
           initial={{ scale: 0.92, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.92, opacity: 0, y: 20 }}
+          role="dialog" aria-modal="true" aria-label="Резултати на настан"
           className="relative bg-[#F8FAFC] rounded-[3rem] w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl pointer-events-auto overflow-hidden"
         >
           {/* Header */}
