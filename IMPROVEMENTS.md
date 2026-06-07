@@ -184,7 +184,7 @@
 | Add poll/quiz | ✅ `tests/host.spec.js` (H-03–04) | ✅ |
 | Cast vote | ✅ `tests/participant.spec.js` (P-08) | ✅ |
 | View results | ✅ `tests/host.spec.js` (H-08) | ✅ |
-| AI generation | ✅ `tests/host.spec.js` (H-06 — modal opens) | Partial — UI only |
+| AI generation | ✅ `tests/host.spec.js` (H-06/b/c — modal, mock generate, error) | ✅ |
 | Settings / Profile | ✅ `tests/settings.spec.js` (SET-01–10) | ✅ |
 | Pricing page | ✅ `tests/pricing.spec.js` (PR-01–10) | ✅ |
 | Templates sort | ✅ `tests/templates-sort.spec.js` (TS-01–10) | ✅ |

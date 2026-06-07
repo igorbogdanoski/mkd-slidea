@@ -140,6 +140,91 @@ test.describe('Host — Session Creation', () => {
     await expect(modal).toBeVisible({ timeout: 5000 });
   });
 
+  test('H-06b: AI generation — successful response renders preview', async ({ page }) => {
+    const mockQuestion = 'Колку планети има во Сончевиот систем?';
+
+    await page.route('**/api/generate', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          question: mockQuestion,
+          type: 'quiz',
+          options: [
+            { text: '6', is_correct: false },
+            { text: '7', is_correct: false },
+            { text: '8', is_correct: true },
+            { text: '9', is_correct: false },
+          ],
+          correct_index: 2,
+        }),
+      })
+    );
+
+    await signIn(page);
+    await goTo(page, '/host');
+
+    // Open AI modal
+    const aiBtn = page.locator(
+      'button:has-text("AI"), button[title*="AI"], button[title*="генерирај"]'
+    ).first();
+    if (await aiBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await aiBtn.click();
+    } else {
+      await page.keyboard.press('a');
+    }
+
+    const modal = page.locator('[role="dialog"]').first();
+    await expect(modal).toBeVisible({ timeout: 5000 });
+
+    // Fill prompt
+    await modal.locator('textarea').fill('Сончев систем');
+
+    // Click generate — button becomes "Генерирам..." (loading)
+    const generateBtn = modal.locator('button:has-text("Генерирај")').first();
+    await generateBtn.click();
+
+    // Loading state: button text changes to "Генерирам..."
+    await expect(modal.locator('text=Генерирам')).toBeVisible({ timeout: 3000 });
+
+    // Preview panel appears with "✓ Генерирано" badge
+    await expect(modal.locator('text=Генерирано')).toBeVisible({ timeout: 8000 });
+
+    // Mocked question renders in preview textarea
+    await expect(modal.locator(`textarea:has-text("${mockQuestion}")`)).toBeVisible({ timeout: 5000 });
+  });
+
+  test('H-06c: AI generation — error response shows error message', async ({ page }) => {
+    await page.route('**/api/generate', (route) =>
+      route.fulfill({
+        status: 500,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'Gemini service unavailable' }),
+      })
+    );
+
+    await signIn(page);
+    await goTo(page, '/host');
+
+    const aiBtn = page.locator(
+      'button:has-text("AI"), button[title*="AI"], button[title*="генерирај"]'
+    ).first();
+    if (await aiBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await aiBtn.click();
+    } else {
+      await page.keyboard.press('a');
+    }
+
+    const modal = page.locator('[role="dialog"]').first();
+    await expect(modal).toBeVisible({ timeout: 5000 });
+
+    await modal.locator('textarea').fill('Тест прашање');
+    await modal.locator('button:has-text("Генерирај")').first().click();
+
+    // Error message from the API should render
+    await expect(modal.locator('text=Gemini service unavailable')).toBeVisible({ timeout: 8000 });
+  });
+
   test('H-07: Templates modal opens', async ({ page }) => {
     await signIn(page);
     await goTo(page, '/host');
