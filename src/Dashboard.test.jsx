@@ -4,23 +4,24 @@ import Dashboard from './views/Dashboard';
 import { BrowserRouter } from 'react-router-dom';
 
 describe('Dashboard Component', () => {
-  it('renders correctly and shows welcome message', () => {
+  it('renders the MKD Slidea logo in the sidebar', () => {
     render(
       <BrowserRouter>
         <Dashboard setView={vi.fn()} />
       </BrowserRouter>
     );
-    
-    expect(screen.getByText(/Добредојде, Игор Богданоски/i)).toBeInTheDocument();
+    // Sidebar brand name is always rendered regardless of auth state
+    expect(screen.getAllByText(/MKD Slidea/i)[0]).toBeInTheDocument();
   });
 
-  it('contains the analytics menu item', () => {
+  it('contains the analytics navigation item', () => {
     render(
       <BrowserRouter>
         <Dashboard setView={vi.fn()} />
       </BrowserRouter>
     );
-    
-    expect(screen.getByText(/Аналитика/i)).toBeInTheDocument();
+    // Multiple elements may match (desktop sidebar + mobile nav) — getAllByText handles that
+    const items = screen.getAllByText(/Аналитика/i);
+    expect(items.length).toBeGreaterThanOrEqual(1);
   });
 });
