@@ -149,6 +149,16 @@
 - Вграден во `src/views/Presenter.jsx` — toggle клавиш `D`
 - Само HOST го гледа (overlay на презентерскиот екран, не учесниците)
 
+### USAGE-1: Usage Dashboard — ✅ ЗАВРШЕНО
+
+- `src/components/Dashboard/Sidebar.jsx` — `UsageMeter` компонент
+- `useEventCount` hook — COUNT(events) за тековниот корисник
+- Progress bar со боја: индиго (< 60%) → жолта (60–89%) → црвена (≥ 90%)
+- При ≥ 90%: "Скоро го достигнувате лимитот" + inline "Надгради → Pro" копче
+- При 100%: "Го достигнавте лимитот!" + upgrade CTA
+- Скриен за Pro/Semester/Yearly/Admin (unlimited plans)
+- Интегрира со `PLANS.free.maxActiveEvents = 5` од `src/lib/plans.js`
+
 ### REGION-1: Регионален Push
 
 - Маркетинг за SQ, SR, BG пазари

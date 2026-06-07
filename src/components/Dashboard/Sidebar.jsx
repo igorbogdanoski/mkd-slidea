@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import {
   Home, Presentation, LayoutGrid, Users,
   CreditCard, Share2, Trash2, LogOut, BarChart2, Lock, Shield, Gift, KeyRound, User, Sparkles, Building2, Receipt,
-  CheckCircle2, Circle, ChevronDown, ChevronUp, X
+  CheckCircle2, Circle, ChevronDown, ChevronUp, X, Zap,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { PLANS, isPro } from '../../lib/plans';
 
 const DISMISS_KEY = 'mkd_checklist_dismissed_until';
 
@@ -105,6 +106,97 @@ const OnboardingChecklist = ({ user, setActiveTab }) => {
   );
 };
 
+// ── Usage Meter ────────────────────────────────────────────────────────────
+
+const useEventCount = (userId) => {
+  const [count, setCount] = useState(null);
+  useEffect(() => {
+    if (!userId) return;
+    supabase
+      .from('events')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .then(({ count: c }) => setCount(c ?? 0));
+  }, [userId]);
+  return count;
+};
+
+const UsageMeter = ({ user, setActiveTab }) => {
+  const eventCount = useEventCount(user?.id);
+  const plan = PLANS[user?.plan] || PLANS.free;
+  const limit = plan.maxActiveEvents;
+
+  // Hidden for paid plans (unlimited events)
+  if (isPro(user) || limit === Infinity || eventCount === null) return null;
+
+  const pct = Math.min((eventCount / limit) * 100, 100);
+  const isWarn = pct >= 60 && pct < 90;
+  const isCrit = pct >= 90;
+
+  const barColor = isCrit
+    ? 'bg-red-500'
+    : isWarn
+    ? 'bg-amber-400'
+    : 'bg-indigo-500';
+
+  const textColor = isCrit
+    ? 'text-red-600'
+    : isWarn
+    ? 'text-amber-600'
+    : 'text-indigo-600';
+
+  return (
+    <div className="mx-4 mb-3 bg-slate-50 dark:bg-slate-800/60 rounded-3xl border border-slate-100 dark:border-slate-700 px-5 py-4">
+      <div className="flex items-center justify-between mb-2.5">
+        <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+          Настани
+        </span>
+        <span className={`text-xs font-black tabular-nums ${textColor}`}>
+          {eventCount}/{limit}
+        </span>
+      </div>
+
+      {/* Progress bar */}
+      <div className="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${barColor}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+
+      {isCrit ? (
+        <div className="mt-3">
+          <p className="text-[10px] font-bold text-red-500 mb-2">
+            {eventCount >= limit ? 'Го достигнавте лимитот!' : 'Скоро го достигнувате лимитот'}
+          </p>
+          <button
+            onClick={() => setActiveTab('plan')}
+            className="w-full flex items-center justify-center gap-1.5 py-2 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-700 transition-colors"
+          >
+            <Zap size={10} /> Надгради → Pro
+          </button>
+        </div>
+      ) : isWarn ? (
+        <p className="mt-2 text-[10px] font-bold text-amber-500">
+          Уште {limit - eventCount} настан{limit - eventCount === 1 ? '' : 'и'} на бесплатниот план.{' '}
+          <button
+            onClick={() => setActiveTab('plan')}
+            className="text-indigo-500 hover:text-indigo-700 underline underline-offset-2 transition-colors"
+          >
+            Надгради
+          </button>
+        </p>
+      ) : (
+        <p className="mt-2 text-[10px] font-medium text-slate-400 dark:text-slate-500">
+          Бесплатен план · {limit - eventCount} достапни
+        </p>
+      )}
+    </div>
+  );
+};
+
+// ── Sidebar ────────────────────────────────────────────────────────────────
+
 const Sidebar = ({ activeTab, setActiveTab, user, onLogout }) => {
   const userPlan = user?.plan || 'basic';
 
@@ -162,6 +254,7 @@ const Sidebar = ({ activeTab, setActiveTab, user, onLogout }) => {
       </nav>
 
       <OnboardingChecklist user={user} setActiveTab={setActiveTab} />
+      <UsageMeter user={user} setActiveTab={setActiveTab} />
 
       <div className="p-4 mt-auto">
         {userPlan === 'basic' && (
