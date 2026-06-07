@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   TrendingUp, Users, Zap, Award,
-  BarChart2, PieChart as PieIcon, Calendar
+  BarChart2, PieChart as PieIcon, Calendar, Activity
 } from 'lucide-react';
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid,
+  AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, PieChart, Pie, Cell
 } from 'recharts';
 import { supabase } from '../../lib/supabase';
@@ -25,6 +25,14 @@ const AnalyticsTab = ({ user }) => {
   const [areaData, setAreaData] = useState([]);
   const [pieData, setPieData] = useState([]);
   const [topEvents, setTopEvents] = useState([]);
+
+  // Drill-down: votes over time per poll
+  const [allEventsData, setAllEventsData] = useState([]);
+  const [allPollsData, setAllPollsData] = useState([]);
+  const [drillEventId, setDrillEventId] = useState('');
+  const [drillPollId, setDrillPollId] = useState('');
+  const [drillLoading, setDrillLoading] = useState(false);
+  const [drillChartData, setDrillChartData] = useState(null);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -47,7 +55,7 @@ const AnalyticsTab = ({ user }) => {
     // 2. Get polls for those events
     const { data: polls } = await supabase
       .from('polls')
-      .select('id, type, event_id')
+      .select('id, type, event_id, question')
       .in('event_id', eventIds);
 
     const pollIds = polls?.map(p => p.id) || [];
@@ -127,9 +135,53 @@ const AnalyticsTab = ({ user }) => {
       };
     }).sort((a, b) => b.votes - a.votes);
     setTopEvents(enriched);
+    setAllEventsData(events);
+    setAllPollsData(polls || []);
 
     setLoading(false);
   };
+
+  // Fetch votes for selected poll and build time-series
+  const loadDrill = async (pollId) => {
+    setDrillLoading(true);
+    setDrillChartData(null);
+    const { data: votes } = await supabase
+      .from('votes')
+      .select('created_at, session_id')
+      .eq('poll_id', pollId)
+      .order('created_at', { ascending: true });
+    if (!votes?.length) { setDrillLoading(false); setDrillChartData([]); return; }
+
+    // Bucket into 1-minute intervals
+    const first = new Date(votes[0].created_at);
+    const last = new Date(votes[votes.length - 1].created_at);
+    const buckets = {};
+    const diffMin = Math.ceil((last - first) / 60000) + 1;
+    const interval = diffMin <= 30 ? 1 : diffMin <= 120 ? 5 : 15;
+    for (let i = 0; i <= diffMin; i += interval) {
+      const t = new Date(first.getTime() + i * 60000);
+      const key = `${String(t.getHours()).padStart(2, '0')}:${String(Math.floor(t.getMinutes() / interval) * interval).padStart(2, '0')}`;
+      buckets[key] = { time: key, гласови: 0, учесници: new Set() };
+    }
+    votes.forEach(v => {
+      const t = new Date(v.created_at);
+      const minFromStart = Math.floor((t - first) / 60000 / interval) * interval;
+      const ref = new Date(first.getTime() + minFromStart * 60000);
+      const key = `${String(ref.getHours()).padStart(2, '0')}:${String(Math.floor(ref.getMinutes() / interval) * interval).padStart(2, '0')}`;
+      if (buckets[key]) {
+        buckets[key].гласови += 1;
+        buckets[key].учесници.add(v.session_id);
+      }
+    });
+    const chart = Object.values(buckets).map(b => ({ time: b.time, гласови: b.гласови, учесници: b.учесници.size }));
+    setDrillChartData(chart);
+    setDrillLoading(false);
+  };
+
+  useEffect(() => {
+    if (drillPollId) loadDrill(drillPollId);
+    else setDrillChartData(null);
+  }, [drillPollId]);
 
   const formatDate = (iso) => {
     if (!iso) return '';
@@ -304,6 +356,84 @@ const AnalyticsTab = ({ user }) => {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+      {/* Votes over time — per poll drill-down */}
+      {allEventsData.length > 0 && (
+        <div className="bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden">
+          <div className="p-8 border-b border-slate-50 flex items-center gap-3">
+            <Activity size={22} className="text-violet-500" />
+            <div>
+              <h3 className="text-xl font-black">Гласови во реално време — по анкета</h3>
+              <p className="text-xs font-bold text-slate-400 mt-0.5">Изберете настан и анкета за да видите кога дошле гласовите</p>
+            </div>
+          </div>
+          <div className="p-8">
+            <div className="flex flex-col sm:flex-row gap-4 mb-8">
+              <select
+                value={drillEventId}
+                onChange={(e) => { setDrillEventId(e.target.value); setDrillPollId(''); }}
+                className="flex-1 bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3 font-bold text-slate-700 focus:border-indigo-400 focus:bg-white outline-none transition-all text-sm"
+              >
+                <option value="">— Избери настан —</option>
+                {allEventsData.map(ev => (
+                  <option key={ev.id} value={ev.id}>{ev.title} #{ev.code}</option>
+                ))}
+              </select>
+              <select
+                value={drillPollId}
+                onChange={(e) => setDrillPollId(e.target.value)}
+                disabled={!drillEventId}
+                className="flex-1 bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3 font-bold text-slate-700 focus:border-indigo-400 focus:bg-white outline-none transition-all text-sm disabled:opacity-40"
+              >
+                <option value="">— Избери анкета —</option>
+                {allPollsData.filter(p => p.event_id === drillEventId).map(p => (
+                  <option key={p.id} value={p.id}>{p.question || `Анкета (${p.type})`}</option>
+                ))}
+              </select>
+            </div>
+
+            {drillLoading && (
+              <div className="flex items-center justify-center h-48">
+                <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
+
+            {!drillLoading && drillChartData === null && !drillPollId && (
+              <div className="flex flex-col items-center justify-center h-48 text-slate-300 gap-3">
+                <Activity size={40} className="opacity-30" />
+                <p className="font-black text-sm">Избери настан и анкета за да видиш тајмлајн на гласови</p>
+              </div>
+            )}
+
+            {!drillLoading && drillChartData !== null && drillChartData.length === 0 && (
+              <div className="flex items-center justify-center h-48 text-slate-400 font-bold text-sm">
+                Нема гласови за оваа анкета уште
+              </div>
+            )}
+
+            {!drillLoading && drillChartData?.length > 0 && (
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={drillChartData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontWeight: 900, fontSize: 10 }} dy={8} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontWeight: 900, fontSize: 10 }} allowDecimals={false} />
+                    <Tooltip
+                      contentStyle={{ borderRadius: '1.5rem', border: 'none', boxShadow: '0 20px 50px rgba(0,0,0,0.08)', padding: '1rem' }}
+                      itemStyle={{ fontWeight: 900 }}
+                    />
+                    <Line type="monotone" dataKey="гласови" stroke="#6366f1" strokeWidth={3} dot={false} activeDot={{ r: 5, fill: '#6366f1' }} />
+                    <Line type="monotone" dataKey="учесници" stroke="#10b981" strokeWidth={2} dot={false} activeDot={{ r: 4, fill: '#10b981' }} strokeDasharray="4 2" />
+                  </LineChart>
+                </ResponsiveContainer>
+                <div className="flex gap-6 justify-center mt-4">
+                  <div className="flex items-center gap-2"><div className="w-3 h-3 bg-indigo-600 rounded-full" /><span className="text-xs font-bold text-slate-400">Гласови</span></div>
+                  <div className="flex items-center gap-2"><div className="w-3 h-3 bg-emerald-400 rounded-full opacity-70" /><span className="text-xs font-bold text-slate-400">Уникатни учесници</span></div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -94,11 +94,11 @@
 - Bottom navigation bar за мобил (Home, Create, Results, Profile) — 2 дена
 - **Фајлови:** `src/views/Dashboard.jsx`
 
-### ANALY-1: Time-series Analytics
-- Votes-over-time chart по poll — 2 дена
-- Споредба на 2 сесии — 3 дена
-- AI Insights по завршена сесија — 3 дена
-- **Фајлови:** `src/components/AnalyticsTab.jsx`
+### ANALY-1: Time-series Analytics — ✅ ДЕЛУМНО ЗАВРШЕНО
+- Votes-over-time LineChart по poll (drill-down: избери настан → избери анкета → види тајмлајн) — имплементирано
+- Автоматски interval: 1min / 5min / 15min во зависност од должината на сесијата
+- Споредба на 2 сесии — останато
+- AI Insights по завршена сесија — останато
 
 ---
 
