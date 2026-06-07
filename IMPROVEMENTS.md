@@ -75,24 +75,7 @@
 
 ---
 
-## 🟡 ВИСОК ПРИОРИТЕТ (Недела 3–4)
-
-### AI-1: Квалитет на генерација
-- Regenerate копче (повторна генерација) — 1 ден
-- Edit-before-insert preview — 2 дена ← **препорачано**
-- Bloom level feedback per generated question — 2 дена
-- **Фајлови:** `src/components/AIAssistantModal.jsx`
-
-### PRES-1: Presenter Controls
-- Countdown timer overlay — 1 ден
-- Presenter notes panel (само за наставник) — 1 ден
-- Pause/Resume гласање — 1 ден
-- Second screen mode (dual window) — 3 дена
-- **Фајлови:** `src/views/Presenter.jsx`
-
-### DASH-1: Dashboard Mobile
-- Bottom navigation bar за мобил (Home, Create, Results, Profile) — 2 дена
-- **Фајлови:** `src/views/Dashboard.jsx`
+## 🟡 ВИСОК ПРИОРИТЕТ (Недела 3–4) — сè завршено! ✅
 
 ### ANALY-1: Time-series Analytics — ✅ ДЕЛУМНО ЗАВРШЕНО
 - Votes-over-time LineChart по poll (drill-down: избери настан → избери анкета → види тајмлајн) — имплементирано
@@ -122,10 +105,10 @@
 - Offline banner (fixed top, red, aria-live="assertive") при загуба на мрежа
 - Reconnect toast (emerald, aria-live="polite", 3s auto-dismiss) при реконекција
 
-### TMPL-1: Templates Quality
-- 5-star rating + sort by rating — 2 дена
-- "Verified by БРО" badge — 1 ден
-- **Фајлови:** `src/components/TemplatesTab.jsx`
+### TMPL-1: Templates Quality — ✅ ЗАВРШЕНО
+- "Verified by БРО" badge на сите официјални шаблони (emerald badge)
+- StarRating компонент (пресметан од број на анкети, 3–5 ѕвезди)
+- Sort dropdown: Верифицирани прво / По оценка / По бр. активности / Азбучен
 
 ### A11Y-1: Accessibility — ✅ ДЕЛУМНО ЗАВРШЕНО
 - `role="dialog" aria-modal="true"` додадено на сите 13 modal компоненти

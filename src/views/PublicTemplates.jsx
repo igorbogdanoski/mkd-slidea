@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, BookOpen, ArrowRight, Sparkles, Users, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { Search, BookOpen, ArrowRight, Sparkles, Users, ArrowLeft, CheckCircle2, Star, ArrowUpDown } from 'lucide-react';
 import { STARTER_TEMPLATES, TEMPLATE_SUBJECTS } from '../lib/starterTemplates';
 import { supabase } from '../lib/supabase';
 import { useSEO } from '../hooks/useSEO';
@@ -12,6 +12,8 @@ const slugify = (s) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '') || 'tpl';
 
+const starRating = (pollCount) => Math.min(5, Math.max(3, Math.ceil(pollCount / 2)));
+
 const normalizeStarter = (t) => ({
   slug: t.id,
   title: t.title,
@@ -21,6 +23,8 @@ const normalizeStarter = (t) => ({
   description: t.description,
   polls: t.polls || [],
   source: 'starter',
+  verified: true,
+  stars: starRating((t.polls || []).length),
   views: 0,
 });
 
@@ -69,6 +73,14 @@ const useAllTemplates = () => {
   return { all, community, loading };
 };
 
+const StarRating = ({ count }) => (
+  <div className="flex items-center gap-0.5" aria-label={`${count} од 5 ѕвезди`}>
+    {[1, 2, 3, 4, 5].map((s) => (
+      <Star key={s} className={`w-3 h-3 ${s <= count ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`} />
+    ))}
+  </div>
+);
+
 const TemplateCard = ({ tpl }) => (
   <Link
     to={`/templates/${tpl.slug}`}
@@ -76,18 +88,30 @@ const TemplateCard = ({ tpl }) => (
   >
     <div className="flex items-start justify-between mb-3">
       <span className="text-3xl">{tpl.icon || '📋'}</span>
-      {tpl.source === 'community' && (
-        <span className="text-[9px] font-black px-2 py-1 rounded-full bg-violet-100 text-violet-700 uppercase tracking-widest">
-          Community
-        </span>
-      )}
+      <div className="flex flex-col items-end gap-1">
+        {tpl.verified && (
+          <span className="flex items-center gap-1 text-[9px] font-black px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 uppercase tracking-widest border border-emerald-100">
+            <CheckCircle2 className="w-3 h-3" /> БРО
+          </span>
+        )}
+        {tpl.source === 'community' && !tpl.verified && (
+          <span className="text-[9px] font-black px-2 py-1 rounded-full bg-violet-100 text-violet-700 uppercase tracking-widest">
+            Community
+          </span>
+        )}
+      </div>
     </div>
     <h3 className="text-lg font-black text-slate-900 mb-1 group-hover:text-indigo-600 transition-colors line-clamp-2">
       {tpl.title}
     </h3>
-    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
+    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
       {tpl.subject}{tpl.grade ? ` · ${tpl.grade}` : ''}
     </p>
+    {tpl.stars && (
+      <div className="mb-2">
+        <StarRating count={tpl.stars} />
+      </div>
+    )}
     <p className="text-sm text-slate-500 leading-relaxed line-clamp-3 mb-4 flex-1">
       {tpl.description || 'Готова интерактивна активност.'}
     </p>
@@ -104,6 +128,7 @@ const PublicTemplatesIndex = () => {
   const { all, loading } = useAllTemplates();
   const [query, setQuery] = useState('');
   const [subject, setSubject] = useState('Сите');
+  const [sortBy, setSortBy] = useState('default');
 
   useSEO({
     title: 'Бесплатни шаблони за квизови и анкети — MKD Slidea',
@@ -134,7 +159,7 @@ const PublicTemplatesIndex = () => {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return all.filter((t) => {
+    const base = all.filter((t) => {
       const matchesSubject = subject === 'Сите' || t.subject === subject;
       const matchesQuery =
         !q ||
@@ -143,7 +168,12 @@ const PublicTemplatesIndex = () => {
         (t.subject || '').toLowerCase().includes(q);
       return matchesSubject && matchesQuery;
     });
-  }, [all, query, subject]);
+    if (sortBy === 'polls') return [...base].sort((a, b) => b.polls.length - a.polls.length);
+    if (sortBy === 'alpha') return [...base].sort((a, b) => a.title.localeCompare(b.title, 'mk'));
+    if (sortBy === 'stars') return [...base].sort((a, b) => (b.stars || 0) - (a.stars || 0));
+    // default: verified first, then community
+    return [...base].sort((a, b) => (b.verified ? 1 : 0) - (a.verified ? 1 : 0));
+  }, [all, query, subject, sortBy]);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
@@ -185,6 +215,17 @@ const PublicTemplatesIndex = () => {
           {TEMPLATE_SUBJECTS.map((s) => (
             <option key={s} value={s}>{s}</option>
           ))}
+        </select>
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          aria-label="Сортирај"
+          className="px-5 py-4 bg-white border-2 border-slate-100 rounded-2xl font-black text-slate-700 focus:border-indigo-500 outline-none transition-all"
+        >
+          <option value="default">✅ Верифицирани прво</option>
+          <option value="stars">⭐ По оценка</option>
+          <option value="polls">📊 По бр. активности</option>
+          <option value="alpha">🔤 Азбучен</option>
         </select>
       </div>
 
