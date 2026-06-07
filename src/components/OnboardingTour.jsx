@@ -107,7 +107,7 @@ const OnboardingTour = ({ onDone }) => {
   // Scroll target into view
   useEffect(() => {
     const el = document.querySelector(current.target);
-    el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    el?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
     setTimeout(updateRect, 300);
   }, [step, current.target, updateRect]);
 
