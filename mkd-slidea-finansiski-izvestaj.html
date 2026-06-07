@@ -900,9 +900,9 @@
             <span class="priority-badge priority-a">А-2</span>
             <div class="priority-text"><strong>Автоматски Enterprise Onboarding:</strong> Тренутно школите се активираат рачно. Потребен е automated bulk invite system (CSV upload → auto-licenses).</div>
           </div>
-          <div class="priority-item">
-            <span class="priority-badge priority-a">А-3</span>
-            <div class="priority-text"><strong>Usage Dashboard за корисникот:</strong> Наставникот треба да гледа: колку AI генерации денес, колку настани овој месец, колку учесници — директно во интерфејсот.</div>
+          <div class="priority-item" style="opacity:0.6;">
+            <span class="priority-badge" style="background:#10b981;">✅</span>
+            <div class="priority-text"><strong>Usage Dashboard за корисникот:</strong> <em>ЗАВРШЕНО во Sprint 9</em> — UsageMeter во Sidebar со progress bar, бои по праг (индиго/жолта/црвена), inline Upgrade CTA при ≥90%.</div>
           </div>
           <div class="priority-item">
             <span class="priority-badge priority-a">А-4</span>
@@ -940,9 +940,9 @@
             <span class="priority-badge priority-c">В-1</span>
             <div class="priority-text"><strong>Breakout Rooms / Групна работа:</strong> Наставникот го дели разредот во тимови. Тимски натпревари, groupwork задачи — Nearpod/PearDeck функција.</div>
           </div>
-          <div class="priority-item">
-            <span class="priority-badge priority-c">В-2</span>
-            <div class="priority-text"><strong>Drawing Annotations:</strong> Учесниците цртаат на слајдот (геометриски конструкции, графици) — критично за математика и природни науки.</div>
+          <div class="priority-item" style="opacity:0.6;">
+            <span class="priority-badge" style="background:#10b981;">✅</span>
+            <div class="priority-text"><strong>Drawing Annotations:</strong> <em>ЗАВРШЕНО</em> — DrawingCanvas.jsx со пенкало, гума, 5 бои, touch/pointer поддршка, toggle клавиш D во Presenter View.</div>
           </div>
           <div class="priority-item">
             <span class="priority-badge priority-c">В-3</span>
@@ -1050,17 +1050,21 @@
               <li><strong>8 активности + 5 AI модули</strong> — Production-ready, без конкурент на MK пазар</li>
               <li><strong>7 јазици</strong> — директно адресира мултиетничката образовна средина</li>
               <li><strong>Нула инфраструктурни трошоци</strong> до 1.000 корисници (Free tiers)</li>
-              <li><strong>CI/CD + 50+ тестови</strong> — индустриски квалитет на кодот</li>
+              <li><strong>CI/CD + 80+ тестови</strong> — индустриски квалитет на кодот</li>
+              <li><strong>Session Scheduling + email reminder</strong> — автоматски потсетник 15 мин пред настан (pg_cron + Resend)</li>
+              <li><strong>Јавни резултати (/results/:code)</strong> — органски acquisition loop, без auth</li>
+              <li><strong>Live реакции</strong> — emoji float со spring анимација, нула DB cost (Supabase Realtime broadcast)</li>
             </ul>
           </div>
           <div class="card" style="border-left:4px solid var(--red);">
             <div class="card-title" style="color:var(--red);">Слаби страни (Weaknesses)</div>
             <ul style="margin-top:8px;">
               <li><strong>Еден-човек тим</strong> — сè зависи од основачот (развој, поддршка, продажба)</li>
-              <li><strong>Stripe merchant account</strong> — наплатата не е автоматизирана</li>
+              <li><strong>Stripe merchant account</strong> — наплатата не е автоматизирана (следен приоритет)</li>
               <li><strong>Нема посветена продажна функција</strong> — zero outbound</li>
               <li><strong>Непотврдени метрики</strong> — „800+ наставници" е проекциона цел, не верифицирана база</li>
               <li><strong>Нема native мобилна апликација</strong> — тренутно само PWA</li>
+              <li><strong>VAT фактури за јавна набавка</strong> — потребен систем за МКД фактури со ДДВ за школски буџети</li>
             </ul>
           </div>
           <div class="card" style="border-left:4px solid var(--mid);">
