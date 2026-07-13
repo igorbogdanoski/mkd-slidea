@@ -50,8 +50,16 @@ const Embed = () => {
   useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
+    // Prefer document.referrer's origin, then Chromium's ancestorOrigins (no
+    // referrer needed) — only fall back to '*' when neither signal is
+    // available (e.g. a strict Referrer-Policy on the embedding page). The
+    // payload is just a height number, so '*' here is low-risk, but this
+    // narrows how often it's actually used.
+    const parentOrigin = document.referrer
+      ? new URL(document.referrer).origin
+      : (window.location.ancestorOrigins?.[0] || '*');
     const resize = () => {
-      window.parent.postMessage({ type: 'mkd-slidea-resize', height: el.scrollHeight }, document.referrer ? new URL(document.referrer).origin : '*');
+      window.parent.postMessage({ type: 'mkd-slidea-resize', height: el.scrollHeight }, parentOrigin);
     };
     resize();
     const observer = new ResizeObserver(resize);

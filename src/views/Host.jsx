@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, ArrowLeft, Sparkles, Settings, FileDown, BarChart2, Sheet, Upload, FileText, Mail
@@ -12,6 +13,7 @@ import AIInsightsModal from '../components/AIInsightsModal';
 import ExportPDFModal from '../components/ExportPDFModal';
 import ParticipantStatsModal from '../components/ParticipantStatsModal';
 import { isPro } from '../lib/plans';
+import { verifyProPlan } from '../lib/planCheck';
 import HostHeader from '../components/Host/HostHeader';
 import EventSettingsModal from '../components/Host/EventSettingsModal';
 import HostNavBar from '../components/Host/HostNavBar';
@@ -28,6 +30,26 @@ import { downloadMarkdown } from '../lib/exportMarkdown';
 
 const Host = ({ setView, user }) => {
   const { announce } = useLiveAnnouncer();
+  const navigate = useNavigate();
+  const [proCheckPending, setProCheckPending] = useState(false);
+
+  // Server-verifies the caller's real plan before running a Pro-gated action.
+  // The "Pro" badge on these buttons is just a hint — this is the actual
+  // enforcement point, since the client's local `user.plan` can't be trusted.
+  const runIfPro = async (action) => {
+    if (proCheckPending) return;
+    setProCheckPending(true);
+    try {
+      const allowed = await verifyProPlan();
+      if (allowed) {
+        action();
+      } else {
+        navigate('/pricing');
+      }
+    } finally {
+      setProCheckPending(false);
+    }
+  };
 
   // UI-only state — session data lives in useHostSession
   const [isQRModalOpen, setIsQRModalOpen] = useState(false);
@@ -338,8 +360,9 @@ const Host = ({ setView, user }) => {
                           </button>
                           <div className="relative">
                             <button
-                              onClick={session.exportToCSV}
-                              className="flex items-center justify-center gap-2 px-5 py-4 bg-white border-2 border-slate-100 text-slate-500 rounded-2xl font-black hover:border-emerald-200 hover:text-emerald-600 transition-all shadow-sm active:scale-95"
+                              onClick={() => runIfPro(session.exportToCSV)}
+                              disabled={proCheckPending}
+                              className="flex items-center justify-center gap-2 px-5 py-4 bg-white border-2 border-slate-100 text-slate-500 rounded-2xl font-black hover:border-emerald-200 hover:text-emerald-600 transition-all shadow-sm active:scale-95 disabled:opacity-60"
                               title="Извоз CSV/Excel"
                               aria-label="Извоз во CSV / Excel"
                             >
@@ -349,8 +372,9 @@ const Host = ({ setView, user }) => {
                           </div>
                           <div className="relative">
                             <button
-                              onClick={() => setIsExportOpen(true)}
-                              className="flex items-center justify-center gap-2 px-5 py-4 bg-white border-2 border-slate-100 text-slate-500 rounded-2xl font-black hover:border-indigo-200 hover:text-indigo-600 transition-all shadow-sm active:scale-95"
+                              onClick={() => runIfPro(() => setIsExportOpen(true))}
+                              disabled={proCheckPending}
+                              className="flex items-center justify-center gap-2 px-5 py-4 bg-white border-2 border-slate-100 text-slate-500 rounded-2xl font-black hover:border-indigo-200 hover:text-indigo-600 transition-all shadow-sm active:scale-95 disabled:opacity-60"
                               title="Извоз PDF"
                               aria-label="Извоз во PDF"
                             >
@@ -368,8 +392,9 @@ const Host = ({ setView, user }) => {
                           </button>
                           <div className="relative">
                             <button
-                              onClick={() => setIsInsightsOpen(true)}
-                              className="flex items-center justify-center gap-2 px-5 py-4 bg-white border-2 border-slate-100 text-slate-500 rounded-2xl font-black hover:border-violet-200 hover:text-violet-600 transition-all shadow-sm active:scale-95"
+                              onClick={() => runIfPro(() => setIsInsightsOpen(true))}
+                              disabled={proCheckPending}
+                              className="flex items-center justify-center gap-2 px-5 py-4 bg-white border-2 border-slate-100 text-slate-500 rounded-2xl font-black hover:border-violet-200 hover:text-violet-600 transition-all shadow-sm active:scale-95 disabled:opacity-60"
                               title="AI Insights по час"
                               aria-label="AI Insights — анализа по час"
                             >

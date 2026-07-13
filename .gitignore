@@ -56,3 +56,5 @@ test-results/
 # Standalone HTML reports (финансиски извештаи, аудити)
 mismath-finansiski-izvestaj.html
 mkd-slidea-finansiski-izvestaj.html
+
+.env*.local

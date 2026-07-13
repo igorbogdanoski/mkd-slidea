@@ -2,17 +2,28 @@
 // Body: { pollId: string|number, text: string }
 // No auth required — participants are anonymous.
 // Uses service role to bypass anon RLS on the options table.
-// Checks if an option with the same text (case-insensitive) already exists:
-//   - yes → increment its vote count via RPC
-//   - no  → insert a new option (respecting poll's needs_moderation flag)
+// Upserts atomically via the `upsert_text_option` RPC (INSERT ... ON CONFLICT
+// on a (poll_id, lower(text)) unique index) so concurrent submissions of the
+// same word merge into one row with an accurate vote count instead of racing.
 
 export const config = { runtime: 'edge' };
+
+import { getClientIp, checkRateLimit } from './_lib/rateLimit.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+const RATE_LIMIT = 20;
+const RATE_WINDOW_MS = 60 * 1000;
+
 export default async function handler(req) {
   if (req.method !== 'POST') return new Response('Method Not Allowed', { status: 405 });
+
+  const ip = getClientIp(req);
+  const rate = await checkRateLimit('vote-text', ip, RATE_LIMIT, RATE_WINDOW_MS);
+  if (!rate.allowed) {
+    return new Response(JSON.stringify({ error: 'Премногу барања. Обидете се повторно за момент.' }), { status: 429 });
+  }
 
   let body;
   try {
@@ -40,57 +51,30 @@ export default async function handler(req) {
   };
 
   try {
-    // Case-insensitive check for existing option with same text
-    const checkUrl = `${SUPABASE_URL}/rest/v1/options?poll_id=eq.${encodeURIComponent(pollId)}&text=ilike.${encodeURIComponent(clean)}&select=id&limit=1`;
-    const checkRes = await fetch(checkUrl, { headers });
-    if (!checkRes.ok) {
-      const err = await checkRes.text();
-      return new Response(JSON.stringify({ error: `DB check failed: ${err}` }), { status: 500 });
-    }
+    const pollRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/polls?id=eq.${encodeURIComponent(pollId)}&select=needs_moderation&limit=1`,
+      { headers }
+    );
+    const pollRows = pollRes.ok ? await pollRes.json() : [];
+    const isModerated = Array.isArray(pollRows) && pollRows[0]?.needs_moderation === true;
 
-    const existing = await checkRes.json();
-
-    if (Array.isArray(existing) && existing.length > 0) {
-      // Existing option — increment its vote count via security-definer RPC
-      const incrRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_vote`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ option_id: existing[0].id }),
-      });
-      if (!incrRes.ok) {
-        const err = await incrRes.text();
-        return new Response(JSON.stringify({ error: `Increment failed: ${err}` }), { status: 500 });
-      }
-    } else {
-      // New option — check poll's moderation setting before inserting
-      const pollRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/polls?id=eq.${encodeURIComponent(pollId)}&select=needs_moderation&limit=1`,
-        { headers }
-      );
-      const pollRows = pollRes.ok ? await pollRes.json() : [];
-      const isModerated = Array.isArray(pollRows) && pollRows[0]?.needs_moderation === true;
-
-      const insRes = await fetch(`${SUPABASE_URL}/rest/v1/options`, {
-        method: 'POST',
-        headers: { ...headers, Prefer: 'return=minimal' },
-        body: JSON.stringify({
-          poll_id: pollId,
-          text: clean,
-          votes: 1,
-          is_approved: !isModerated,
-        }),
-      });
-      if (!insRes.ok) {
-        const err = await insRes.text();
-        return new Response(JSON.stringify({ error: `Insert failed: ${err}` }), { status: 500 });
-      }
+    // Atomic upsert: INSERT ... ON CONFLICT (poll_id, lower(text)) DO UPDATE
+    // votes = votes + 1. Concurrent submissions of the same word merge into
+    // one row instead of racing into duplicates.
+    const upsertRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/upsert_text_option`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ p_poll_id: pollId, p_text: clean, p_is_approved: !isModerated }),
+    });
+    if (!upsertRes.ok) {
+      return new Response(JSON.stringify({ error: 'Не успеа да се зачува гласот. Обиди се повторно.' }), { status: 500 });
     }
 
     return new Response(JSON.stringify({ ok: true }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+  } catch {
+    return new Response(JSON.stringify({ error: 'Не успеа да се зачува гласот. Обиди се повторно.' }), { status: 500 });
   }
 }

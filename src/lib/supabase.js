@@ -8,9 +8,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn("Supabase credentials are missing. Real-time features will not work.");
 }
 
-// Multi-tab resilient configuration
-// Use crossTab: false to minimize lock contention, rely on broadcast fallback instead
-// Use lock for atomicity where needed (participant voting per session)
+// Single-tab client configuration. The Web Locks API (used by default for
+// cross-tab auth coordination) is bypassed below because it caused
+// INITIAL_SESSION to hang on reload when warmUp() competed for the same lock
+// during module init — this app doesn't rely on cross-tab session locking.
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
   supabaseAnonKey || 'placeholder',

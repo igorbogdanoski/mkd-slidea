@@ -31,24 +31,25 @@ const typeInfo = (poll) => {
 // ── Poll result card ───────────────────────────────────────────────────────
 
 const PollCard = ({ poll, index }) => {
-  const totalVotes = poll.options?.reduce((s, o) => s + (o.votes || 0), 0) || 0;
+  const approvedOptions = (poll.options || []).filter(o => o.is_approved !== false);
+  const totalVotes = approvedOptions.reduce((s, o) => s + (o.votes || 0), 0);
   const { icon, label, color } = typeInfo(poll);
-  const sorted = [...(poll.options || [])].sort((a, b) => (b.votes || 0) - (a.votes || 0));
+  const sorted = [...approvedOptions].sort((a, b) => (b.votes || 0) - (a.votes || 0));
 
   const isWordCloud = poll.type === 'wordcloud';
   const isOpen      = poll.type === 'open';
   const isRating    = poll.type === 'rating' || poll.type === 'scale';
   const isRanking   = poll.type === 'ranking';
 
-  const avgRating = isRating && totalVotes > 0 && poll.options?.length
-    ? (poll.options.reduce((a, o) => a + parseInt(o.text || 0) * (o.votes || 0), 0) / totalVotes).toFixed(1)
+  const avgRating = isRating && totalVotes > 0 && approvedOptions.length
+    ? (approvedOptions.reduce((a, o) => a + parseInt(o.text || 0) * (o.votes || 0), 0) / totalVotes).toFixed(1)
     : null;
 
-  const chartData = poll.options?.map((o) => ({
+  const chartData = approvedOptions.map((o) => ({
     name: o.text?.slice(0, 28) || '—',
     votes: o.votes || 0,
     pct: totalVotes > 0 ? Math.round((o.votes || 0) / totalVotes * 100) : 0,
-  })) || [];
+  }));
 
   return (
     <motion.div
@@ -260,7 +261,7 @@ const PublicResults = () => {
 
       const { data: ps } = await supabase
         .from('polls')
-        .select('*, options(*)')
+        .select('id, event_id, question, active, is_quiz, created_at, type, results_visible, position, timer_ends_at, survey_questions, needs_moderation, curriculum_tags, options(id, poll_id, text, votes, is_correct, is_approved)')
         .eq('event_id', ev.id)
         .order('created_at', { ascending: true });
 

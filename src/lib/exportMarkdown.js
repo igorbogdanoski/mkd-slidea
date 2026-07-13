@@ -10,7 +10,7 @@ const TYPE_LABELS = {
   ranking: 'Рангирање',
 };
 
-const escapeMd = (s) => String(s ?? '').replace(/[\\`*_{}\[\]()#+\-!>|]/g, (m) => `\\${m}`);
+const escapeMd = (s) => String(s ?? '').replace(/[\\`*_{}[\]()#+\-!>|]/g, (m) => `\\${m}`);
 
 export function buildEventMarkdown(event, polls) {
   const lines = [];

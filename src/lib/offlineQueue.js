@@ -24,9 +24,13 @@ function writeQueue(items) {
   }
 }
 
+function makeId() {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
 export function queueVote(payload) {
   const q = readQueue();
-  q.push({ ...payload, queued_at: Date.now() });
+  q.push({ ...payload, id: makeId(), queued_at: Date.now() });
   writeQueue(q);
 }
 
@@ -36,19 +40,24 @@ export async function flushQueue() {
   const items = readQueue();
   if (!items.length) return;
   flushing = true;
-  const remaining = [];
+  const succeededIds = new Set();
   for (const item of items) {
+    const id = item.id || (item.id = makeId());
     try {
       const { error } = await supabase.from('votes').upsert(item.row, {
         onConflict: 'poll_id,session_id',
         ignoreDuplicates: false,
       });
-      if (error) remaining.push(item);
+      if (!error) succeededIds.add(id);
     } catch {
-      remaining.push(item);
+      // leave it queued for the next flush attempt
     }
   }
-  writeQueue(remaining);
+  // Re-read the queue instead of writing back the start-of-flush snapshot —
+  // queueVote() may have appended new items while this flush was in flight,
+  // and blindly overwriting with the stale snapshot would drop them.
+  const current = readQueue();
+  writeQueue(current.filter(item => !succeededIds.has(item.id)));
   flushing = false;
 }
 

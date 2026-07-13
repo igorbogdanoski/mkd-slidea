@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const TemplatesTab = ({ allTemplates, templatesLoading, useTemplate }) => (
+const TemplatesTab = ({ allTemplates, templatesLoading, applyTemplate }) => (
   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="p-12">
     <div className="flex items-center justify-between mb-12">
       <div>
@@ -44,7 +44,7 @@ const TemplatesTab = ({ allTemplates, templatesLoading, useTemplate }) => (
               )}
               <div className="flex gap-2">
                 <button
-                  onClick={() => useTemplate(temp)}
+                  onClick={() => applyTemplate(temp)}
                   className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-black text-xs hover:bg-indigo-700 transition-all active:scale-95"
                 >
                   Користи

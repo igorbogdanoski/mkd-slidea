@@ -331,7 +331,7 @@ const Participant = ({
               </span>
             </div>
             
-            <h2 className="text-2xl font-black text-slate-900 mb-8 leading-tight whitespace-pre-line">
+            <h2 id="poll-question" className="text-2xl font-black text-slate-900 mb-8 leading-tight whitespace-pre-line">
               {currentPoll.question}
             </h2>
 
@@ -632,17 +632,22 @@ const Participant = ({
                     </button>
                   </div>
                 ) : (
-                  currentPoll.options.map((option, i) => (
-                    <button
-                      key={i}
-                      onClick={() => { haptic([30]); handleVote(i); }}
-                      className="w-full group relative overflow-hidden p-6 rounded-3xl border-2 border-slate-100 hover:border-indigo-600 hover:bg-indigo-50 active:scale-[0.98] transition-all text-left"
-                    >
-                      <div className="relative z-10 flex justify-between items-center font-bold">
-                        <span className="text-slate-700">{option.text}</span>
-                      </div>
-                    </button>
-                  ))
+                  <div role="radiogroup" aria-labelledby="poll-question" className="contents">
+                    {currentPoll.options.map((option, i) => (
+                      <button
+                        key={i}
+                        role="radio"
+                        aria-checked="false"
+                        aria-label={option.text}
+                        onClick={() => { haptic([30]); handleVote(i); }}
+                        className="w-full group relative overflow-hidden p-6 rounded-3xl border-2 border-slate-100 hover:border-indigo-600 hover:bg-indigo-50 active:scale-[0.98] transition-all text-left"
+                      >
+                        <div className="relative z-10 flex justify-between items-center font-bold">
+                          <span className="text-slate-700">{option.text}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                 )}
               </div>
             )}

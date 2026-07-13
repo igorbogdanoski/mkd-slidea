@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { track } from '@vercel/analytics';
 import { supabase, warmUp, authGetSessionSafe } from '../lib/supabase';
 import { debugWarn, recordLoginLatency } from '../utils/observability';
 
@@ -38,6 +39,9 @@ export const useAuth = ({ enabled = true } = {}) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadingMessage, setLoadingMessage] = useState('Се поврзуваме...');
+  // Monotonic request counter so an out-of-order (slow) profile fetch from an
+  // earlier auth event can't clobber state set by a later, faster one.
+  const requestIdRef = useRef(0);
 
   useEffect(() => {
     if (!enabled) {
@@ -57,6 +61,8 @@ export const useAuth = ({ enabled = true } = {}) => {
     authGetSessionSafe().catch(() => {});
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const myRequestId = ++requestIdRef.current;
+      const isCurrent = () => myRequestId === requestIdRef.current;
       try {
         if (event === 'INITIAL_SESSION') {
           // Supabase always fires this once on startup — the definitive session answer.
@@ -64,7 +70,7 @@ export const useAuth = ({ enabled = true } = {}) => {
           clearTimeout(timeout);
           if (session?.user) {
             const profile = await fetchProfile(session.user.id);
-            setUser(buildUserProfile(session.user, profile));
+            if (isCurrent()) setUser(buildUserProfile(session.user, profile));
           }
           setLoading(false);
           return;
@@ -76,12 +82,12 @@ export const useAuth = ({ enabled = true } = {}) => {
             claimPendingReferral(session.user.id);
           }
           const profile = await fetchProfile(session.user.id);
-          setUser(buildUserProfile(session.user, profile));
-        } else {
+          if (isCurrent()) setUser(buildUserProfile(session.user, profile));
+        } else if (isCurrent()) {
           setUser(null);
         }
       } catch {
-        setUser(session?.user ? buildUserProfile(session.user, null) : null);
+        if (isCurrent()) setUser(session?.user ? buildUserProfile(session.user, null) : null);
         if (event === 'INITIAL_SESSION') {
           clearTimeout(slowMsg);
           clearTimeout(timeout);
@@ -131,6 +137,7 @@ export const useAuth = ({ enabled = true } = {}) => {
       throw error;
     }
     recordLoginLatency({ method: 'password', action: 'signUp', durationMs: performance.now() - startedAt, ok: true });
+    track('signup', { method: 'password' });
     // Sprint 1.5 — fire-and-forget welcome email (graceful degrade if not configured).
     try {
       fetch('/api/welcome-email', {

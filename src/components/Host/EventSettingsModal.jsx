@@ -2,6 +2,7 @@ import React from 'react';
 import { X, UserPlus, Copy, Eye, EyeOff, RotateCcw, Trophy, ArrowLeft, CalendarClock } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { isPro } from '../../lib/plans';
+import { generateCode } from '../../lib/eventCode';
 
 const toInputDateTime = (iso) => {
   if (!iso) return '';
@@ -199,8 +200,7 @@ const EventSettingsModal = ({
             ) : (
               <button
                 onClick={async () => {
-                  const code = Array.from(crypto.getRandomValues(new Uint8Array(5)))
-                    .map(b => b.toString(36)).join('').toUpperCase().slice(0, 8);
+                  const code = generateCode(8);
                   await supabase.from('events').update({ cohost_code: code }).eq('id', event.id);
                   setEvent(prev => ({ ...prev, cohost_code: code }));
                 }}

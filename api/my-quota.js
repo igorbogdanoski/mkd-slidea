@@ -3,6 +3,24 @@
 export const config = { runtime: 'edge' };
 
 import { kv } from '@vercel/kv';
+import { getAuthedUser } from './_lib/auth.js';
+import { effectivePlan } from './_lib/planEnforcement.js';
+
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+async function fetchProfile(userId) {
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}&select=plan,role,pro_until`, {
+      headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`, Accept: 'application/json' },
+    });
+    if (!r.ok) return null;
+    const rows = await r.json();
+    return Array.isArray(rows) ? rows[0] : null;
+  } catch {
+    return null;
+  }
+}
 
 const PLAN_QUOTAS = {
   free:      { aiPerMonth: 5,         aiPerDay: 2 },
@@ -26,10 +44,13 @@ const json = (data, status = 200) =>
   });
 
 export default async function handler(req) {
-  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'x-user-id, x-user-plan' } });
+  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization' } });
 
-  const userId = req.headers.get('x-user-id') || '';
-  const plan   = req.headers.get('x-user-plan') || 'free';
+  const authedUser = await getAuthedUser(req);
+  if (!authedUser?.id) return json({ error: 'unauthorized' }, 401);
+  const userId = authedUser.id;
+  const profile = await fetchProfile(userId);
+  const plan = effectivePlan(profile);
 
   const quota  = PLAN_QUOTAS[plan] || PLAN_QUOTAS.free;
   const today  = new Date().toISOString().slice(0, 10);

@@ -39,6 +39,12 @@ export function useVoiceCommands(handlers = {}, { lang = 'mk-MK' } = {}) {
   const recRef = useRef(null);
   const handlersRef = useRef(handlers);
   handlersRef.current = handlers;
+  // Tracks the intended listening state via a ref, not the `listening` state
+  // value — `onend` is a closure captured at `start()`-time, so reading the
+  // `listening` state there would always see the stale value from that
+  // render (false, since `start()` runs before `setListening(true)` commits),
+  // permanently disabling auto-restart. A ref is always current.
+  const listeningRef = useRef(false);
 
   const SR =
     typeof window !== 'undefined'
@@ -47,6 +53,7 @@ export function useVoiceCommands(handlers = {}, { lang = 'mk-MK' } = {}) {
   const supported = !!SR;
 
   const stop = useCallback(() => {
+    listeningRef.current = false;
     try { recRef.current?.stop(); } catch { /* ignore */ }
     setListening(false);
   }, []);
@@ -76,20 +83,22 @@ export function useVoiceCommands(handlers = {}, { lang = 'mk-MK' } = {}) {
       };
       rec.onend = () => {
         // Auto-restart while user keeps "listening" toggled on.
-        if (recRef.current === rec && listening) {
+        if (recRef.current === rec && listeningRef.current) {
           try { rec.start(); } catch { /* ignored */ }
         }
       };
 
       recRef.current = rec;
+      listeningRef.current = true;
       rec.start();
       setListening(true);
       setError(null);
     } catch (e) {
+      listeningRef.current = false;
       setError(e.message || 'recognition-failed');
       setListening(false);
     }
-  }, [SR, lang, listening]);
+  }, [SR, lang]);
 
   const toggle = useCallback(() => {
     if (listening) stop();

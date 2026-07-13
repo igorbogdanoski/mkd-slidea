@@ -8,6 +8,7 @@ import { useAuth } from './hooks/useAuth';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useDarkMode } from './hooks/useDarkMode';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
+import SupportWidget from './components/SupportWidget';
 import { I18nProvider, useI18n } from './i18n';
 import { LiveAnnouncerProvider } from './hooks/useLiveAnnouncer';
 
@@ -38,28 +39,58 @@ const ResetPassword = lazy(() => import('./views/ResetPassword'));
 const NotFound = lazy(() => import('./views/NotFound'));
 const PublicResults = lazy(() => import('./views/PublicResults'));
 
-// Suppress Supabase auth lock violations and permissions policy violations
+// Best-effort report of real (non-suppressed) errors to the self-hosted
+// error log, so a production crash is visible somewhere besides a user's
+// own devtools console — see api/log-error.js.
+function reportError(message, stack, url) {
+  try {
+    navigator.sendBeacon?.(
+      '/api/log-error',
+      new Blob([JSON.stringify({ message: String(message).slice(0, 2000), stack, url: url || window.location.href })], { type: 'application/json' })
+    ) || fetch('/api/log-error', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: String(message).slice(0, 2000), stack, url: url || window.location.href }),
+      keepalive: true,
+    }).catch(() => {});
+  } catch { /* never let logging itself throw */ }
+}
+
+// Suppress Supabase auth lock violations and permissions policy violations.
+// Known trade-off: matching on a substring means an unrelated error that
+// happens to contain the same phrase would also be swallowed. The lock-
+// violation check requires both substrings together, which is specific
+// enough in practice; the permissions-policy check is broader (any feature)
+// since the exact browser-emitted feature name isn't fixed across engines —
+// narrowing it further needs a real repro of the console line to confirm
+// the current suppression is still needed before tightening it blindly.
 if (typeof window !== 'undefined') {
   const originalError = console.error;
   console.error = function(...args) {
     const msg = String(args[0] || '');
     const isLockViolation = msg.includes('lock:sb-') && msg.includes('was released');
     const isPermissionsPolicyViolation = msg.includes('Permissions policy violation');
-    
+
     if (isLockViolation || isPermissionsPolicyViolation) {
       return;
     }
+    reportError(msg, null);
     originalError.apply(console, args);
   };
 
   window.addEventListener('unhandledrejection', (event) => {
     const msg = String(event.reason?.message || event.reason || '');
     const isLockViolation = msg.includes('lock:sb-') && msg.includes('was released');
-    
+
     if (isLockViolation) {
       event.preventDefault();
       return;
     }
+    reportError(msg, event.reason?.stack || null);
+  }, false);
+
+  window.addEventListener('error', (event) => {
+    reportError(event.message, event.error?.stack || null);
   }, false);
 }
 
@@ -330,6 +361,7 @@ const AppContent = () => {
       )}
 
       <KeyboardShortcutsModal isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+      {!isEventRoute && <SupportWidget user={user} />}
     </div>
   );
 };

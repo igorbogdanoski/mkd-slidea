@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Search, RefreshCw, Shield, Save, UserPlus, X } from 'lucide-react';
+import { Search, RefreshCw, Shield, Save, UserPlus, X, Trash2, AlertTriangle, MessageCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 const roleOptions = ['user', 'admin'];
@@ -13,7 +13,34 @@ const AdminTab = ({ currentUser }) => {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [newUserAlerts, setNewUserAlerts] = useState([]);
+  const [deletingId, setDeletingId] = useState(null);
+  const [errorLog, setErrorLog] = useState([]);
+  const [errorLogLoading, setErrorLogLoading] = useState(true);
+  const [supportMessages, setSupportMessages] = useState([]);
+  const [supportLoading, setSupportLoading] = useState(true);
   const initialLoadDone = useRef(false);
+
+  const loadErrorLog = async () => {
+    setErrorLogLoading(true);
+    const { data } = await supabase
+      .from('error_log')
+      .select('id, created_at, source, message, url')
+      .order('created_at', { ascending: false })
+      .limit(20);
+    setErrorLog(data || []);
+    setErrorLogLoading(false);
+  };
+
+  const loadSupportMessages = async () => {
+    setSupportLoading(true);
+    const { data } = await supabase
+      .from('support_messages')
+      .select('id, created_at, email, message, page_url')
+      .order('created_at', { ascending: false })
+      .limit(20);
+    setSupportMessages(data || []);
+    setSupportLoading(false);
+  };
 
   const loadProfiles = async () => {
     setLoading(true);
@@ -37,6 +64,8 @@ const AdminTab = ({ currentUser }) => {
 
   useEffect(() => {
     loadProfiles().then(() => { initialLoadDone.current = true; });
+    loadErrorLog();
+    loadSupportMessages();
 
     const channel = supabase
       .channel('admin-new-users')
@@ -87,6 +116,33 @@ const AdminTab = ({ currentUser }) => {
       ? 'Твојот профил е ажуриран. Освежи ја страницата ако сакаш веднаш да ја видиш новата улога.'
       : 'Промените се зачувани.');
     setSavingId(null);
+  };
+
+  // GDPR "right to be forgotten" — deletes the user's auth account + events
+  // (which cascade to polls/options/votes) via a SECURITY DEFINER RPC, since
+  // deleting auth.users needs elevated privileges plain RLS can't grant.
+  const deleteAccount = async (profile) => {
+    if (profile.id === currentUser?.id) return;
+    const confirmed = window.confirm(
+      `Трајно бришење на "${profile.name || profile.email}" и сите нивни настани/анкети. Ова не може да се врати. Продолжи?`
+    );
+    if (!confirmed) return;
+
+    setDeletingId(profile.id);
+    setError('');
+    setNotice('');
+
+    const { error: rpcError } = await supabase.rpc('delete_user_account', { p_user_id: profile.id });
+
+    if (rpcError) {
+      setError(rpcError.message || 'Не можев да ја избришам сметката.');
+      setDeletingId(null);
+      return;
+    }
+
+    setProfiles((current) => current.filter((p) => p.id !== profile.id));
+    setNotice('Сметката е трајно избришана.');
+    setDeletingId(null);
   };
 
   return (
@@ -156,11 +212,12 @@ const AdminTab = ({ currentUser }) => {
       </div>
 
       <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
-        <div className="grid grid-cols-[minmax(0,2fr)_minmax(120px,140px)_minmax(140px,160px)_120px] gap-4 px-6 py-4 border-b border-slate-100 text-[11px] font-black text-slate-400 uppercase tracking-widest">
+        <div className="grid grid-cols-[minmax(0,2fr)_minmax(120px,140px)_minmax(140px,160px)_120px_44px] gap-4 px-6 py-4 border-b border-slate-100 text-[11px] font-black text-slate-400 uppercase tracking-widest">
           <span>Корисник</span>
           <span>Улога</span>
           <span>План</span>
           <span>Акција</span>
+          <span></span>
         </div>
 
         {loading ? (
@@ -176,7 +233,7 @@ const AdminTab = ({ currentUser }) => {
         ) : (
           <div className="divide-y divide-slate-50">
             {filteredProfiles.map((profile) => (
-              <div key={profile.id} className="grid grid-cols-[minmax(0,2fr)_minmax(120px,140px)_minmax(140px,160px)_120px] gap-4 px-6 py-4 items-center">
+              <div key={profile.id} className="grid grid-cols-[minmax(0,2fr)_minmax(120px,140px)_minmax(140px,160px)_120px_44px] gap-4 px-6 py-4 items-center">
                 <div className="min-w-0">
                   <p className="font-black text-slate-900 truncate">{profile.name || 'Без име'}</p>
                   <p className="text-sm font-bold text-slate-400 truncate">{profile.email || 'Нема е-маил'}</p>
@@ -212,10 +269,105 @@ const AdminTab = ({ currentUser }) => {
                 >
                   <Save size={14} /> {savingId === profile.id ? '...' : 'Зачувај'}
                 </button>
+
+                {profile.id === currentUser?.id ? (
+                  <span />
+                ) : (
+                  <button
+                    onClick={() => deleteAccount(profile)}
+                    disabled={deletingId === profile.id}
+                    title="Трајно бришење на сметката"
+                    aria-label={`Избриши ја сметката на ${profile.name || profile.email}`}
+                    className="p-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-all inline-flex items-center justify-center disabled:opacity-60"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
               </div>
             ))}
           </div>
         )}
+      </div>
+
+      <div className="mt-10">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-black text-slate-900 flex items-center gap-2">
+            <AlertTriangle size={18} className="text-amber-500" /> Скорешни грешки
+          </h3>
+          <button
+            onClick={loadErrorLog}
+            disabled={errorLogLoading}
+            className="px-4 py-2 bg-white border border-slate-100 rounded-xl font-black text-slate-700 text-sm hover:border-slate-200 hover:bg-slate-50 transition-all shadow-sm inline-flex items-center gap-2 disabled:opacity-60"
+          >
+            <RefreshCw size={14} className={errorLogLoading ? 'animate-spin' : ''} /> Освежи
+          </button>
+        </div>
+        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
+          {errorLogLoading ? (
+            <div className="p-6 space-y-3">
+              {[1, 2, 3].map((row) => <div key={row} className="h-12 bg-slate-50 rounded-xl animate-pulse" />)}
+            </div>
+          ) : errorLog.length === 0 ? (
+            <div className="p-8 text-center text-slate-400 font-bold">Нема забележани грешки во последните 30 дена. 🎉</div>
+          ) : (
+            <div className="divide-y divide-slate-50">
+              {errorLog.map((entry) => (
+                <div key={entry.id} className="px-6 py-4 flex items-start gap-4">
+                  <span className={`shrink-0 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${entry.source === 'server' ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'}`}>
+                    {entry.source}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-slate-700 break-words">{entry.message}</p>
+                    {entry.url && <p className="text-xs text-slate-400 truncate mt-0.5">{entry.url}</p>}
+                  </div>
+                  <span className="shrink-0 text-xs font-bold text-slate-400 whitespace-nowrap">
+                    {new Date(entry.created_at).toLocaleString('mk-MK')}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-10">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-black text-slate-900 flex items-center gap-2">
+            <MessageCircle size={18} className="text-indigo-500" /> Прашања и фидбек
+          </h3>
+          <button
+            onClick={loadSupportMessages}
+            disabled={supportLoading}
+            className="px-4 py-2 bg-white border border-slate-100 rounded-xl font-black text-slate-700 text-sm hover:border-slate-200 hover:bg-slate-50 transition-all shadow-sm inline-flex items-center gap-2 disabled:opacity-60"
+          >
+            <RefreshCw size={14} className={supportLoading ? 'animate-spin' : ''} /> Освежи
+          </button>
+        </div>
+        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
+          {supportLoading ? (
+            <div className="p-6 space-y-3">
+              {[1, 2, 3].map((row) => <div key={row} className="h-12 bg-slate-50 rounded-xl animate-pulse" />)}
+            </div>
+          ) : supportMessages.length === 0 ? (
+            <div className="p-8 text-center text-slate-400 font-bold">Нема пораки засега.</div>
+          ) : (
+            <div className="divide-y divide-slate-50">
+              {supportMessages.map((entry) => (
+                <div key={entry.id} className="px-6 py-4 flex items-start gap-4">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-slate-700 break-words whitespace-pre-wrap">{entry.message}</p>
+                    <p className="text-xs text-slate-400 mt-1 truncate">
+                      {entry.email || 'Непознат корисник'}{entry.page_url ? ` · ${entry.page_url}` : ''}
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-xs font-bold text-slate-400 whitespace-nowrap">
+                    {new Date(entry.created_at).toLocaleString('mk-MK')}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

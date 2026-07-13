@@ -62,7 +62,7 @@ const Terms = () => {
               <h2 className="text-xl font-black text-slate-900 mb-3">5. Планови и наплата</h2>
               <ul className="list-disc pl-6 space-y-2">
                 <li><strong>Бесплатен план:</strong> до 200 учесници по настан, до 5 активни настани</li>
-                <li><strong>Платени планови:</strong> наплата преку Stripe, автоматска обнова освен ако не се откаже</li>
+                <li><strong>Платени планови:</strong> наплата преку PayPal или банкарски трансфер (IBAN/SWIFT или трансакциска сметка), рачна обнова по истек на планот</li>
                 <li><strong>Поврат:</strong> во рок од 14 дена по купување ако планот не е искористен</li>
               </ul>
             </section>

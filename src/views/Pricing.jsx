@@ -328,9 +328,12 @@ const Pricing = ({ setView }) => {
       >
         <div className="inline-flex flex-col items-center gap-4">
           <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Имате специфични потреби?</p>
-          <button className="text-indigo-600 font-black flex items-center gap-2 hover:gap-3 transition-all">
+          <a
+            href="mailto:bogdanoskiigor@gmail.com?subject=MKD Slidea — Enterprise решение"
+            className="text-indigo-600 font-black flex items-center gap-2 hover:gap-3 transition-all"
+          >
             Контактирајте нè за Enterprise решение <ArrowRight size={18} />
-          </button>
+          </a>
         </div>
       </motion.div>
     </motion.div>

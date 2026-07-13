@@ -1,8 +1,10 @@
 User-agent: *
 Allow: /
 Disallow: /api/
-Disallow: /event/*/embed
+Disallow: /event/
 Disallow: /dashboard
 Disallow: /admin
+Disallow: /host
+Disallow: /onboarding
 
 Sitemap: https://slidea.mismath.net/sitemap.xml

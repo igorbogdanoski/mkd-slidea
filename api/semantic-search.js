@@ -10,12 +10,15 @@
 // ============================================================================
 
 import { embedText, toPgVector } from './_lib/embeddings.js';
+import { getClientIp, checkRateLimit } from './_lib/rateLimit.js';
 
 export const config = { runtime: 'edge' };
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const RATE_LIMIT = 15;
+const RATE_WINDOW_MS = 60 * 1000;
 
 async function callRpc(fn, body, opts = {}) {
   const useUserToken = !!opts.userJwt;
@@ -41,6 +44,11 @@ export default async function handler(req) {
   }
   if (!SUPABASE_URL || !ANON_KEY) {
     return new Response(JSON.stringify({ error: 'Supabase env not configured' }), { status: 500 });
+  }
+
+  const rate = await checkRateLimit('semantic-search', getClientIp(req), RATE_LIMIT, RATE_WINDOW_MS);
+  if (!rate.allowed) {
+    return new Response(JSON.stringify({ error: 'Премногу барања. Обидете се повторно за момент.' }), { status: 429 });
   }
 
   let body;

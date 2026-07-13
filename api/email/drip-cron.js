@@ -20,7 +20,15 @@ const json = (d, s = 200) => new Response(JSON.stringify(d), {
 
 async function sb(path, params = {}) {
   const url = new URL(`${SB_URL}/rest/v1/${path}`);
-  for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
+  for (const [k, v] of Object.entries(params)) {
+    // Array values append multiple same-name params (e.g. two `created_at`
+    // range filters combined with AND by PostgREST) instead of overwriting.
+    if (Array.isArray(v)) {
+      for (const item of v) url.searchParams.append(k, item);
+    } else {
+      url.searchParams.set(k, v);
+    }
+  }
   const res = await fetch(url, {
     headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, Accept: 'application/json' },
   });
@@ -212,8 +220,7 @@ export default async function handler(req) {
     // Profiles created on that day (window: that calendar day UTC)
     const profiles = await sb('profiles', {
       select: 'id,email,name,plan',
-      created_at: `gte.${dateStr}T00:00:00Z`,
-      [`created_at`]: `lte.${dateStr}T23:59:59Z`,
+      created_at: [`gte.${dateStr}T00:00:00Z`, `lte.${dateStr}T23:59:59Z`],
       order: 'created_at',
       limit: '100',
     }).catch(() => []);

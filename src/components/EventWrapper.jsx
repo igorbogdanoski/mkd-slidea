@@ -11,6 +11,35 @@ import { queueVote, flushQueue } from '../lib/offlineQueue';
 import { Lock, Eye, EyeOff } from 'lucide-react';
 import PoweredByBadge from './PoweredByBadge';
 
+const isLockErrorMsg = (msg) => String(msg || '').includes('lock:sb-');
+
+// Retries a vote call a few times on Supabase's known auth-lock contention
+// error before giving up — a transient "lock:sb-*" failure isn't a real vote
+// failure, but it also isn't a guaranteed success; retrying resolves the
+// ambiguity instead of silently assuming the vote landed.
+async function withLockRetry(fn, attempts = 3, delayMs = 300) {
+  let lastErr;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const res = await fn();
+      if (res?.error && isLockErrorMsg(res.error.message)) {
+        lastErr = res.error;
+        await new Promise((r) => setTimeout(r, delayMs * (i + 1)));
+        continue;
+      }
+      return res;
+    } catch (err) {
+      if (isLockErrorMsg(err?.message || err)) {
+        lastErr = err;
+        await new Promise((r) => setTimeout(r, delayMs * (i + 1)));
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw lastErr;
+}
+
 // Get or create a persistent session ID — crypto.randomUUID polyfill for older browsers
 const getSessionId = () => {
   let sid = localStorage.getItem('mkd_session_id');
@@ -362,14 +391,14 @@ const EventWrapper = ({ type, username, setUsername }) => {
 
           if (typeof val === 'string') {
             answerText = val;
-            const textVoteRes = await vote(null, currentPoll.id, val, false);
+            const textVoteRes = await withLockRetry(() => vote(null, currentPoll.id, val, false));
             if (textVoteRes?.error) throw textVoteRes.error;
           } else {
             const option = currentPoll.options[val];
             if (!option) throw new Error('Invalid option selected');
             answerText = option.text;
             isCorrect = option.is_correct ?? null;
-            const optionVoteRes = await vote(option.id);
+            const optionVoteRes = await withLockRetry(() => vote(option.id));
             if (optionVoteRes?.error) throw optionVoteRes.error;
             if (currentPoll.is_quiz) {
               const correctIndex = currentPoll.options.findIndex(o => o.is_correct);
@@ -403,7 +432,6 @@ const EventWrapper = ({ type, username, setUsername }) => {
           markVoted(currentPoll.id);
         } catch (err) {
           const msg = String(err?.message || err || '');
-          const isLockError = msg.includes('lock:sb-');
           const isOffline = (typeof navigator !== 'undefined' && navigator.onLine === false)
             || /Failed to fetch|NetworkError|TypeError/i.test(msg);
 
@@ -424,11 +452,9 @@ const EventWrapper = ({ type, username, setUsername }) => {
               setVoteError('Офлајн сте — гласот е зачуван и ќе се испрати кога ќе се поврзете.');
               if (typeof window !== 'undefined') window.addEventListener('online', flushQueue, { once: true });
             }
-          } else if (!isLockError) {
+          } else {
             console.error('Vote failed:', err);
             setVoteError('Гласањето не успеа. Обидете се повторно.');
-          } else {
-            markVoted(polls[activePollIndex]?.id);
           }
         } finally {
           setIsVoting(false);

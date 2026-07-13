@@ -1,14 +1,39 @@
 import { useState, useEffect, useRef } from 'react';
+import { track } from '@vercel/analytics';
 import { supabase } from '../lib/supabase';
+import { getAuthHeader } from '../lib/authHeader';
+import { generateCode } from '../lib/eventCode';
 import { useLiveAnnouncer } from './useLiveAnnouncer';
 
 const getHostSessionId = () => {
-  let sid = localStorage.getItem('mkd_host_session_id');
-  if (!sid) {
-    sid = crypto.randomUUID?.() || `host-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
-    localStorage.setItem('mkd_host_session_id', sid);
+  try {
+    let sid = localStorage.getItem('mkd_host_session_id');
+    if (!sid) {
+      sid = crypto.randomUUID?.() || `host-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+      localStorage.setItem('mkd_host_session_id', sid);
+    }
+    return sid;
+  } catch {
+    // Safari private mode / storage quota exceeded — fall back to a
+    // session-only id instead of throwing inside a render/effect.
+    return `host-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
   }
-  return sid;
+};
+
+// Retries with a fresh random code on a UNIQUE constraint collision instead
+// of leaving the host stuck with a silent failure.
+const createEventWithRetry = async (userId, attempts = 5) => {
+  for (let i = 0; i < attempts; i++) {
+    const code = generateCode(6);
+    const { data, error } = await supabase
+      .from('events')
+      .insert([{ code, title: 'Мојот настан', user_id: userId || null }])
+      .select()
+      .single();
+    if (!error) return { data, code };
+    if (error.code !== '23505') return { data: null, error };
+  }
+  return { data: null, error: new Error('Не успеа да се генерира уникатен код по неколку обиди.') };
 };
 
 const autoGenerateCover = async (eventId, title) => {
@@ -48,17 +73,14 @@ export const useHostSession = (user) => {
     const initEvent = async () => {
       let eventCode = localStorage.getItem('active_event_code');
       if (!eventCode) {
-        eventCode = Array.from(crypto.getRandomValues(new Uint8Array(4)))
-          .map(b => b.toString(36)).join('').toUpperCase().slice(0, 6);
-        const { data, error } = await supabase
-          .from('events')
-          .insert([{ code: eventCode, title: 'Мојот настан', user_id: user?.id || null }])
-          .select()
-          .single();
+        const { data, code, error } = await createEventWithRetry(user?.id);
         if (!error) {
-          localStorage.setItem('active_event_code', eventCode);
+          localStorage.setItem('active_event_code', code);
           setEvent(data);
           autoGenerateCover(data.id, data.title);
+          track('event_created');
+        } else {
+          alert('Не успеа да се создаде настан. Ве молиме обидете се повторно.');
         }
       } else {
         const { data } = await supabase.from('events').select('*').eq('code', eventCode).single();
@@ -67,16 +89,13 @@ export const useHostSession = (user) => {
         } else {
           // Stored code no longer exists — clear it and create a fresh event
           localStorage.removeItem('active_event_code');
-          eventCode = Array.from(crypto.getRandomValues(new Uint8Array(4)))
-            .map(b => b.toString(36)).join('').toUpperCase().slice(0, 6);
-          const { data: newData, error } = await supabase
-            .from('events')
-            .insert([{ code: eventCode, title: 'Мојот настан', user_id: user?.id || null }])
-            .select()
-            .single();
+          const { data: newData, code, error } = await createEventWithRetry(user?.id);
           if (!error) {
-            localStorage.setItem('active_event_code', eventCode);
+            localStorage.setItem('active_event_code', code);
             setEvent(newData);
+            track('event_created');
+          } else {
+            alert('Не успеа да се создаде настан. Ве молиме обидете се повторно.');
           }
         }
       }
@@ -119,7 +138,7 @@ export const useHostSession = (user) => {
     const sub = supabase
       .channel(`host_polls_${eventId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'polls', filter: `event_id=eq.${eventId}` }, fetchPolls)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'options' }, fetchPolls)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'options', filter: `event_id=eq.${eventId}` }, fetchPolls)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'questions', filter: `event_id=eq.${eventId}` }, fetchPendingQuestions)
       .subscribe();
     // Polling fallback: realtime alone can miss bursts of new wordcloud options
@@ -253,17 +272,24 @@ export const useHostSession = (user) => {
             continue;
           }
           if (attempt === 2) {
-            await supabase.from('events').update({ active_poll_id: nextPoll.id }).eq('code', event.code).catch(() => {});
+            const { error: fallbackError } = await supabase.from('events').update({ active_poll_id: nextPoll.id }).eq('code', event.code);
+            return !fallbackError;
           }
-          return true;
-        } catch (e) {
-          if (attempt === 2) return true;
+          return false;
+        } catch {
+          if (attempt === 2) return false;
           await new Promise(r => setTimeout(r, 100 + attempt * 150));
         }
       }
-      return true;
+      return false;
     };
-    dbUpdateWithRetry();
+    dbUpdateWithRetry().then((ok) => {
+      // Local state and the broadcast/presence channels already advanced
+      // optimistically above — if the DB write itself never landed, late
+      // joiners would read a stale active_poll_id with no indication anything
+      // went wrong, so surface it instead of failing silently.
+      if (!ok) alert('Синхронизацијата со учесниците не успеа. Освежи ја страницата за да провериш дека сите гледаат исто прашање.');
+    });
   };
 
   const goNext = () => { if (activePollIndex < polls.length - 1) setActivePoll(activePollIndex + 1); };
@@ -285,24 +311,41 @@ export const useHostSession = (user) => {
         if (updateError) throw updateError;
 
         if (pollData.options) {
-          let optionsToInsert = [];
+          let optionsPayload = [];
           if (pollData.type === 'rating') {
-            optionsToInsert = ['1', '2', '3', '4', '5'].map(val => ({ poll_id: editingPoll.id, text: val }));
+            optionsPayload = ['1', '2', '3', '4', '5'].map(val => ({ text: val, is_correct: false }));
           } else {
-            optionsToInsert = pollData.options.map(o => ({
-              poll_id: editingPoll.id,
+            optionsPayload = pollData.options.map(o => ({
               text: typeof o === 'string' ? o : o.text,
               is_correct: o.is_correct || false,
             }));
           }
-          // Fetch existing IDs first, insert new options, then delete old by ID.
-          // This ensures old options survive if the insert fails.
-          const { data: existingOpts } = await supabase.from('options').select('id').eq('poll_id', editingPoll.id);
-          const oldIds = (existingOpts || []).map(o => o.id);
-          const { error: optError } = await supabase.from('options').insert(optionsToInsert);
-          if (optError) throw optError;
-          if (oldIds.length > 0) {
-            await supabase.from('options').delete().in('id', oldIds);
+
+          // Update existing option rows in place (by id) for overlapping slots
+          // instead of delete-then-insert. Delete-then-insert briefly leaves
+          // both old and new options coexisting, and any vote cast on an
+          // old option in that window is lost when the row is deleted.
+          // Updating in place preserves vote counts and never creates a
+          // transient duplicate state.
+          const { data: existingOpts } = await supabase
+            .from('options')
+            .select('id')
+            .eq('poll_id', editingPoll.id)
+            .order('created_at', { ascending: true });
+          const existing = existingOpts || [];
+
+          const updates = optionsPayload.slice(0, existing.length).map((opt, i) =>
+            supabase.from('options').update(opt).eq('id', existing[i].id)
+          );
+          if (updates.length > 0) await Promise.all(updates);
+
+          if (optionsPayload.length > existing.length) {
+            const toInsert = optionsPayload.slice(existing.length).map(opt => ({ ...opt, poll_id: editingPoll.id }));
+            const { error: optError } = await supabase.from('options').insert(toInsert);
+            if (optError) throw optError;
+          } else if (existing.length > optionsPayload.length) {
+            const toDeleteIds = existing.slice(optionsPayload.length).map(o => o.id);
+            await supabase.from('options').delete().in('id', toDeleteIds);
           }
         }
       } else {
@@ -512,8 +555,7 @@ export const useHostSession = (user) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-user-id': user?.id || '',
-          'x-user-plan': user?.plan || 'free',
+          ...(await getAuthHeader()),
         },
         body: JSON.stringify({ event_id: event.id }),
       });

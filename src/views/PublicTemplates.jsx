@@ -3,6 +3,7 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Search, BookOpen, ArrowRight, Sparkles, Users, ArrowLeft, CheckCircle2, Star, ArrowUpDown } from 'lucide-react';
 import { STARTER_TEMPLATES, TEMPLATE_SUBJECTS } from '../lib/starterTemplates';
+import { safeJsonLd } from '../lib/jsonLd';
 import { supabase } from '../lib/supabase';
 import { useSEO } from '../hooks/useSEO';
 
@@ -407,7 +408,7 @@ const PublicTemplateDetail = () => {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: safeJsonLd({
             '@context': 'https://schema.org',
             '@type': 'LearningResource',
             name: tpl.title,

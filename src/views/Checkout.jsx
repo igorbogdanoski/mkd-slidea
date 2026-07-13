@@ -5,9 +5,11 @@ import {
   ArrowRight, CheckCircle2, Copy, ShieldCheck, Mail, Building2,
   CreditCard, Banknote, Loader2, AlertCircle, Clock
 } from 'lucide-react';
+import { track } from '@vercel/analytics';
 import { useSEO } from '../hooks/useSEO';
 import { BILLING, PLAN_CATALOG, getPlan, generateOrderId, formatAmount, PAYMENT_METHODS } from '../lib/billing';
 import { supabase } from '../lib/supabase';
+import { getAuthHeader } from '../lib/authHeader';
 
 const Checkout = ({ user }) => {
   const { planCode } = useParams();
@@ -93,7 +95,7 @@ const Checkout = ({ user }) => {
       try {
         const r = await fetch('/api/v1/create-order', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...(await getAuthHeader()) },
           body: JSON.stringify(payload),
         });
         if (r.ok) apiOk = true;
@@ -108,6 +110,7 @@ const Checkout = ({ user }) => {
       }
 
       setSubmitted(true);
+      track('order_submitted', { plan: plan.code, method });
     } catch (e) {
       setError(e?.message || 'Грешка при креирање нарачка.');
     } finally {

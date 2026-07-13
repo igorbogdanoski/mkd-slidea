@@ -57,7 +57,7 @@ const isWithin30Min = (iso) => {
   return diff > 0 && diff < 30 * 60 * 1000;
 };
 
-const HomeTab = ({ setView, setActiveTab, user, useTemplate }) => {
+const HomeTab = ({ setView, setActiveTab, user, applyTemplate }) => {
   const userName = user?.name || 'Наставник';
   const userInitials = userName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
   const userRole = user?.role === 'admin' ? 'Администратор' : 'Наставник';
@@ -653,7 +653,7 @@ const HomeTab = ({ setView, setActiveTab, user, useTemplate }) => {
               <div className="p-8">
                 <h3 className="font-black text-lg text-slate-900 mb-4 line-clamp-1">{template.title}</h3>
                 <button
-                  onClick={() => useTemplate && useTemplate(template)}
+                  onClick={() => applyTemplate && applyTemplate(template)}
                   className="w-full py-3 bg-indigo-600 text-white rounded-xl font-black text-sm hover:bg-indigo-700 transition-all active:scale-95 shadow-lg shadow-indigo-100"
                 >
                   Користи го шаблонот

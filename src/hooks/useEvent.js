@@ -12,6 +12,8 @@ export const useEvent = (eventCode) => {
   const lastRealtimeNavAtRef = useRef(0);
   const hasRealtimeNavRef = useRef(false);
   const lastRealtimePollsAtRef = useRef(0);
+  const reactionChannelRef = useRef(null);
+  const reactionTimeoutsRef = useRef(new Set());
 
   const fetchPolls = useCallback(async (eventId) => {
     const { data } = await supabase
@@ -133,7 +135,7 @@ export const useEvent = (eventCode) => {
         () => { lastRealtimePollsAtRef.current = Date.now(); fetchPolls(event.id); }
       )
       .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'options' },
+        { event: '*', schema: 'public', table: 'options', filter: `event_id=eq.${event.id}` },
         () => {
           lastRealtimePollsAtRef.current = Date.now();
           fetchPolls(event.id);
@@ -158,21 +160,26 @@ export const useEvent = (eventCode) => {
         const id = payload?.id || `r-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
         const newReaction = { id, emoji: payload?.emoji || '👍', timestamp: Date.now() };
         setReactions(prev => [...prev, newReaction]);
-        setTimeout(() => {
+        const t = setTimeout(() => {
+          reactionTimeoutsRef.current.delete(t);
           setReactions(prev => prev.filter(r => r.id !== id));
         }, 4000);
+        reactionTimeoutsRef.current.add(t);
       })
       .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'reactions', filter: `event_id=eq.${event.id}` },
         (payload) => {
           const newReaction = { ...payload.new, timestamp: Date.now() };
           setReactions(prev => [...prev, newReaction]);
-          setTimeout(() => {
+          const t = setTimeout(() => {
+            reactionTimeoutsRef.current.delete(t);
             setReactions(prev => prev.filter(r => r.id !== payload.new.id));
           }, 4000);
+          reactionTimeoutsRef.current.add(t);
         }
       )
       .subscribe();
+    reactionChannelRef.current = reactionChannel;
 
     const eventChannel = supabase
       .channel(`event-details-${event.id}`)
@@ -264,6 +271,9 @@ export const useEvent = (eventCode) => {
       supabase.removeChannel(pollChannel);
       supabase.removeChannel(questionChannel);
       supabase.removeChannel(reactionChannel);
+      reactionChannelRef.current = null;
+      reactionTimeoutsRef.current.forEach(clearTimeout);
+      reactionTimeoutsRef.current.clear();
       supabase.removeChannel(eventChannel);
       supabase.removeChannel(navChannel);
       supabase.removeChannel(presenceNavChannel);
@@ -277,18 +287,17 @@ export const useEvent = (eventCode) => {
     if (!event.is_reactions_enabled && event.is_reactions_enabled !== undefined) return;
     const id = `r-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     try {
-      const ch = supabase.channel(`reactions:${event.id}`, { config: { broadcast: { self: false } } });
-      let subscribed = false;
-      await new Promise((resolve) => {
-        ch.subscribe((status) => { if (status === 'SUBSCRIBED') { subscribed = true; resolve(); } });
-        setTimeout(resolve, 800);
-      });
-      if (!subscribed) { supabase.removeChannel(ch); throw new Error('channel-timeout'); }
+      // Reuse the persistent `reactions:${event.id}` channel (created once in
+      // the subscription effect above) instead of opening a second channel on
+      // the same topic per send — two joins to the same topic on one Realtime
+      // socket can supersede/hiccup the primary listening channel, briefly
+      // dropping incoming reactions for everyone. That channel is configured
+      // with broadcast.self=true, so this send echoes back through its own
+      // `.on('broadcast', 'emoji', ...)` handler — no separate optimistic
+      // render is needed here.
+      const ch = reactionChannelRef.current;
+      if (!ch) throw new Error('channel-not-ready');
       const res = await ch.send({ type: 'broadcast', event: 'emoji', payload: { id, emoji } });
-      // Optimistic локален render за испраќачот
-      setReactions(prev => [...prev, { id, emoji, timestamp: Date.now() }]);
-      setTimeout(() => setReactions(prev => prev.filter(r => r.id !== id)), 4000);
-      supabase.removeChannel(ch);
       if (res === 'ok') return { data: { id }, error: null };
     } catch { /* fall through */ }
     return await supabase.from('reactions').insert([{ event_id: event.id, emoji }]);

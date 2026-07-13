@@ -3,6 +3,7 @@
 // Cache 5 мин во KV (ако е достапно) за намалување на REST повици.
 
 import { kv } from '@vercel/kv';
+import { getAuthedUser } from './auth.js';
 
 const PLAN_QUOTAS = {
   free:      { aiPerMonth: 5,    aiPerDay: 2 },
@@ -20,8 +21,13 @@ function effectivePlan(profile) {
   const now = Date.now();
   if (profile.role === 'admin') return 'admin';
   if (profile.pro_until) {
+    // pro_until, when set, is the authoritative expiration for the paid plan
+    // (confirm_manual_order sets both together) — an expired subscription
+    // must not keep granting access forever just because `plan` itself was
+    // never reset. Only fall through to the bare `plan` string when there's
+    // no expiration to check at all.
     const t = Date.parse(profile.pro_until);
-    if (!Number.isNaN(t) && t > now) return profile.plan || 'pro';
+    if (!Number.isNaN(t)) return t > now ? (profile.plan || 'pro') : 'free';
   }
   return profile.plan || 'free';
 }
@@ -55,7 +61,8 @@ async function fetchProfile(userId) {
 }
 
 export async function checkAiQuota(req) {
-  const userId = req.headers.get('x-user-id') || '';
+  const authedUser = await getAuthedUser(req);
+  const userId = authedUser?.id || '';
   const profile = await fetchProfile(userId);
   const plan = effectivePlan(profile);
   const quota = PLAN_QUOTAS[plan] || PLAN_QUOTAS.free;

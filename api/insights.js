@@ -3,6 +3,26 @@ export const config = {
 };
 
 import { kv } from '@vercel/kv';
+import { getAuthedUser } from './_lib/auth.js';
+import { effectivePlan } from './_lib/planEnforcement.js';
+import { logServerError } from './_lib/logError.js';
+
+const PAID_PLANS = ['pro', 'monthly', 'quarterly', 'semester', 'yearly', 'admin'];
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+async function fetchProfile(userId) {
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}&select=plan,role,pro_until`, {
+      headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`, Accept: 'application/json' },
+    });
+    if (!r.ok) return null;
+    const rows = await r.json();
+    return Array.isArray(rows) ? rows[0] : null;
+  } catch {
+    return null;
+  }
+}
 
 const fallbackMap = new Map();
 const RATE_LIMIT = 6;
@@ -53,6 +73,19 @@ const cleanText = (value, max = 200) => String(value || '').replace(/\s+/g, ' ')
 export default async function handler(req) {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
+  }
+
+  // AI Insights is a paid feature — verify the caller's actual plan
+  // server-side instead of trusting the client to only show this UI to Pro
+  // users (the client-side "Pro" badge is a hint, not an enforcement point).
+  const authedUser = await getAuthedUser(req);
+  const profile = authedUser?.id ? await fetchProfile(authedUser.id) : null;
+  const plan = effectivePlan(profile);
+  if (!PAID_PLANS.includes(plan)) {
+    return new Response(
+      JSON.stringify({ error: 'AI Insights е достапно само за платени планови.', upgrade: '/pricing' }),
+      { status: 402, headers: { 'Content-Type': 'application/json' } }
+    );
   }
 
   const ip = getClientIp(req);
@@ -204,6 +237,7 @@ export default async function handler(req) {
     });
   } catch (error) {
     console.error('Insights generation error:', error);
+    await logServerError('server', error, { route: 'api/insights' });
     return new Response(
       JSON.stringify({ error: 'Не успеавме да генерираме AI Insights. Обидете се повторно.' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }

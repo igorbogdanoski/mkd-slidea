@@ -10,6 +10,13 @@
 
 export const config = { runtime: 'edge' };
 
+import { getAuthedUser } from '../_lib/auth.js';
+import { getClientIp, checkRateLimit } from '../_lib/rateLimit.js';
+import { logServerError } from '../_lib/logError.js';
+
+const RATE_LIMIT = 5;
+const RATE_WINDOW_MS = 60 * 1000;
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -34,6 +41,7 @@ const escapeHtml = (s) =>
   String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 const sanitize = (s, max = 500) =>
+  // eslint-disable-next-line no-control-regex -- intentional: stripping control chars from user input, not a typo
   String(s || '').replace(/[\x00-\x08\x0E-\x1F\x7F]/g, '').slice(0, max);
 
 const validEmail = (s) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s);
@@ -122,6 +130,9 @@ export default async function handler(req) {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
 
+  const rate = await checkRateLimit('create-order', getClientIp(req), RATE_LIMIT, RATE_WINDOW_MS);
+  if (!rate.allowed) return json({ error: 'Премногу барања. Обидете се повторно за момент.' }, 429);
+
   let body;
   try { body = await req.json(); } catch { return json({ error: 'Invalid JSON' }, 400); }
 
@@ -140,6 +151,12 @@ export default async function handler(req) {
   const amount = PLAN_AMOUNTS[plan];
   const currency = 'EUR';
 
+  // If the request carries a session, trust the verified JWT's user id, not
+  // whatever the client claims in the body — otherwise a logged-in-looking
+  // request could attribute an order to an arbitrary account.
+  const authedUser = await getAuthedUser(req);
+  const user_id = authedUser?.id || null;
+
   const payload = {
     order_id,
     plan,
@@ -152,7 +169,7 @@ export default async function handler(req) {
     tax_id: sanitize(body.tax_id, 50),
     needs_invoice: !!body.needs_invoice,
     note: sanitize(body.note, 500),
-    user_id: body.user_id ? sanitize(body.user_id, 64) : null,
+    user_id,
     plan_days: PLAN_DAYS[plan],
     status: 'pending',
     created_at: new Date().toISOString(),
@@ -161,7 +178,10 @@ export default async function handler(req) {
   };
 
   const ins = await insertOrder(env, payload);
-  if (!ins.ok) return json({ error: 'DB insert failed', detail: ins.error }, 500);
+  if (!ins.ok) {
+    await logServerError('server', new Error(`create-order DB insert failed: ${ins.error}`), { route: 'api/v1/create-order', order_id });
+    return json({ error: 'DB insert failed', detail: ins.error }, 500);
+  }
 
   // Fire-and-forget emails (don't block response on failure).
   try {

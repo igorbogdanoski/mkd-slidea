@@ -113,9 +113,20 @@ export const planLimit = (user, key) => {
 };
 
 export const isPro = (user) => {
-  const paidPlans = ['pro', 'monthly', 'quarterly', 'semester', 'yearly', 'admin'];
-  if (paidPlans.includes(user?.plan) || user?.role === 'admin') return true;
-  // Sprint 5.4 — referral-earned Pro window.
+  if (user?.role === 'admin') return true;
+  const paidPlans = ['pro', 'monthly', 'quarterly', 'semester', 'yearly'];
+  if (paidPlans.includes(user?.plan)) {
+    // pro_until, when set, is the authoritative expiration for a paid plan
+    // (confirm_manual_order sets both together) — an expired subscription
+    // must not keep showing as Pro forever just because `plan` itself was
+    // never reset. No pro_until at all means a legacy/permanent grant.
+    if (user?.pro_until) {
+      const t = Date.parse(user.pro_until);
+      return !Number.isNaN(t) && t > Date.now();
+    }
+    return true;
+  }
+  // Sprint 5.4 — referral-earned Pro window (plan stays 'free', pro_until grants a temporary window).
   if (user?.pro_until) {
     const t = Date.parse(user.pro_until);
     if (!Number.isNaN(t) && t > Date.now()) return true;

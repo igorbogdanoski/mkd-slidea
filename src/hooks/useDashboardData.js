@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { generateCode } from '../lib/eventCode';
 
 export const useDashboardData = ({ user, activeTab, setView }) => {
   const navigate = useNavigate();
@@ -10,7 +11,10 @@ export const useDashboardData = ({ user, activeTab, setView }) => {
   const [templatesLoading, setTemplatesLoading] = useState(false);
 
   useEffect(() => {
-    if (!user?.id || localStorage.getItem('onboarding_v1_done')) return;
+    if (!user?.id) return;
+    let onboardingDone = false;
+    try { onboardingDone = !!localStorage.getItem('onboarding_v1_done'); } catch { /* private mode / quota — treat as not done */ }
+    if (onboardingDone) return;
     supabase
       .from('events')
       .select('id', { count: 'exact', head: true })
@@ -19,16 +23,16 @@ export const useDashboardData = ({ user, activeTab, setView }) => {
   }, [user?.id]);
 
   useEffect(() => {
-    if (activeTab !== 'presentations') return;
+    if (activeTab !== 'presentations' || !user?.id) return;
     setEventsLoading(true);
     supabase
       .from('events')
       .select('id, code, title, cover_image, created_at, starts_at')
-      .eq('user_id', user?.id)
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(50)
       .then(({ data }) => { setAllEvents(data || []); setEventsLoading(false); });
-  }, [activeTab]);
+  }, [activeTab, user?.id]);
 
   useEffect(() => {
     if (activeTab !== 'templates') return;
@@ -65,15 +69,22 @@ export const useDashboardData = ({ user, activeTab, setView }) => {
     return () => { cancelled = true; };
   }, [activeTab]);
 
-  const useTemplate = async (template) => {
-    const eventCode = Array.from(crypto.getRandomValues(new Uint8Array(4)))
-      .map(b => b.toString(36)).join('').toUpperCase().slice(0, 6);
+  const applyTemplate = async (template) => {
+    let eventCode;
     try {
-      const { data: event, error: eventError } = await supabase
-        .from('events')
-        .insert([{ code: eventCode, title: template.title, user_id: user?.id }])
-        .select()
-        .single();
+      // Retry with a fresh code on a UNIQUE constraint collision instead of
+      // failing outright — code generation is exactly 6 chars (one random
+      // byte per char), so this only ever loops on a genuine collision.
+      let event, eventError;
+      for (let attempt = 0; attempt < 5; attempt++) {
+        eventCode = generateCode(6);
+        ({ data: event, error: eventError } = await supabase
+          .from('events')
+          .insert([{ code: eventCode, title: template.title, user_id: user?.id }])
+          .select()
+          .single());
+        if (!eventError || eventError.code !== '23505') break;
+      }
       if (eventError) throw eventError;
 
       for (const poll of template.polls) {
@@ -109,12 +120,16 @@ export const useDashboardData = ({ user, activeTab, setView }) => {
       localStorage.setItem('active_event_code', eventCode);
       setView('host');
     } catch (err) {
-      if (err?.message?.includes('stole it') || err?.message?.includes('lock')) {
+      // Matches Supabase's own Web Locks API contention error format
+      // (`lock:sb-...`), not a bare "lock" substring — a generic word like
+      // that would also match unrelated errors (e.g. a genuine Postgres row
+      // lock timeout), which is a different failure mode entirely.
+      if (err?.message?.includes('stole it') || err?.message?.includes('lock:sb-')) {
         try {
           const { data: existing } = await supabase
             .from('events').select('id').eq('code', eventCode).maybeSingle();
           if (existing) { localStorage.setItem('active_event_code', eventCode); setView('host'); return; }
-        } catch (_) {}
+        } catch { /* fall through to the generic error alert below */ }
         alert('Техничка грешка при создавање на шаблонот. Обидете се повторно.');
         return;
       }
@@ -123,5 +138,5 @@ export const useDashboardData = ({ user, activeTab, setView }) => {
     }
   };
 
-  return { allEvents, eventsLoading, communityTemplates, templatesLoading, useTemplate };
+  return { allEvents, eventsLoading, communityTemplates, templatesLoading, applyTemplate };
 };

@@ -10,8 +10,40 @@ import satori from 'satori';
 import { initWasm, Resvg } from '@resvg/resvg-wasm';
 import { readFileSync } from 'fs';
 import { createRequire } from 'module';
+import { kv } from '@vercel/kv';
 
 const require = createRequire(import.meta.url);
+
+// Response is already CDN-cached for 24h (s-maxage below), so this only
+// limits *distinct* query-param combinations per IP, not repeat requests for
+// the same image — still worth capping since each miss runs a real
+// satori+resvg render.
+const RATE_LIMIT = 30;
+const RATE_WINDOW_MS = 60 * 1000;
+const rateFallback = new Map();
+
+function getClientIp(req) {
+  const xff = req.headers['x-forwarded-for'];
+  if (xff) return String(xff).split(',')[0].trim();
+  return req.headers['x-real-ip'] || 'unknown';
+}
+
+async function checkRate(ip) {
+  const bucket = Math.floor(Date.now() / RATE_WINDOW_MS);
+  const key = `rate:og-png:${ip}:${bucket}`;
+  try {
+    const count = await kv.incr(key);
+    if (count === 1) await kv.expire(key, Math.ceil(RATE_WINDOW_MS / 1000));
+    return count <= RATE_LIMIT;
+  } catch {
+    const now = Date.now();
+    const entry = rateFallback.get(ip) || { count: 0, resetAt: now + RATE_WINDOW_MS };
+    if (now > entry.resetAt) { entry.count = 0; entry.resetAt = now + RATE_WINDOW_MS; }
+    entry.count++;
+    rateFallback.set(ip, entry);
+    return entry.count <= RATE_LIMIT;
+  }
+}
 
 // ─── WASM init (once per cold start) ─────────────────────────────────────────
 let wasmReady = false;
@@ -143,6 +175,12 @@ function defaultEl() {
 // ─── Handler ──────────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
   try {
+    const allowed = await checkRate(getClientIp(req));
+    if (!allowed) {
+      res.status(429).send('Too many requests');
+      return;
+    }
+
     const url     = new URL(req.url, `https://${req.headers.host}`);
     const type    = url.searchParams.get('type') || 'default';
     const title   = url.searchParams.get('title') || '';

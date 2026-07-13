@@ -1,4 +1,5 @@
 import React from 'react';
+import { track } from '@vercel/analytics';
 import { Zap, QrCode, MonitorPlay, Smartphone } from 'lucide-react';
 
 const HostHeader = ({ event, setIsQRModalOpen, setView, isRemoteMode, setIsRemoteMode }) => {
@@ -26,7 +27,7 @@ const HostHeader = ({ event, setIsQRModalOpen, setView, isRemoteMode, setIsRemot
         <button onClick={() => setIsQRModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 rounded-xl font-mono font-bold text-slate-600 text-lg transition-all group">
           <QrCode className="w-5 h-5 group-hover:rotate-12 transition-transform" /> #{event.code}
         </button>
-        <button onClick={() => window.open(`/event/${event.code}/present`, '_blank')} className="flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-600 text-indigo-600 hover:text-white rounded-xl font-bold text-sm transition-all">
+        <button onClick={() => { track('session_started'); window.open(`/event/${event.code}/present`, '_blank'); }} className="flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-600 text-indigo-600 hover:text-white rounded-xl font-bold text-sm transition-all">
           <MonitorPlay className="w-4 h-4" /> Презентација
         </button>
         <button onClick={() => setView('landing')} className="flex items-center gap-2 px-4 py-2 text-red-500 font-bold hover:bg-red-50 rounded-xl transition-all text-sm">Затвори</button>

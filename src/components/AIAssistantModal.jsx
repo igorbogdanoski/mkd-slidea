@@ -9,6 +9,7 @@ import { useFocusTrap } from '../hooks/useFocusTrap';
 import MathSymbolPicker from './MathSymbolPicker';
 import DictateButton from './DictateButton';
 import { applyInsertion } from '../lib/insertAtCursor';
+import { getAuthHeader } from '../lib/authHeader';
 
 const BLOOM_LEVELS = [
   { id: 'remember',   label: 'Запомнување' },
@@ -257,7 +258,7 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(user?.id ? { 'x-user-id': user.id } : {}),
+        ...(await getAuthHeader()),
       },
       body: JSON.stringify({
         prompt,

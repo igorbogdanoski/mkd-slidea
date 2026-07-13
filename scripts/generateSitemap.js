@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { LOCALES } from '../src/lib/locales.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -8,21 +9,10 @@ const ROOT = path.resolve(__dirname, '..');
 const SITE = 'https://slidea.mismath.net';
 const TODAY = new Date().toISOString().slice(0, 10);
 
-const LOCALES = [
-  { code: 'mk-MK', q: '' },
-  { code: 'sq-AL', q: '?lang=sq' },
-  { code: 'sr-RS', q: '?lang=sr' },
-  { code: 'hr-HR', q: '?lang=hr' },
-  { code: 'bg-BG', q: '?lang=bg' },
-  { code: 'ro-RO', q: '?lang=ro' },
-  { code: 'en', q: '?lang=en' },
-];
-
 const STATIC_ROUTES = [
   { path: '/', priority: 1.0, changefreq: 'weekly' },
   { path: '/join', priority: 0.8, changefreq: 'monthly' },
   { path: '/pricing', priority: 0.9, changefreq: 'monthly' },
-  { path: '/host', priority: 0.7, changefreq: 'monthly' },
   { path: '/templates', priority: 0.9, changefreq: 'weekly' },
   { path: '/scoreboard', priority: 0.8, changefreq: 'daily' },
   { path: '/demo', priority: 0.7, changefreq: 'monthly' },

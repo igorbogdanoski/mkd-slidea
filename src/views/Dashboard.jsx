@@ -30,7 +30,7 @@ const Dashboard = ({ setView, user, onLogout }) => {
   });
   const [selectedEvent, setSelectedEvent] = useState(null);
 
-  const { allEvents, eventsLoading, communityTemplates, templatesLoading, useTemplate } =
+  const { allEvents, eventsLoading, communityTemplates, templatesLoading, applyTemplate } =
     useDashboardData({ user, activeTab, setView });
 
   // Redirect new users (zero events, flag not set) to onboarding wizard.
@@ -46,13 +46,13 @@ const Dashboard = ({ setView, user, onLogout }) => {
   const renderContent = () => {
     switch (activeTab) {
       case 'home':
-        return <HomeTab setView={setView} setActiveTab={setActiveTab} user={user} useTemplate={useTemplate} />;
+        return <HomeTab setView={setView} setActiveTab={setActiveTab} user={user} applyTemplate={applyTemplate} />;
       case 'analytics':
         return <AnalyticsTab user={user} />;
       case 'presentations':
         return <PresentationsTab allEvents={allEvents} eventsLoading={eventsLoading} setSelectedEvent={setSelectedEvent} setView={setView} />;
       case 'templates':
-        return <TemplatesTab allTemplates={[...templates, ...communityTemplates]} templatesLoading={templatesLoading} useTemplate={useTemplate} />;
+        return <TemplatesTab allTemplates={[...templates, ...communityTemplates]} templatesLoading={templatesLoading} applyTemplate={applyTemplate} />;
       case 'admin':
         return user?.role === 'admin' ? <AdminTab currentUser={user} /> : null;
       case 'orders':

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Trophy, Crown, Medal, Sparkles, Calendar, ArrowRight, GraduationCap, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { safeJsonLd } from '../lib/jsonLd';
 import { useSEO } from '../hooks/useSEO';
 
 const formatDate = (iso) => {
@@ -254,7 +255,7 @@ const PublicScoreboard = () => {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: safeJsonLd({
             '@context': 'https://schema.org',
             '@type': 'ItemList',
             name: 'MKD Slidea — Топ квиз шампиони',

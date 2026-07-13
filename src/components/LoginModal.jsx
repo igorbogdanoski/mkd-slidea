@@ -225,7 +225,7 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin, onRequestPassword
                         primeAuth();
                         await onGoogleLogin();
                         onClose();
-                      } catch {}
+                      } catch { /* user cancelled the Google OAuth popup — nothing to surface */ }
                     }}
                     className="w-full flex items-center justify-center gap-3 py-4 bg-white border-2 border-slate-100 rounded-2xl font-black text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition-all active:scale-95 shadow-sm"
                   >

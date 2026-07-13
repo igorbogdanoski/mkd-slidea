@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Upload, FileText, Check, Loader, ChevronRight, AlertCircle, Sparkles } from 'lucide-react';
+import { getAuthHeader } from '../lib/authHeader';
 // JSZip loaded on demand — only when user actually opens this modal
 
 // Extract all text nodes from a slide XML string
@@ -199,7 +200,7 @@ const ImportPPTXModal = ({ isOpen, onClose, onImport, user }) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(user?.id ? { 'x-user-id': user.id } : {}),
+        ...(await getAuthHeader()),
       },
       body: JSON.stringify({ prompt, type: 'quiz', strategy: 'default' }),
     });

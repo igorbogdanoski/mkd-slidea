@@ -6,8 +6,12 @@
 
 export const config = { runtime: 'edge' };
 
+import { getClientIp, checkRateLimit } from './_lib/rateLimit.js';
+
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const RATE_LIMIT = 10;
+const RATE_WINDOW_MS = 60 * 1000;
 
 async function supabase(path, method, body) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1${path}`, {
@@ -31,6 +35,9 @@ export default async function handler(req) {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'POST, DELETE', 'Access-Control-Allow-Headers': 'Content-Type' } });
   }
+
+  const rate = await checkRateLimit('push-subscribe', getClientIp(req), RATE_LIMIT, RATE_WINDOW_MS);
+  if (!rate.allowed) return new Response(JSON.stringify({ error: 'rate_limited' }), { status: 429 });
 
   try {
     const body = await req.json();

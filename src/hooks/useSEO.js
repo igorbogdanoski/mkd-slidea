@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { LOCALES } from '../lib/locales';
 
 // ============================================================================
 // Sprint 8.2.2 — runtime SEO hook
@@ -81,9 +82,7 @@ export function useSEO({
     ensureMeta('meta[name="robots"]', 'content', noindex ? 'noindex,nofollow' : 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1');
 
     ensureLink('canonical', url);
-    ensureLink('alternate', url, 'mk-MK');
-    ensureLink('alternate', `${url}?lang=sq`, 'sq-AL');
-    ensureLink('alternate', `${url}?lang=en`, 'en');
+    LOCALES.forEach((loc) => ensureLink('alternate', `${url}${loc.q}`, loc.code));
     ensureLink('alternate', url, 'x-default');
 
     let scriptEl = null;

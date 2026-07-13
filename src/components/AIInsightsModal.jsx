@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertTriangle, Brain, Lightbulb, ListChecks, Loader2, Sparkles, X } from 'lucide-react';
+import { getAuthHeader } from '../lib/authHeader';
 
 const safePercent = (value) => {
   if (value === null || value === undefined || Number.isNaN(Number(value))) return null;
@@ -63,7 +64,7 @@ const AIInsightsModal = ({ isOpen, onClose, event, polls }) => {
     try {
       const response = await fetch('/api/insights', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await getAuthHeader()) },
         body: JSON.stringify(payload),
       });
 

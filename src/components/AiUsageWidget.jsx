@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { getAuthHeader } from '../lib/authHeader';
 
 const PLAN_LABELS = {
   free: 'Бесплатен',
@@ -47,16 +48,17 @@ export default function AiUsageWidget({ user, onUpgrade, isPro }) {
 
   useEffect(() => {
     if (!user?.id) { setLoading(false); return; }
-    fetch('/api/my-quota', {
-      headers: {
-        'x-user-id':   user.id,
-        'x-user-plan': user.plan || 'free',
-      },
-    })
-      .then(r => r.ok ? r.json() : Promise.reject())
-      .then(d => { setData(d); setLoading(false); })
-      .catch(() => { setError(true); setLoading(false); });
-  }, [user?.id, user?.plan]);
+    let cancelled = false;
+    (async () => {
+      const headers = await getAuthHeader();
+      if (cancelled) return;
+      fetch('/api/my-quota', { headers })
+        .then(r => r.ok ? r.json() : Promise.reject())
+        .then(d => { if (!cancelled) { setData(d); setLoading(false); } })
+        .catch(() => { if (!cancelled) { setError(true); setLoading(false); } });
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id]);
 
   if (loading) return (
     <div className="rounded-xl p-4 mb-4 animate-pulse" style={{ background: '#ffffff08', border: '1px solid #ffffff12' }}>

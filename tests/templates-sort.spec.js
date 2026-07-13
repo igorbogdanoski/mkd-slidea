@@ -92,6 +92,6 @@ test.describe('Public templates page', () => {
     await expect(page).toHaveTitle(/.+/);
     const desc = await page.locator('meta[name="description"]').getAttribute('content');
     expect(desc).toBeTruthy();
-    expect(desc!.length).toBeGreaterThan(10);
+    expect(desc.length).toBeGreaterThan(10);
   });
 });

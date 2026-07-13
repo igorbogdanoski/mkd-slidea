@@ -141,7 +141,6 @@ const Landing = ({ code, setCode, setView }) => {
             { '@type': 'Offer', 'price': '5', 'priceCurrency': 'EUR', 'name': 'Месечен' },
             { '@type': 'Offer', 'price': '20', 'priceCurrency': 'EUR', 'name': 'Годишен Pro' },
           ],
-          'aggregateRating': { '@type': 'AggregateRating', 'ratingValue': '4.8', 'ratingCount': '127', 'bestRating': '5' },
         },
         {
           '@type': 'FAQPage',

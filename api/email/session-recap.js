@@ -3,10 +3,16 @@
 // Fetches poll results, generates AI summary via Gemini Flash, emails host via Resend.
 //
 // Body: { event_id }
-// Headers: x-user-id, x-user-plan
-// Auth: x-mkd-secret (anon key first 16 chars)
+// Auth: Authorization: Bearer <supabase_access_token> — identity is derived
+// server-side from the verified JWT, never from a client-supplied header.
 
 export const config = { runtime: 'edge' };
+
+import { getAuthedUser } from '../_lib/auth.js';
+import { getClientIp, checkRateLimit } from '../_lib/rateLimit.js';
+
+const RATE_LIMIT = 5;
+const RATE_WINDOW_MS = 60 * 1000;
 
 const SB_URL  = process.env.SUPABASE_URL;
 const SB_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -84,16 +90,23 @@ function buildRecapHtml({ eventTitle, code, participantCount, recap, dashboardUr
 
 export default async function handler(req) {
   if (req.method === 'OPTIONS') return new Response(null, {
-    status: 204, headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'content-type,x-user-id,x-user-plan' }
+    status: 204, headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'content-type,authorization' }
   });
   if (req.method !== 'POST') return json({ error: 'method' }, 405);
+
+  const ip = getClientIp(req);
+  const rate = await checkRateLimit('session-recap', ip, RATE_LIMIT, RATE_WINDOW_MS);
+  if (!rate.allowed) return json({ error: 'rate_limited' }, 429);
+
+  const authedUser = await getAuthedUser(req);
+  if (!authedUser?.id) return json({ error: 'unauthorized' }, 401);
+  const userId = authedUser.id;
 
   let body;
   try { body = await req.json(); } catch { return json({ error: 'bad_json' }, 400); }
 
   const eventId = String(body?.event_id || '').trim();
-  const userId  = req.headers.get('x-user-id') || '';
-  if (!eventId || !userId) return json({ error: 'missing_params' }, 400);
+  if (!eventId) return json({ error: 'missing_params' }, 400);
   if (!SB_URL || !SB_KEY)  return json({ error: 'no_supabase' }, 500);
 
   // Load event
