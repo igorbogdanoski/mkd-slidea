@@ -12,6 +12,7 @@
     "test": "vitest run",
     "test:unit": "node --test src/__tests__/embeddings.test.js src/__tests__/seoHelpers.test.js src/__tests__/questionsCore.test.js",
     "test:e2e": "playwright test",
+    "verify:db-fixes": "node scripts/verify-realtime-db-fixes.mjs",
     "seed:curriculum": "node scripts/seedCurriculum.js"
   },
   "dependencies": {
