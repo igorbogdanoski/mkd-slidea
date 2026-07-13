@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@resvg/resvg-wasm": "^2.6.2",
-    "@supabase/supabase-js": "^2.99.3",
+    "@supabase/supabase-js": "^2.110.3",
     "@vercel/analytics": "^2.0.1",
     "@vercel/kv": "^3.0.0",
     "canvas-confetti": "^1.9.4",
