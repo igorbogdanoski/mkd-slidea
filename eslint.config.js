@@ -1,5 +1,6 @@
 import js from '@eslint/js';
 import globals from 'globals';
+import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 
@@ -22,6 +23,7 @@ export default [
       },
     },
     plugins: {
+      react,
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
     },
@@ -36,6 +38,12 @@ export default [
       'react-hooks/exhaustive-deps': 'warn',
       'react-refresh/only-export-components': 'warn',
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      // Without this, plain no-unused-vars doesn't know that <Foo /> counts
+      // as a use of `Foo` — every component-only import in every .jsx file
+      // was flagged as unused. Just this one rule from eslint-plugin-react,
+      // not its full "recommended" preset (which assumes the classic JSX
+      // runtime and would misfire elsewhere with the automatic runtime).
+      'react/jsx-uses-vars': 'error',
     },
   },
   {

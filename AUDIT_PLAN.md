@@ -517,6 +517,14 @@ Production Vercel env vars (`SUPABASE_URL`, `VITE_SUPABASE_URL`, `SUPABASE_ANON_
 - `npx vitest run` → 112/112 тестови поминати.
 - Сите нови SQL миграции (`SUPABASE_SUPPORT_MESSAGES.sql`, `SUPABASE_SYSTEM_HEALTH.sql`) применети на self-hosted инстанцата веднаш по создавање.
 
-### Останато, не итно
-- ESLint конфигурацијата не препознава JSX-употреба на imports (`react/jsx-uses-vars` еквивалент недостасува) — 880 предупредувања низ целиот кодбаза се largely лажни позитиви. Не е критично (0 вистински грешки), но вреди да се исчисти во посебна сесија ако сакаш чист lint излез.
-- CSP/security headers прашањето од продолжение 3 (дали навистина стигнуваат до продукциски response-и) сè уште не е верификувано по последниот deploy.
+## ✅ ESLint JSX-fix + CSP headers root-cause најден (13.07.2026, продолжение 5)
+
+### ESLint — вистински поправено (не само workaround)
+Проблемот од продолжение 4 (880 предупредувања) не беше „largely лажни позитиви" туку конкретна дупка во конфигурацијата: `eslint.config.js` немаше начин да препознае дека `<Nav />` во JSX е реална употреба на именуваниот import `Nav` — секој компонент-import во секој `.jsx` фајл се третираше како неискористен. Инсталиран `eslint-plugin-react` (само правилото `react/jsx-uses-vars`, не целиот „recommended" preset кој претпоставува класичен JSX runtime). Резултат: **880 → 160 предупредувања, 0 грешки**. Преостанатите 160 се вистински (неискористени imports/променливи низ ~90 фајлови + неколку test фајлови) — ситна чистка, не итна, но сега сигналот е реален наместо шум.
+
+### CSP/security headers — root cause најден: stale CDN cache на `/`, не конфигурациски бag
+Верификувано со `curl -I` (со `--ssl-no-revoke` поради Windows schannel revocation-check грешка, не сервер проблем):
+- **`vercel.json`-от е коректен и headers-ите РЕАЛНО стигнуваат до продукција** — потврдено на `/assets/*`, `/pricing` (MISS), `/dashboard` (HIT, Age:113с) и случаен 404 пат: сите враќаат целосен сет (CSP, `Permissions-Policy`, `Referrer-Policy`, `X-Content-Type-Options`, `X-Frame-Options: SAMEORIGIN`, целосен HSTS со `includeSubDomains; preload`).
+- **Само точниот root пат `/` е засегнат** — секое барање кон `https://slidea.mismath.net/` враќа `X-Vercel-Cache: HIT` со `Age` ~5ч (точно колку што е стар последниот деплој) и САМО гол `Strict-Transport-Security: max-age=63072000` (без `includeSubDomains; preload`, без ниту еден друг header). Барањето не се освежува ниту со клиентски `Cache-Control: no-cache` header.
+- **Заклучок**: изолирана stale edge-cache копија специфично на `/`, најверојатно затоа што index.html содржината е byte-identical низ повеќе деплоеви (ист ETag), па Vercel-овата CDN продолжува да ја servira истата многу стара cache-entry наместо да ја освежи, додека другите рути (со различна содржина по деплој) природно се revalidate-ираат почесто. Практичен ризик: тесен, но реален — секој што ја отвора голата homepage URL моментално добива страница без CSP/X-Frame-Options/Permissions-Policy заштита додека таа конкретна cache-entry не се purge-ира или истече.
+- **Поправка**: или (а) рачно "Purge Cache" од Vercel dashboard (Project → Settings → Data Cache, или преку деплојментот) — веднаш, без code change, или (б) нов production deploy (push + `vercel --prod`), кој типично доделува нов deployment ID и ја реосвежува CDN кеш-содржината. Не е сторено самостојно бидејќи бара или dashboard кликање (не можам јас) или push кон production (претходно намерно одложено од твоја страна) — твоја одлука.
