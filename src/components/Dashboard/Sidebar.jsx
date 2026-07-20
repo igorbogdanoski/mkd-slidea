@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Home, Presentation, LayoutGrid, Users,
-  CreditCard, Share2, Trash2, LogOut, BarChart2, Lock, Shield, Gift, KeyRound, User, Sparkles, Building2, Receipt,
+  CreditCard, Share2, LogOut, BarChart2, Lock, Shield, Gift, KeyRound, User, Sparkles, Building2, Receipt,
   CheckCircle2, Circle, ChevronDown, ChevronUp, X, Zap,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
@@ -217,7 +217,6 @@ const Sidebar = ({ activeTab, setActiveTab, user, onLogout }) => {
     ] : []),
     { id: 'integrations', label: 'Интеграции', icon: <Share2 size={20} /> },
     { id: 'api', label: 'API клучеви', icon: <KeyRound size={20} /> },
-    { id: 'trash', label: 'Корпа', icon: <Trash2 size={20} /> },
   ];
 
   return (

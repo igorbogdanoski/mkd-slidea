@@ -297,7 +297,7 @@ const Host = ({ setView, user }) => {
                   <h3 className="text-2xl font-black">Избери тип на активност</h3>
                   <div className="w-24" />
                 </div>
-                <InteractionTypeGrid user={user} onSelect={handleInteractionSelect} />
+                <InteractionTypeGrid onSelect={handleInteractionSelect} />
               </motion.div>
             ) : (
               <motion.div
@@ -462,7 +462,7 @@ const Host = ({ setView, user }) => {
                           startTimer={session.startTimer}
                           stopTimer={session.stopTimer}
                           event={event}
-                          setEvent={setEvent}
+                          toggleLock={session.toggleLock}
                           onEndSession={async () => {
                             if (!window.confirm('Заврши ја сесијата? Учесниците ќе видат „Сесијата е завршена" и нема да можат да гласаат.')) return;
                             await session.endSession();

@@ -315,7 +315,7 @@ const Pricing = ({ setView }) => {
         </div>
 
         <p className="text-center text-xs text-slate-400 font-medium mt-5">
-          * Цените за Mentimeter се приближни врз основа на нивниот јавен ценовник. Последно проверено: Јуни 2026.
+          * Цените за Mentimeter се приближни врз основа на нивниот јавен ценовник и подлежат на промена без најава.
         </p>
       </motion.div>
 

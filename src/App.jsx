@@ -38,6 +38,7 @@ const Terms = lazy(() => import('./views/Terms'));
 const ResetPassword = lazy(() => import('./views/ResetPassword'));
 const NotFound = lazy(() => import('./views/NotFound'));
 const PublicResults = lazy(() => import('./views/PublicResults'));
+const AcceptInvite = lazy(() => import('./views/AcceptInvite'));
 
 // Best-effort report of real (non-suppressed) errors to the self-hosted
 // error log, so a production crash is visible somewhere besides a user's
@@ -242,6 +243,7 @@ const AppContent = () => {
                 <Route path="/host" element={<ProtectedRoute><Host setView={setView} user={user} /></ProtectedRoute>} />
                 <Route path="/onboarding" element={<ProtectedRoute><Onboarding user={user} /></ProtectedRoute>} />
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard setView={setView} user={user} onLogout={handleLogout} /></ProtectedRoute>} />
+                <Route path="/accept-invite" element={<ProtectedRoute><AcceptInvite /></ProtectedRoute>} />
                 <Route path="/pricing" element={<Pricing setView={setView} />} />
                 <Route path="/checkout" element={<Checkout user={user} />} />
                 <Route path="/checkout/:planCode" element={<Checkout user={user} />} />

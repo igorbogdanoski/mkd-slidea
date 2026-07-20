@@ -1,6 +1,5 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight, Timer, Square, Lock, Unlock, Check } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
 import { useLiveAnnouncer } from '../../hooks/useLiveAnnouncer';
 import VoiceControlButton from '../VoiceControlButton';
 
@@ -13,15 +12,13 @@ const HostNavBar = ({
   startTimer,
   stopTimer,
   event,
-  setEvent,
+  toggleLock,
   onEndSession,
 }) => {
   const { announce } = useLiveAnnouncer();
 
   const handleToggleLock = async () => {
-    const next = !event.is_locked;
-    await supabase.from('events').update({ is_locked: next }).eq('id', event.id);
-    setEvent(prev => ({ ...prev, is_locked: next }));
+    const next = await toggleLock();
     announce(next ? 'Гласањето е заклучено за публиката.' : 'Гласањето е отклучено за публиката.', { assertive: true });
   };
 
@@ -65,13 +62,11 @@ const HostNavBar = ({
             prev: goPrev,
             lock: async () => {
               if (event.is_locked) return;
-              await supabase.from('events').update({ is_locked: true }).eq('id', event.id);
-              setEvent(prev => ({ ...prev, is_locked: true }));
+              await toggleLock();
             },
             unlock: async () => {
               if (!event.is_locked) return;
-              await supabase.from('events').update({ is_locked: false }).eq('id', event.id);
-              setEvent(prev => ({ ...prev, is_locked: false }));
+              await toggleLock();
             },
             start: () => startTimer(60),
             stopCmd: () => stopTimer(),
