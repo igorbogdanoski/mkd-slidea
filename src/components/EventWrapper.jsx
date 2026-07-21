@@ -251,9 +251,11 @@ const EventWrapper = ({ type, username, setUsername }) => {
     );
   }
 
-  // Lock screen — differentiate between "paused" and "ended" (ended = locked + no active poll)
+  // Lock screen — differentiate between "paused" and "ended" via the explicit
+  // ended_at marker, not active_poll_id (which is also null pre-session,
+  // before any poll has ever been activated — that used to show "ended" too).
   if (event.is_locked) {
-    const isEnded = !event.active_poll_id;
+    const isEnded = !!event.ended_at;
     return (
       <div className="flex items-center justify-center min-h-[80vh] px-4">
         <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl p-10 max-w-sm w-full text-center">
