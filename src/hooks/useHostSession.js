@@ -636,6 +636,13 @@ export const useHostSession = (user) => {
     return next;
   };
 
+  // Lives on events.allow_multiple_votes, not localStorage — participants on
+  // other devices need to read it too, not just this host's own browser.
+  const setAllowMultipleVotes = async (next) => {
+    setEvent(prev => (prev ? { ...prev, allow_multiple_votes: next } : prev));
+    await supabase.from('events').update({ allow_multiple_votes: next }).eq('id', event.id);
+  };
+
   const adaptiveSuggestion = (() => {
     const lastQuiz = [...polls].reverse().find(p => p.is_quiz && Array.isArray(p.options) && p.options.length);
     if (!lastQuiz) return null;
@@ -679,6 +686,7 @@ export const useHostSession = (user) => {
     stopTimer,
     endSession,
     toggleLock,
+    setAllowMultipleVotes,
     refreshPolls,
   };
 };

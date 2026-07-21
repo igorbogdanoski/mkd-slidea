@@ -56,11 +56,7 @@ const EventSettingsModal = ({
               <p className="text-sm text-slate-400 font-bold mt-0.5">Учесниците можат да гласаат повеќепати по Refresh</p>
             </div>
             <button
-              onClick={() => {
-                const next = !allowMultipleVotes;
-                setAllowMultipleVotes(next);
-                localStorage.setItem('setting_multiple_votes', String(next));
-              }}
+              onClick={() => setAllowMultipleVotes(!allowMultipleVotes)}
               className={`relative w-14 h-7 rounded-full transition-colors ${allowMultipleVotes ? 'bg-indigo-600' : 'bg-slate-200'}`}
             >
               <span className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${allowMultipleVotes ? 'translate-x-7' : 'translate-x-0.5'}`} />

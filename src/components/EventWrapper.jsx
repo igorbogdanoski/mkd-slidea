@@ -159,12 +159,17 @@ const EventWrapper = ({ type, username, setUsername }) => {
   const currentPollId = polls[activePollIndex >= 0 ? activePollIndex : 0]?.id;
   useEffect(() => { setQuizResult(null); }, [currentPollId]);
 
-  // userVoted = DB vote (primary) OR localStorage (fallback/cache)
+  // userVoted = DB vote (primary) OR localStorage (fallback/cache).
+  // When the host enables "Повеќекратно гласање" (allow_multiple_votes),
+  // never treat the poll as already answered — participants can vote again
+  // after a refresh instead of being locked out after their first vote.
   const votedKey = `voted_${event?.id || id}`;
   const getLocalVoted = () => { try { return JSON.parse(localStorage.getItem(votedKey) || '[]'); } catch { return []; } };
-  const userVoted = currentPollId
-    ? dbVotedPolls.includes(currentPollId) || getLocalVoted().includes(currentPollId)
-    : false;
+  const userVoted = event?.allow_multiple_votes
+    ? false
+    : currentPollId
+      ? dbVotedPolls.includes(currentPollId) || getLocalVoted().includes(currentPollId)
+      : false;
   const markVoted = (pollId) => {
     setDbVotedPolls(prev => prev.includes(pollId) ? prev : [...prev, pollId]);
     const v = getLocalVoted();
@@ -448,13 +453,17 @@ const EventWrapper = ({ type, username, setUsername }) => {
           }
           
           const sid = getSessionId();
-          
+          // With multiple votes allowed, each attempt needs its own row —
+          // the real session id would silently no-op against the prior vote
+          // via the poll_id+session_id uniqueness constraint otherwise.
+          const voteRowSid = event?.allow_multiple_votes ? `${sid}-${Date.now()}` : sid;
+
           // Record vote in votes table. Use ignoreDuplicates:true (DO NOTHING on conflict)
           // so anon users don't need UPDATE permission — INSERT is enough.
           const { error: votesError } = await supabase.from('votes').upsert(
             {
               poll_id: currentPoll.id,
-              session_id: sid,
+              session_id: voteRowSid,
               username: username || 'Анонимен',
               answer_text: answerText,
               is_correct: isCorrect,
