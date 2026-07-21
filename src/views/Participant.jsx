@@ -601,7 +601,7 @@ const Participant = ({
                       })}
                     </div>
                     <button
-                      onClick={() => handleVote(rankingOrder[0])}
+                      onClick={() => handleVote(rankingOrder)}
                       disabled={rankingOrder.length === 0}
                       className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 disabled:opacity-50"
                     >

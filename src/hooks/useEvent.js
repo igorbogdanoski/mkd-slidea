@@ -303,7 +303,7 @@ export const useEvent = (eventCode) => {
     return await supabase.from('reactions').insert([{ event_id: event.id, emoji }]);
   };
 
-  const vote = async (optionId, pollId, textValue) => {
+  const vote = async (optionId, pollId, textValue, weight) => {
     if (textValue) {
       const clean = textValue.replace(/<[^>]+>/g, '').trim().slice(0, 300);
       if (!clean) return { data: null, error: null };
@@ -318,6 +318,11 @@ export const useEvent = (eventCode) => {
         return { data: null, error: { message: errData.error || 'Text vote failed' } };
       }
       return { data: null, error: null };
+    }
+    // Ranking submits a Borda-count weight per option (see increment_vote_weighted)
+    // instead of a flat +1, so the full ordering — not just the top pick — counts.
+    if (weight) {
+      return await supabase.rpc('increment_vote_weighted', { option_id: optionId, weight });
     }
     return await supabase.rpc('increment_vote', { option_id: optionId });
   };

@@ -393,6 +393,19 @@ const EventWrapper = ({ type, username, setUsername }) => {
             answerText = val;
             const textVoteRes = await withLockRetry(() => vote(null, currentPoll.id, val, false));
             if (textVoteRes?.error) throw textVoteRes.error;
+          } else if (Array.isArray(val)) {
+            // Ranking: val is the full option-index order, most preferred first.
+            // Borda count — top pick gets N points, last gets 1 — so the whole
+            // ordering (not just #1) contributes to the aggregate result.
+            const n = val.length;
+            answerText = val.map((optIdx) => currentPoll.options[optIdx]?.text).filter(Boolean).join(' > ');
+            for (let rank = 0; rank < n; rank++) {
+              const option = currentPoll.options[val[rank]];
+              if (!option) continue;
+              const weight = n - rank;
+              const rankVoteRes = await withLockRetry(() => vote(option.id, currentPoll.id, null, weight));
+              if (rankVoteRes?.error) throw rankVoteRes.error;
+            }
           } else {
             const option = currentPoll.options[val];
             if (!option) throw new Error('Invalid option selected');
@@ -444,8 +457,12 @@ const EventWrapper = ({ type, username, setUsername }) => {
                   poll_id: currentPoll.id,
                   session_id: getSessionId(),
                   username: username || 'Анонимен',
-                  answer_text: typeof val === 'string' ? val : currentPoll.options?.[val]?.text ?? null,
-                  is_correct: typeof val === 'string' ? null : (currentPoll.options?.[val]?.is_correct ?? null),
+                  answer_text: typeof val === 'string'
+                    ? val
+                    : Array.isArray(val)
+                      ? val.map((optIdx) => currentPoll.options?.[optIdx]?.text).filter(Boolean).join(' > ')
+                      : currentPoll.options?.[val]?.text ?? null,
+                  is_correct: (typeof val === 'string' || Array.isArray(val)) ? null : (currentPoll.options?.[val]?.is_correct ?? null),
                 },
               });
               markVoted(currentPoll.id);
