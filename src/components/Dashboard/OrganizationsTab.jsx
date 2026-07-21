@@ -190,15 +190,22 @@ const OrganizationsTab = ({ user }) => {
     setCreating(true);
     setError('');
     try {
-      const slug = trimmed.toLowerCase()
+      // Macedonian/Cyrillic names strip down to nothing (or a bare "-") once
+      // non-ASCII characters are removed — a random suffix keeps the slug
+      // collision-free regardless of script, instead of relying on
+      // slug_base || null, which let two Cyrillic-named orgs both compute
+      // slug "-" and collide on the UNIQUE constraint.
+      const slugBase = trimmed.toLowerCase()
         .replace(/[^a-z0-9\s-]/g, '')
         .replace(/\s+/g, '-')
-        .slice(0, 40);
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 30);
+      const slug = `${slugBase || 'org'}-${Math.random().toString(36).slice(2, 8)}`;
       const { error: insErr } = await supabase
         .from('organizations')
         .insert([{
           name: trimmed,
-          slug: slug || null,
+          slug,
           domain: domain.trim() || null,
           created_by: user.id,
         }]);
