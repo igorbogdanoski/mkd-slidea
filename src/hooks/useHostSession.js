@@ -389,9 +389,11 @@ export const useHostSession = (user) => {
           if (optError) throw optError;
         }
       }
+      return true;
     } catch (err) {
       console.error('Error saving poll:', err);
       alert('Настана грешка при зачувување на активноста. Ве молиме обидете се повторно.');
+      return false;
     }
   };
 
@@ -475,6 +477,7 @@ export const useHostSession = (user) => {
   };
 
   const handlePPTXImport = async (slides, pollType) => {
+    let succeeded = 0;
     for (const slide of slides) {
       if (pollType === 'ai' && slide._aiPoll) {
         const ai = slide._aiPoll;
@@ -495,6 +498,7 @@ export const useHostSession = (user) => {
             is_correct: !!o.is_correct,
           })));
         }
+        succeeded++;
         continue;
       }
 
@@ -511,7 +515,9 @@ export const useHostSession = (user) => {
           await supabase.from('options').insert(opts.map(text => ({ poll_id: newPoll.id, text })));
         }
       }
+      succeeded++;
     }
+    return { succeeded, failed: slides.length - succeeded, total: slides.length };
   };
 
   const resetAllResults = async () => {
@@ -622,8 +628,9 @@ export const useHostSession = (user) => {
   };
 
   const endSession = async () => {
-    await supabase.from('events').update({ is_locked: true, active_poll_id: null }).eq('id', event.id);
-    setEvent(prev => ({ ...prev, is_locked: true, active_poll_id: null }));
+    const endedAt = new Date().toISOString();
+    await supabase.from('events').update({ is_locked: true, active_poll_id: null, ended_at: endedAt }).eq('id', event.id);
+    setEvent(prev => ({ ...prev, is_locked: true, active_poll_id: null, ended_at: endedAt }));
     setActivePollIndex(0);
     pollIndexInitialized.current = false;
     localStorage.removeItem('active_event_code');

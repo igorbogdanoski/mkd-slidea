@@ -21,7 +21,7 @@ const BLOOM_LEVELS = [
 ];
 
 // ── Preview Panel ────────────────────────────────────────────────────────────
-const PreviewPanel = ({ result, onInsert, onRegenerate, onBack, regenerating }) => {
+const PreviewPanel = ({ result, onInsert, onRegenerate, onBack, regenerating, inserting }) => {
   const [question, setQuestion] = useState(result.question || '');
   const [options, setOptions] = useState(
     Array.isArray(result.options) ? result.options.map((o) => ({ text: o.text ?? o, is_correct: !!o.is_correct })) : []
@@ -156,10 +156,10 @@ const PreviewPanel = ({ result, onInsert, onRegenerate, onBack, regenerating }) 
         <button
           type="button"
           onClick={handleInsert}
-          disabled={!question.trim()}
+          disabled={!question.trim() || inserting}
           className="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 disabled:opacity-50"
         >
-          <Check size={16} />
+          {inserting ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
           Вметни
         </button>
       </div>
@@ -172,6 +172,7 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
   const [prompt, setPrompt] = useState('');
   const [generating, setGenerating] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
+  const [inserting, setInserting] = useState(false);
   const [type, setType] = useState('quiz');
   const [strategy, setStrategy] = useState('default');
   const [bloom, setBloom] = useState(adaptiveSuggestion?.bloom || '');
@@ -303,8 +304,15 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
     }
   };
 
-  const handleInsert = (editedResult) => {
-    onGenerate(editedResult);
+  const handleInsert = async (editedResult) => {
+    // Don't clear/close until the save actually lands — onSavePoll can fail
+    // (network, RLS, transient DB error), and closing first meant a failed
+    // save silently threw away the generated content with just a bare
+    // alert() and no way to retry without regenerating from scratch.
+    setInserting(true);
+    const ok = await onGenerate(editedResult);
+    setInserting(false);
+    if (ok === false) return;
     setPrompt('');
     setImage(null);
     setPreview(null);
@@ -364,6 +372,7 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
                   onRegenerate={handleRegenerate}
                   onBack={() => setPreview(null)}
                   regenerating={regenerating}
+                  inserting={inserting}
                 />
               ) : (
                 <motion.div
