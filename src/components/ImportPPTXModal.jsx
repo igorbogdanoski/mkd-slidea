@@ -216,6 +216,8 @@ const ImportPPTXModal = ({ isOpen, onClose, onImport, user }) => {
     if (!toImport.length) return;
     setImporting(true);
     try {
+      let importResult;
+      let aiGenFailed = 0;
       if (pollType === 'ai') {
         const aiPolls = [];
         for (const slide of toImport) {
@@ -231,10 +233,13 @@ const ImportPPTXModal = ({ isOpen, onClose, onImport, user }) => {
                   options: Array.isArray(generated.options) ? generated.options : [],
                 },
               });
+            } else {
+              aiGenFailed++;
             }
           } catch (e) {
             // continue with remaining slides — partial success is better than none
             console.warn('AI generation failed for slide', slide.index, e);
+            aiGenFailed++;
           }
         }
         if (!aiPolls.length) {
@@ -242,9 +247,19 @@ const ImportPPTXModal = ({ isOpen, onClose, onImport, user }) => {
           setImporting(false);
           return;
         }
-        await onImport(aiPolls, 'ai');
+        importResult = await onImport(aiPolls, 'ai');
       } else {
-        await onImport(toImport, pollType);
+        importResult = await onImport(toImport, pollType);
+      }
+      // Surface partial failures instead of silently dropping slides — a slide
+      // can fail at AI generation (rate limit, malformed response) or at the
+      // DB-insert step; either way the user should know the true count.
+      const dbFailed = importResult?.failed || 0;
+      const totalFailed = aiGenFailed + dbFailed;
+      if (totalFailed > 0) {
+        const totalRequested = toImport.length;
+        const succeededCount = totalRequested - totalFailed;
+        alert(`Увезени ${succeededCount} од ${totalRequested} слајдови. ${totalFailed} не успеаја (AI грешка или проблем со зачувување) — провери ги рачно и обиди се повторно за нив ако е потребно.`);
       }
       onClose();
       reset();
