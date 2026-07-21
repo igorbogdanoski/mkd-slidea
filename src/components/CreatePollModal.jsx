@@ -233,6 +233,32 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
                 </div>
                 <div className="mt-4">
                   <label className="block text-xs font-black text-slate-400 uppercase tracking-widest px-1 mb-2">
+                    Слика (необ.)
+                  </label>
+                  {coverUrl ? (
+                    <div className="relative w-full h-32 rounded-xl overflow-hidden border-2 border-slate-100 group">
+                      <img src={coverUrl} alt="" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => { setCoverUrl(''); setCoverMeta(null); }}
+                        className="absolute top-2 right-2 p-1.5 bg-slate-900/70 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                        aria-label="Отстрани слика"
+                      >
+                        <Trash className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setPickerOpen(true)}
+                      className="w-full flex items-center justify-center gap-2 py-3 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl text-xs font-black text-slate-400 hover:text-indigo-600 hover:border-indigo-200 transition-all"
+                    >
+                      <ImageIcon className="w-4 h-4" /> Додај слика
+                    </button>
+                  )}
+                </div>
+                <div className="mt-4">
+                  <label className="block text-xs font-black text-slate-400 uppercase tracking-widest px-1 mb-2">
                     Белешки за презентер (само за хост)
                   </label>
                   <textarea
@@ -402,6 +428,12 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
               </button>
             </div>
           </motion.div>
+          <IllustrationPickerModal
+            isOpen={pickerOpen}
+            onClose={() => setPickerOpen(false)}
+            initialQuery={question}
+            onSelect={(url, meta) => { setCoverUrl(url); setCoverMeta(meta || null); setPickerOpen(false); }}
+          />
         </div>
       )}
     </AnimatePresence>

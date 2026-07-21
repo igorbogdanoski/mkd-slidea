@@ -304,6 +304,8 @@ export const useHostSession = (user) => {
           is_quiz: !!pollData.is_quiz,
           presenter_notes: pollData.presenter_notes ?? null,
           curriculum_tags: pollData.curriculum_tags ?? null,
+          cover_url: pollData.cover_url ?? null,
+          cover_meta: pollData.cover_meta ?? null,
         };
         // Editing a survey poll previously never touched survey_questions —
         // only top-level fields updated, so sub-question edits were silently
@@ -366,6 +368,8 @@ export const useHostSession = (user) => {
           survey_questions: pollData.survey_questions || [],
           presenter_notes: pollData.presenter_notes ?? null,
           curriculum_tags: pollData.curriculum_tags ?? null,
+          cover_url: pollData.cover_url ?? null,
+          cover_meta: pollData.cover_meta ?? null,
         }]).select().single();
         if (pollError) throw pollError;
 
