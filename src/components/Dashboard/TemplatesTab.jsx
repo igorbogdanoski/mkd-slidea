@@ -1,18 +1,43 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 
 const TemplatesTab = ({ allTemplates, templatesLoading, applyTemplate }) => {
   const [previewTemplate, setPreviewTemplate] = useState(null);
+  const [category, setCategory] = useState('Сите');
+
+  const categories = useMemo(() => {
+    const set = new Set(['Сите']);
+    allTemplates.forEach((t) => { if (t.category) set.add(t.category); });
+    return [...set];
+  }, [allTemplates]);
+
+  const filtered = category === 'Сите' ? allTemplates : allTemplates.filter((t) => t.category === category);
 
   return (
   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="p-12">
-    <div className="flex items-center justify-between mb-12">
+    <div className="flex items-center justify-between mb-8">
       <div>
         <h2 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">Сите шаблони</h2>
         <p className="text-slate-400 font-bold">Официјални + community шаблони за брз старт.</p>
       </div>
     </div>
+
+    {!templatesLoading && categories.length > 2 && (
+      <div className="flex flex-wrap gap-2 mb-8">
+        {categories.map((c) => (
+          <button
+            key={c}
+            onClick={() => setCategory(c)}
+            className={`px-4 py-2 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${
+              category === c ? 'bg-indigo-600 text-white' : 'bg-white border border-slate-200 text-slate-500 hover:border-indigo-200 hover:text-indigo-600'
+            }`}
+          >
+            {c}
+          </button>
+        ))}
+      </div>
+    )}
 
     {templatesLoading ? (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -22,25 +47,40 @@ const TemplatesTab = ({ allTemplates, templatesLoading, applyTemplate }) => {
       </div>
     ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-        {allTemplates.map((temp) => (
+        {filtered.map((temp) => (
           <div key={temp.id} className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden group cursor-pointer hover:shadow-2xl hover:shadow-indigo-50 transition-all">
-            <div className="h-48 relative overflow-hidden">
-              <img src={temp.img} alt={temp.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-              <div className="absolute top-4 left-4">
-                <span className="bg-white/90 backdrop-blur-md px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest text-indigo-600">
-                  {temp.category}
-                </span>
+            {temp.icon ? (
+              <div className={`h-48 relative overflow-hidden bg-gradient-to-br ${temp.color || 'from-indigo-500 to-violet-500'} p-6 text-white flex flex-col justify-between`}>
+                <div className="text-4xl">{temp.icon}</div>
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-1">
+                    {temp.subject}{temp.grade ? ` · ${temp.grade}` : ''}
+                  </div>
+                  <h4 className="font-black leading-tight line-clamp-2">{temp.title}</h4>
+                </div>
               </div>
-              {temp.source === 'community' && (
-                <div className="absolute top-4 right-4">
-                  <span className="bg-emerald-500/95 text-white px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest">
-                    Community
+            ) : (
+              <div className="h-48 relative overflow-hidden">
+                <img src={temp.img} alt={temp.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                <div className="absolute top-4 left-4">
+                  <span className="bg-white/90 backdrop-blur-md px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest text-indigo-600">
+                    {temp.category}
                   </span>
                 </div>
-              )}
-            </div>
+                {temp.source === 'community' && (
+                  <div className="absolute top-4 right-4">
+                    <span className="bg-emerald-500/95 text-white px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest">
+                      Community
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
             <div className="p-8">
-              <h4 className="font-black text-slate-900 mb-6 line-clamp-2">{temp.title}</h4>
+              {!temp.icon && <h4 className="font-black text-slate-900 mb-6 line-clamp-2">{temp.title}</h4>}
+              {temp.icon && temp.description && (
+                <p className="text-slate-400 font-bold text-xs mb-6 line-clamp-2">{temp.description}</p>
+              )}
               {temp.source === 'community' && (
                 <p className="text-[11px] text-slate-400 font-black uppercase tracking-widest mb-4">
                   Користен {temp.usage_count || 0} пати

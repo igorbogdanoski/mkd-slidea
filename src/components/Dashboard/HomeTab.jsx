@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { templates } from '../../data/templates';
+import { STARTER_TEMPLATES } from '../../lib/starterTemplates';
 import FirstSuccessWizard, { shouldShowFirstSuccess } from '../FirstSuccessWizard';
 import ErrorBoundary from '../ErrorBoundary';
 import IllustrationPickerModal from '../IllustrationPickerModal';
@@ -407,7 +408,7 @@ const HomeTab = ({ setView, setActiveTab, user, applyTemplate }) => {
       <div className="grid grid-cols-3 gap-6 mb-12">
         {[
           { label: 'Вкупно настани', value: loadingEvents ? '…' : recentEvents.length > 5 ? '6+' : recentEvents.length || '0', icon: '📋' },
-          { label: 'Шаблони', value: templates.length, icon: '🎨' },
+          { label: 'Шаблони', value: templates.length + STARTER_TEMPLATES.length, icon: '🎨' },
           { label: 'Типови активности', value: '7', icon: '⚡' },
         ].map((stat, i) => (
           <div key={i} className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex items-center gap-5">

@@ -19,6 +19,7 @@ import TemplatesTab from '../components/Dashboard/TemplatesTab';
 import PlanTab from '../components/Dashboard/PlanTab';
 import IntegrationsTab from '../components/Dashboard/IntegrationsTab';
 import { templates } from '../data/templates';
+import { STARTER_TEMPLATES } from '../lib/starterTemplates';
 import { useDashboardData } from '../hooks/useDashboardData';
 import OnboardingTour, { TOUR_DONE_KEY } from '../components/OnboardingTour';
 
@@ -52,7 +53,7 @@ const Dashboard = ({ setView, user, onLogout }) => {
       case 'presentations':
         return <PresentationsTab allEvents={allEvents} eventsLoading={eventsLoading} setSelectedEvent={setSelectedEvent} setView={setView} />;
       case 'templates':
-        return <TemplatesTab allTemplates={[...templates, ...communityTemplates]} templatesLoading={templatesLoading} applyTemplate={applyTemplate} />;
+        return <TemplatesTab allTemplates={[...STARTER_TEMPLATES.map(t => ({ ...t, category: t.subject })), ...templates, ...communityTemplates]} templatesLoading={templatesLoading} applyTemplate={applyTemplate} />;
       case 'admin':
         return user?.role === 'admin' ? <AdminTab currentUser={user} /> : null;
       case 'orders':
