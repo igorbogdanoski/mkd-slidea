@@ -130,6 +130,31 @@ const EventWrapper = ({ type, username, setUsername }) => {
       });
   }, [event?.id]);
 
+  // Quiz leaderboard for the projector view — gated to type==='present' since
+  // it's only ever rendered there, so the hundreds of regular participants
+  // never trigger this extra query. Same aggregation EventScoreboard.jsx
+  // uses (points = correct-answer count per session), recomputed whenever
+  // polls/options change so it stays roughly live during the session.
+  const [leaderboard, setLeaderboard] = useState([]);
+  useEffect(() => {
+    if (type !== 'present' || !event?.id) return;
+    const quizPollIds = polls.filter((p) => p.is_quiz).map((p) => p.id);
+    if (!quizPollIds.length) { setLeaderboard([]); return; }
+    supabase
+      .from('votes')
+      .select('session_id, username, is_correct')
+      .in('poll_id', quizPollIds)
+      .then(({ data }) => {
+        const map = new Map();
+        for (const v of data || []) {
+          const sid = v.session_id || v.username || 'anon';
+          if (!map.has(sid)) map.set(sid, { username: v.username || 'Анонимен', points: 0 });
+          if (v.is_correct) map.get(sid).points++;
+        }
+        setLeaderboard([...map.values()]);
+      });
+  }, [type, event?.id, polls]);
+
   // Reset quiz result when active poll changes
   const currentPollId = polls[activePollIndex >= 0 ? activePollIndex : 0]?.id;
   useEffect(() => { setQuizResult(null); }, [currentPollId]);
@@ -192,7 +217,7 @@ const EventWrapper = ({ type, username, setUsername }) => {
         questions={questions}
         reactions={reactions}
         activePollIndex={activePollIndex}
-        leaderboard={[]}
+        leaderboard={leaderboard}
         markQuestionAnswered={markQuestionAnswered}
         setQuestionPinned={setQuestionPinned}
         setQuestionHidden={setQuestionHidden}
