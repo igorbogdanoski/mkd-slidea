@@ -298,15 +298,23 @@ export const useHostSession = (user) => {
   const onSavePoll = async (pollData, editingPoll) => {
     try {
       if (editingPoll) {
+        const updatePayload = {
+          question: pollData.question,
+          type: pollData.type || 'poll',
+          is_quiz: !!pollData.is_quiz,
+          presenter_notes: pollData.presenter_notes ?? null,
+          curriculum_tags: pollData.curriculum_tags ?? null,
+        };
+        // Editing a survey poll previously never touched survey_questions —
+        // only top-level fields updated, so sub-question edits were silently
+        // discarded. Only set it when the form actually sent one (undefined
+        // for non-survey types) so this doesn't wipe it on other edits.
+        if (pollData.survey_questions !== undefined) {
+          updatePayload.survey_questions = pollData.survey_questions;
+        }
         const { error: updateError } = await supabase
           .from('polls')
-          .update({
-            question: pollData.question,
-            type: pollData.type || 'poll',
-            is_quiz: !!pollData.is_quiz,
-            presenter_notes: pollData.presenter_notes ?? null,
-            curriculum_tags: pollData.curriculum_tags ?? null,
-          })
+          .update(updatePayload)
           .eq('id', editingPoll.id);
         if (updateError) throw updateError;
 
@@ -318,6 +326,7 @@ export const useHostSession = (user) => {
             optionsPayload = pollData.options.map(o => ({
               text: typeof o === 'string' ? o : o.text,
               is_correct: o.is_correct || false,
+              label: (typeof o === 'string' ? null : o.label) || null,
             }));
           }
 
@@ -369,6 +378,7 @@ export const useHostSession = (user) => {
               poll_id: newPoll.id,
               text: typeof o === 'string' ? o : o.text,
               is_correct: o.is_correct || false,
+              label: (typeof o === 'string' ? null : o.label) || null,
             }));
           }
           const { error: optError } = await supabase.from('options').insert(optionsToInsert);
