@@ -156,7 +156,12 @@ export const useAuth = ({ enabled = true } = {}) => {
     const startedAt = performance.now();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin + redirectPath },
+      options: {
+        redirectTo: window.location.origin + redirectPath,
+        // Without this, Google silently reuses whichever Google account is
+        // already signed into the browser instead of showing the chooser.
+        queryParams: { prompt: 'select_account' },
+      },
     });
     if (error) {
       recordLoginLatency({ method: 'google', action: 'oauth_start', durationMs: performance.now() - startedAt, ok: false, reason: error.message });
