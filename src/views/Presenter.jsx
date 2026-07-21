@@ -851,7 +851,7 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
                     </span>
                   )}
                 </div>
-                {activeParticipants > 0 && ['poll','quiz','rating','ranking','scale'].includes(currentPoll.type) && (
+                {activeParticipants > 0 && ['poll','quiz','rating','ranking','scale','wordcloud','open'].includes(currentPoll.type) && (
                   <div className="flex items-center gap-2 px-4 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
                     <Users className="w-3.5 h-3.5 text-emerald-400" />
                     <span className="text-emerald-400 font-black text-sm">
