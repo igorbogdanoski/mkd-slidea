@@ -103,6 +103,20 @@ const AppContent = () => {
   const [username, setUsername] = useState(() => localStorage.getItem('mkd_slidea_user') || '');
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
+  // Bounded window to let an OAuth redirect's #access_token=... hash finish
+  // processing before ProtectedRoute is allowed to bounce to the login modal.
+  // gotrue-js only clears the hash on success — on a genuine OAuth failure it
+  // never does, so this can't wait forever or it'd strand the user on a blank
+  // screen; after this window closes, normal redirect behavior resumes.
+  const [oauthHashPending, setOauthHashPending] = useState(
+    () => typeof window !== 'undefined' && /access_token=|error=/.test(window.location.hash)
+  );
+  useEffect(() => {
+    if (!oauthHashPending) return;
+    const t = setTimeout(() => setOauthHashPending(false), 6000);
+    return () => clearTimeout(t);
+  }, [oauthHashPending]);
+
   useKeyboardShortcuts({
     '?': () => setShortcutsOpen((v) => !v),
   });
@@ -197,7 +211,11 @@ const AppContent = () => {
   // Protected route — redirects to / with login modal open if not authenticated.
   // Never redirects while loading=true to avoid race condition on cold start.
   const ProtectedRoute = ({ children }) => {
-    if (loading) return null;
+    // An OAuth redirect (Google, etc.) lands here as /dashboard#access_token=...
+    // before gotrue-js has finished parsing/establishing the session from that
+    // hash. Bouncing to the login modal in that split second would strand the
+    // user with a valid session they can't see — wait (briefly) for it to clear.
+    if (loading || (oauthHashPending && !user)) return null;
     if (!user) {
       const nextPath = `${location.pathname}${location.search}`;
       return <Navigate to={`/?login=1&next=${encodeURIComponent(nextPath)}`} replace />;
