@@ -1,7 +1,7 @@
 {
-  "generated": "2026-05-16T23:13:34.291Z",
+  "generated": "2026-07-21T02:19:54.961Z",
   "source": "https://bro.gov.mk",
-  "total": 60,
+  "total": 59,
   "primary": [
     {
       "subject_context": "Primary",
@@ -130,6 +130,15 @@
       "source_idcat": "63"
     },
     {
+      "subject_context": "Primary > VIII одделение - изборни предмети",
+      "track": "primary",
+      "grade": "G8",
+      "title": "Монографија &#8211; 70 години БРО",
+      "url": "https://bro.gov.mk/wp-content/uploads/2026/04/260415-monografija-bro-elektronska-verzija-mkd-so-cip.pdf",
+      "ext": "pdf",
+      "source_idcat": "2993"
+    },
+    {
       "subject_context": "Primary > IX одделение",
       "track": "primary",
       "grade": "G9",
@@ -139,13 +148,13 @@
       "source_idcat": "51"
     },
     {
-      "subject_context": "Primary > VIII - IX одделение - изборни предмети",
+      "subject_context": "Primary > IX одделение - изборни предмети",
       "track": "primary",
-      "grade": "G10",
+      "grade": "G9",
       "title": "Монографија &#8211; 70 години БРО",
       "url": "https://bro.gov.mk/wp-content/uploads/2026/04/260415-monografija-bro-elektronska-verzija-mkd-so-cip.pdf",
       "ext": "pdf",
-      "source_idcat": "65"
+      "source_idcat": "2995"
     },
     {
       "subject_context": "Primary > Животни вештини",
@@ -155,15 +164,6 @@
       "url": "https://bro.gov.mk/wp-content/uploads/2026/04/260415-monografija-bro-elektronska-verzija-mkd-so-cip.pdf",
       "ext": "pdf",
       "source_idcat": "66"
-    },
-    {
-      "subject_context": "Primary > Работа со компјутер",
-      "track": "primary",
-      "grade": null,
-      "title": "Монографија &#8211; 70 години БРО",
-      "url": "https://bro.gov.mk/wp-content/uploads/2026/04/260415-monografija-bro-elektronska-verzija-mkd-so-cip.pdf",
-      "ext": "pdf",
-      "source_idcat": "55"
     }
   ],
   "secondary": [
@@ -373,15 +373,6 @@
       "url": "https://bro.gov.mk/wp-content/uploads/2026/04/260415-monografija-bro-elektronska-verzija-mkd-so-cip.pdf",
       "ext": "pdf",
       "source_idcat": "89"
-    },
-    {
-      "subject_context": "Secondary > Гимназиско образование > II година - изборни предмети",
-      "track": "gymnasium",
-      "grade": "G11",
-      "title": "Монографија &#8211; 70 години БРО",
-      "url": "https://bro.gov.mk/wp-content/uploads/2026/04/260415-monografija-bro-elektronska-verzija-mkd-so-cip.pdf",
-      "ext": "pdf",
-      "source_idcat": "90"
     },
     {
       "subject_context": "Secondary > Гимназиско образование > III година",
