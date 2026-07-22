@@ -58,9 +58,6 @@ const Host = ({ setView, user }) => {
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [showInteractionGrid, setShowInteractionGrid] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  // Lives on events.allow_multiple_votes (not localStorage) — participants on
-  // other devices need to see it too, not just this host's own browser.
-  const allowMultipleVotes = !!event?.allow_multiple_votes;
   const [selectedType, setSelectedType] = useState('poll');
   const [editingPoll, setEditingPoll] = useState(null);
   const [isExportOpen, setIsExportOpen] = useState(false);
@@ -90,6 +87,10 @@ const Host = ({ setView, user }) => {
     adaptiveSuggestion,
     setAllowMultipleVotes,
   } = session;
+
+  // Lives on events.allow_multiple_votes (not localStorage) — participants on
+  // other devices need to see it too, not just this host's own browser.
+  const allowMultipleVotes = !!event?.allow_multiple_votes;
 
   const shortcutHandlersRef = useRef({});
   shortcutHandlersRef.current.goNext = session.goNext;
