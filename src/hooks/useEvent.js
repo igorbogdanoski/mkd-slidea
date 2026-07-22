@@ -1,8 +1,22 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase, warmUp } from '../lib/supabase';
 import { pipelineQuestions } from '../lib/questionsCore';
+import { useEventStore } from '../lib/store';
 
-export const useEvent = (eventCode) => {
+// Sprint 8.3.1 — session id за анонимни upvotes (per browser). Defined at
+// module scope (not per-render) since it's pure and has no hook dependencies.
+const getSessionId = () => {
+  if (typeof window === 'undefined') return 'srv';
+  let sid = window.localStorage.getItem('mkd_session');
+  if (!sid) {
+    sid = (crypto?.randomUUID?.() || `s-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`);
+    window.localStorage.setItem('mkd_session', sid);
+  }
+  return sid;
+};
+
+export const useEvent = (eventCode, username) => {
+  const setPresence = useEventStore((s) => s.setPresence);
   const [event, setEvent] = useState(null);
   const [polls, setPolls] = useState([]);
   const [questions, setQuestions] = useState([]);
@@ -204,10 +218,19 @@ export const useEvent = (eventCode) => {
       })
       .subscribe();
 
+    // Single presence channel per event.id, shared by nav-sync (below) and
+    // the live participant count. Two separate `.channel('presence:'+id)`
+    // calls from the same client return the SAME underlying channel object
+    // (supabase-js multiplexes by topic) — a second .on() call after the
+    // first has already subscribed throws "cannot add callbacks after
+    // subscribe()". This used to be a second, independent channel created
+    // in EventWrapper.jsx; merged here to avoid that crash.
     const presenceNavChannel = supabase
-      .channel(`presence:${event.id}`)
+      .channel(`presence:${event.id}`, { config: { presence: { key: getSessionId() } } })
       .on('presence', { event: 'sync' }, () => {
         const state = presenceNavChannel.presenceState();
+        setPresence(Object.keys(state).length);
+
         const allMeta = Object.values(state).flat();
         const hostMeta = allMeta
           .filter((m) => m?.role === 'host' && m?.active_poll_id)
@@ -222,7 +245,11 @@ export const useEvent = (eventCode) => {
           return { ...prev, active_poll_id: hostMeta.active_poll_id };
         });
       })
-      .subscribe();
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await presenceNavChannel.track({ online_at: new Date().toISOString(), username: username || 'Анонимен' });
+        }
+      });
 
     // syncInterval: HTTP REST fallback for active_poll_id when WebSocket is quiet.
     // Mobile browsers drop WebSocket connections in background — this is the safety net.
@@ -278,7 +305,7 @@ export const useEvent = (eventCode) => {
       supabase.removeChannel(navChannel);
       supabase.removeChannel(presenceNavChannel);
     };
-  }, [event?.id, fetchPolls, fetchQuestions]);
+  }, [event?.id, fetchPolls, fetchQuestions, username]);
 
   // Sprint 8.3.2 — primary path: Realtime broadcast (zero DB cost).
   // Ако broadcast потфрли (rare), fallback на DB insert.

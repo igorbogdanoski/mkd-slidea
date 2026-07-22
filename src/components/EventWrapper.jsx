@@ -61,9 +61,9 @@ const EventWrapper = ({ type, username, setUsername }) => {
     setQuestionPinned, setQuestionHidden,
     sendReaction, refetchLockState,
     toggleLock, startTimer, stopTimer,
-  } = useEvent(normalizedCode);
+  } = useEvent(normalizedCode, username);
 
-  const { setEvent, setPresence } = useEventStore();
+  const { setEvent } = useEventStore();
   const [quizResult, setQuizResult] = useState(null);
   const [dbVotedPolls, setDbVotedPolls] = useState([]);
   const [isVoting, setIsVoting] = useState(false);
@@ -84,31 +84,15 @@ const EventWrapper = ({ type, username, setUsername }) => {
     noindex: true,
   } : { noindex: true });
 
+  // Presence tracking (participant count) lives in useEvent.js now — a
+  // second `presence:${event.id}` channel created here collided with it
+  // (supabase-js returns the same channel object for a repeat `.channel()`
+  // call on the same topic; calling `.on()` on it after it's already
+  // subscribed throws). This effect just mirrors the fetched event into the
+  // shared store.
   useEffect(() => {
-    if (event) {
-      setEvent(event);
-      
-      // Setup Real-time Presence — unique key per browser session to avoid collisions
-      const channel = supabase.channel(`presence:${event.id}`, {
-        config: { presence: { key: getSessionId() } }
-      });
-
-      channel
-        .on('presence', { event: 'sync' }, () => {
-          const state = channel.presenceState();
-          setPresence(Object.keys(state).length);
-        })
-        .subscribe(async (status) => {
-          if (status === 'SUBSCRIBED') {
-            await channel.track({ online_at: new Date().toISOString(), username: username || 'Анонимен' });
-          }
-        });
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
-  }, [event, username, setEvent, setPresence]);
+    if (event) setEvent(event);
+  }, [event, setEvent]);
 
   const activePollId = event?.active_poll_id ? String(event.active_poll_id) : null;
   const rawIndex = activePollId
