@@ -18,7 +18,7 @@ const SB_URL  = process.env.SUPABASE_URL;
 const SB_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const RESEND  = process.env.RESEND_API_KEY;
 const GEMINI  = process.env.GEMINI_API_KEY;
-const MODEL   = process.env.GEMINI_FLASH_MODEL || 'gemini-2.5-flash';
+const MODEL   = process.env.GEMINI_FLASH_MODEL || 'gemini-3.6-flash';
 const FROM    = process.env.EMAIL_FROM || 'MKD Slidea <hello@mismath.net>';
 const APP_URL = process.env.APP_URL   || 'https://slidea.mismath.net';
 

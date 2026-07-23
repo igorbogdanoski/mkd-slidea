@@ -28,7 +28,7 @@ const fallbackMap = new Map();
 const RATE_LIMIT = 6;
 const RATE_WINDOW_MS = 60 * 1000;
 
-const MODEL = process.env.GEMINI_FLASH_MODEL || 'gemini-2.5-flash';
+const MODEL = process.env.GEMINI_FLASH_MODEL || 'gemini-3.6-flash';
 
 function getClientIp(req) {
   const xff = req.headers.get('x-forwarded-for');

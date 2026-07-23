@@ -364,8 +364,8 @@ export default async function handler(req) {
 
   const isAdvanced = isAdvancedReasoningStrategy(strategy);
   const modelToUse = isAdvanced
-    ? (process.env.GEMINI_PRO_MODEL || 'gemini-2.5-pro')
-    : (process.env.GEMINI_FLASH_MODEL || 'gemini-2.5-flash');
+    ? (process.env.GEMINI_PRO_MODEL || 'gemini-3.1-pro-preview')
+    : (process.env.GEMINI_FLASH_MODEL || 'gemini-3.6-flash');
 
   const safeBloom = bloom;
   const safeGrade = gradeLevel;

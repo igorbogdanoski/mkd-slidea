@@ -8,7 +8,7 @@ const fallbackMap = new Map();
 const RATE_LIMIT = 4;
 const RATE_WINDOW_MS = 60 * 1000;
 
-const MODEL = process.env.GEMINI_FLASH_MODEL || 'gemini-2.5-flash';
+const MODEL = process.env.GEMINI_FLASH_MODEL || 'gemini-3.6-flash';
 const MAX_ANSWERS = 60;
 const MAX_ANSWER_LEN = 600;
 
