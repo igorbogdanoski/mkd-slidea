@@ -513,7 +513,7 @@ export const STARTER_TEMPLATES = [
   {
     id: 'chem-periodic-table',
     title: 'Периоден систем — основи',
-    subject: 'Физика',
+    subject: 'Хемија',
     grade: 'Основно (8-9 одд.)',
     icon: '⚗️',
     color: 'from-emerald-500 to-teal-600',
@@ -576,6 +576,78 @@ export const STARTER_TEMPLATES = [
     ],
   },
 
+  // ─── Хемија ──────────────────────────────────────────────────
+  {
+    id: 'chem-reactions',
+    title: 'Хемиски реакции — основи',
+    subject: 'Хемија',
+    grade: 'Средно',
+    icon: '🧪',
+    color: 'from-teal-500 to-emerald-600',
+    description: 'Препознавање и знаци на хемиски реакции.',
+    polls: [
+      { question: 'Кој е знак дека се случува хемиска реакција?', type: 'quiz', is_quiz: true,
+        options: [{ text: 'Промена на боја и развој на гас', is_correct: true }, { text: 'Само промена на обликот', is_correct: false }, { text: 'Само топење', is_correct: false }] },
+      { question: 'При хемиска реакција атомите:', type: 'quiz', is_quiz: true,
+        options: [{ text: 'Се прераспоредуваат', is_correct: true }, { text: 'Се уништуваат', is_correct: false }, { text: 'Се создаваат од ништо', is_correct: false }] },
+      { question: 'Со еден збор: пример за хемиска промена', type: 'wordcloud', is_quiz: false, options: [] },
+    ],
+  },
+
+  // ─── Ликовно ─────────────────────────────────────────────────
+  {
+    id: 'art-color-theory',
+    title: 'Теорија на бои',
+    subject: 'Ликовно',
+    grade: 'Основно',
+    icon: '🎨',
+    color: 'from-pink-500 to-rose-500',
+    description: 'Примарни, секундарни и топли/ладни бои.',
+    polls: [
+      { question: 'Која е примарна боја?', type: 'quiz', is_quiz: true,
+        options: [{ text: 'Црвена', is_correct: true }, { text: 'Зелена', is_correct: false }, { text: 'Портокалова', is_correct: false }] },
+      { question: 'Мешање жолта + сина дава:', type: 'quiz', is_quiz: true,
+        options: [{ text: 'Зелена', is_correct: true }, { text: 'Портокалова', is_correct: false }, { text: 'Виолетова', is_correct: false }] },
+      { question: 'Која е топла боја?', type: 'quiz', is_quiz: true,
+        options: [{ text: 'Црвена', is_correct: true }, { text: 'Сина', is_correct: false }, { text: 'Зелена', is_correct: false }] },
+    ],
+  },
+
+  // ─── Музичко ─────────────────────────────────────────────────
+  {
+    id: 'music-basics',
+    title: 'Основи на музиката',
+    subject: 'Музичко',
+    grade: 'Основно',
+    icon: '🎵',
+    color: 'from-fuchsia-500 to-purple-500',
+    description: 'Ноти, инструменти и ритам.',
+    polls: [
+      { question: 'Колку основни ноти познаваме (до-ре-ми...)?', type: 'quiz', is_quiz: true,
+        options: [{ text: '7', is_correct: true }, { text: '5', is_correct: false }, { text: '6', is_correct: false }] },
+      { question: 'Кој инструмент е жичен?', type: 'quiz', is_quiz: true,
+        options: [{ text: 'Виолина', is_correct: true }, { text: 'Тапан', is_correct: false }, { text: 'Флејта', is_correct: false }] },
+      { question: 'Со еден збор: омилен инструмент', type: 'wordcloud', is_quiz: false, options: [] },
+    ],
+  },
+
+  // ─── Физичко ─────────────────────────────────────────────────
+  {
+    id: 'pe-sports-health',
+    title: 'Спорт и здравје',
+    subject: 'Физичко',
+    grade: 'Основно',
+    icon: '⚽',
+    color: 'from-lime-500 to-green-600',
+    description: 'Спортски правила и здрави навики.',
+    polls: [
+      { question: 'Колку играчи има фудбалска екипа на терен?', type: 'quiz', is_quiz: true,
+        options: [{ text: '11', is_correct: true }, { text: '9', is_correct: false }, { text: '7', is_correct: false }, { text: '5', is_correct: false }] },
+      { question: 'Колку е важно загревањето пред спорт?', type: 'rating', is_quiz: false, options: [] },
+      { question: 'Со еден збор: омилен спорт', type: 'wordcloud', is_quiz: false, options: [] },
+    ],
+  },
+
   // ─── Општи ───────────────────────────────────────────────────
   {
     id: 'general-quick-quiz',
@@ -604,8 +676,12 @@ export const TEMPLATE_SUBJECTS = [
   'Природни науки',
   'Биологија',
   'Физика',
+  'Хемија',
   'Историја',
   'Географија',
+  'Ликовно',
+  'Музичко',
+  'Физичко',
   'Бизнис',
   'Универзитет',
   'Општо',
