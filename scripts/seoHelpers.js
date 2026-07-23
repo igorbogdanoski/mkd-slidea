@@ -53,6 +53,28 @@ export function injectMeta(html, route, site = 'https://slidea.mismath.net') {
     );
   }
 
+  if (route.image) {
+    if (/<meta property="og:image"[^>]*>/.test(out)) {
+      out = out.replace(
+        /<meta property="og:image"[^>]*>/,
+        `<meta property="og:image" content="${escapeAttr(route.image)}" />`
+      );
+    } else {
+      out = out.replace('</head>', `<meta property="og:image" content="${escapeAttr(route.image)}" /></head>`);
+    }
+    if (/<meta name="twitter:image"[^>]*>/.test(out)) {
+      out = out.replace(
+        /<meta name="twitter:image"[^>]*>/,
+        `<meta name="twitter:image" content="${escapeAttr(route.image)}" />`
+      );
+    } else {
+      out = out.replace('</head>', `<meta name="twitter:image" content="${escapeAttr(route.image)}" /></head>`);
+    }
+    if (!/<meta name="twitter:card"[^>]*>/.test(out)) {
+      out = out.replace('</head>', `<meta name="twitter:card" content="summary_large_image" /></head>`);
+    }
+  }
+
   const hreflang = `
     <meta property="og:url" content="${url}" />
     <meta name="twitter:url" content="${url}" />

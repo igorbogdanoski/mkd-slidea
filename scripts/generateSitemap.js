@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { LOCALES } from '../src/lib/locales.js';
+import { loadCommunityTemplates } from './loadCommunityTemplates.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -67,8 +68,20 @@ async function loadBlogRoutes() {
 
 async function main() {
   const templateRoutes = await loadTemplates();
+  const communityTemplates = await loadCommunityTemplates();
+  const communityRoutes = communityTemplates.map((t) => ({
+    path: `/templates/${t.id}`,
+    priority: 0.5,
+    changefreq: 'monthly',
+  }));
   const blogRoutes = await loadBlogRoutes();
-  const all = [...STATIC_ROUTES, ...blogRoutes, ...templateRoutes];
+  // Dedupe по патека — starter темплејтите (0.6) имаат предност пред community (0.5).
+  const seen = new Set();
+  const all = [...STATIC_ROUTES, ...blogRoutes, ...templateRoutes, ...communityRoutes].filter((r) => {
+    if (seen.has(r.path)) return false;
+    seen.add(r.path);
+    return true;
+  });
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
