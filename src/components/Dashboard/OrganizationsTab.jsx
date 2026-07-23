@@ -26,6 +26,7 @@ const InvitePanel = ({ org, invitedBy, onClose }) => {
   const [pending, setPending] = useState([]);
   const [pendingLoading, setPendingLoading] = useState(true);
   const [copiedId, setCopiedId] = useState(null);
+  const [revokingId, setRevokingId] = useState(null);
 
   const loadPending = useCallback(async () => {
     setPendingLoading(true);
@@ -55,6 +56,19 @@ const InvitePanel = ({ org, invitedBy, onClose }) => {
       setCopiedId(id);
       setTimeout(() => setCopiedId((c) => (c === id ? null : c)), 2000);
     } catch { /* clipboard unavailable — link stays visible for manual copy */ }
+  };
+
+  const revokeInvite = async (id) => {
+    setRevokingId(id);
+    try {
+      const { error: delErr } = await supabase.from('org_invites').delete().eq('id', id);
+      if (delErr) throw delErr;
+      setPending((p) => p.filter((inv) => inv.id !== id));
+    } catch {
+      setError('Поканата не е повлечена. Обиди се повторно.');
+    } finally {
+      setRevokingId(null);
+    }
   };
 
   const sendInvite = async (e) => {
@@ -115,10 +129,13 @@ const InvitePanel = ({ org, invitedBy, onClose }) => {
             disabled={sending}
             className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 active:scale-95 transition-all disabled:opacity-50 inline-flex items-center justify-center gap-2"
           >
-            {sending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
-            Прати покана
+            {sending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+            Создај покана
           </button>
         </form>
+        <p className="text-[11px] font-bold text-slate-400 leading-relaxed">
+          Се создава безбедносен линк за еднократно приклучување. Испратете го на поканетиот — е-пошта не се испраќа автоматски.
+        </p>
         {error && (
           <p className="text-xs font-bold text-red-500 flex items-center gap-2">
             <AlertTriangle className="w-3.5 h-3.5" /> {error}
@@ -137,13 +154,25 @@ const InvitePanel = ({ org, invitedBy, onClose }) => {
                   <p className="text-xs font-black text-slate-700 truncate">{inv.email}</p>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{ROLE_BADGES[inv.role]?.label || inv.role}</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => copyLink(inv.id, inv.token)}
-                  className="shrink-0 px-3 py-1.5 bg-white border border-slate-200 rounded-lg font-black text-[10px] uppercase tracking-widest text-slate-500 hover:text-indigo-600 hover:border-indigo-200 transition-all inline-flex items-center gap-1.5"
-                >
-                  {copiedId === inv.id ? <><Check className="w-3 h-3 text-emerald-500" /> Копирано</> : <><Copy className="w-3 h-3" /> Линк</>}
-                </button>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => copyLink(inv.id, inv.token)}
+                    className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg font-black text-[10px] uppercase tracking-widest text-slate-500 hover:text-indigo-600 hover:border-indigo-200 transition-all inline-flex items-center gap-1.5"
+                  >
+                    {copiedId === inv.id ? <><Check className="w-3 h-3 text-emerald-500" /> Копирано</> : <><Copy className="w-3 h-3" /> Линк</>}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => revokeInvite(inv.id)}
+                    disabled={revokingId === inv.id}
+                    title="Повлечи покана"
+                    aria-label="Повлечи покана"
+                    className="p-1.5 bg-white border border-slate-200 rounded-lg text-slate-400 hover:text-red-500 hover:border-red-200 transition-all disabled:opacity-50 inline-flex items-center justify-center"
+                  >
+                    {revokingId === inv.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <X className="w-3 h-3" />}
+                  </button>
+                </div>
               </div>
             ))
           )}
