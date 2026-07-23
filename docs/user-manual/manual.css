@@ -1,0 +1,33 @@
+/* Clean, readable styling for the user manual (HTML → PDF, A4). */
+@page { size: A4; margin: 18mm 16mm; }
+html { font-size: 11pt; }
+header#title-block-header { display: none; }
+body {
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  color: #1f2937; line-height: 1.6; max-width: 100%;
+}
+h1, h2, h3, h4 { color: #111827; line-height: 1.25; page-break-after: avoid; }
+h1 { font-size: 24pt; color: #4f46e5; border-bottom: 3px solid #4f46e5; padding-bottom: 8px; }
+h2 { font-size: 15pt; color: #4f46e5; margin-top: 24px; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; page-break-before: auto; }
+h3 { font-size: 12pt; color: #374151; margin-top: 16px; }
+p { margin: 8px 0; }
+a { color: #4f46e5; text-decoration: none; }
+ul, ol { margin: 8px 0; padding-left: 24px; }
+li { margin: 4px 0; }
+blockquote {
+  border-left: 4px solid #6366f1; background: #eef2ff; margin: 12px 0;
+  padding: 8px 14px; color: #3730a3; border-radius: 0 6px 6px 0;
+}
+img {
+  max-width: 100%; height: auto; display: block; margin: 14px auto;
+  border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  page-break-inside: avoid;
+}
+em { color: #6b7280; }
+code { font-family: "Consolas", monospace; background: #f3f4f6; padding: 1px 4px; border-radius: 3px; font-size: 9.5pt; }
+hr { border: none; border-top: 1px solid #e5e7eb; margin: 20px 0; }
+nav#TOC { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 20px; margin-bottom: 22px; }
+nav#TOC h2 { border: none; color: #111827; margin-top: 0; }
+nav#TOC ul { list-style: none; padding-left: 0; }
+nav#TOC ul ul { padding-left: 18px; }
+nav#TOC a { color: #374151; }
