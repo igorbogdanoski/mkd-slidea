@@ -8,7 +8,7 @@
 // Cost: 0€ на free tier (1500 RPM).
 // ============================================================================
 
-const EMBED_MODEL = process.env.GEMINI_EMBED_MODEL || 'gemini-embedding-001';
+const EMBED_MODEL = process.env.GEMINI_EMBED_MODEL || 'gemini-embedding-2';
 const EMBED_DIM = 768; // мора да се совпаѓа со vector(768) во SQL
 
 // Малечок in-memory LRU. Се ресетира per-edge-instance (cold start), но добро
