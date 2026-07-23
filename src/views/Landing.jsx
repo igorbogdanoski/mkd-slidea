@@ -9,6 +9,7 @@ import {
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { useSEO } from '../hooks/useSEO';
+import { testimonials, faqItems, demoPollData, demoQuizOptions, solutions } from '../data/landingContent';
 
 // Animated counter that starts when the element enters the viewport
 const CountUp = ({ target, suffix = '', prefix = '' }) => {
@@ -38,80 +39,6 @@ const CountUp = ({ target, suffix = '', prefix = '' }) => {
   const display = count >= 1000 ? `${(count / 1000).toFixed(count >= 10000 ? 0 : 1)}K` : count;
   return <span ref={ref}>{prefix}{display}{suffix}</span>;
 };
-
-const testimonials = [
-  {
-    name: 'М-р Ана Петровска',
-    role: 'Наставник по биологија',
-    school: 'СОУ „Гимназија" — Скопје',
-    text: 'Учениците одговараат многу поактивно откако почнав да користам MKD Slidea. Особено ми е драго што е целосно на македонски — без конфузија, без странски интерфејс.',
-    stars: 5,
-    initials: 'АП',
-    color: 'bg-indigo-100 text-indigo-700',
-  },
-  {
-    name: 'Проф. Марко Иванов',
-    role: 'Предавач, Факултет за информатика',
-    school: 'УКИМ — Скопје',
-    text: 'На предавања со 120+ студенти конечно имам алатка без инсталации. Word cloud за браинсторминг е совршен — за 2 минути добивам слика на целото знаење во салата.',
-    stars: 5,
-    initials: 'МИ',
-    color: 'bg-violet-100 text-violet-700',
-  },
-  {
-    name: 'Ивана Ристовска',
-    role: 'HR и обука менаџер',
-    school: 'Корпоративен тренинг центар',
-    text: 'Ги заменивме сложените алатки со MKD Slidea. Онбординг сесиите се многу поинтерактивни, а резултатите ги извезуваме директно во Excel веднаш по завршување.',
-    stars: 5,
-    initials: 'ИР',
-    color: 'bg-emerald-100 text-emerald-700',
-  },
-];
-
-const faqItems = [
-  {
-    question: 'За кого е наменета MKD Slidea?',
-    answer: 'MKD Slidea е наменета за наставници, професори, обучувачи, HR тимови, компании и организатори на настани кои сакаат поактивна публика и мерливи резултати.',
-  },
-  {
-    question: 'Дали учесниците треба да инсталираат апликација?',
-    answer: 'Не. Учесниците се приклучуваат преку код и линк директно од прелистувач, на телефон, таблет или компјутер — без регистрација, без преземање.',
-  },
-  {
-    question: 'Кои интеракции ги поддржува платформата?',
-    answer: 'Поддржани се анкети, квизови со бодување и ранг листа, word cloud, отворен текст, Q&A, рангирање, rating и scale активности, формулари и преглед на резултати во реално време.',
-  },
-  {
-    question: 'Дали е погодна за училници и обуки на македонски јазик?',
-    answer: 'Да. Платформата е целосно локализирана на македонски јазик и е дизајнирана специјално за образование, обуки и деловни презентации во македонскиот контекст.',
-  },
-  {
-    question: 'Колку чини и дали има бесплатна верзија?',
-    answer: 'Да, постои бесплатен план без потреба за кредитна картичка — со него можете да создадете до 5 настани и да имате до 200 учесници по сесија. Платените планови (Месечен, Квартален, Семестрален) отклучуваат неограничени настани, брендирање, CSV/PDF извоз и напредна аналитика.',
-  },
-  {
-    question: 'Дали моите податоци и одговорите на учесниците се безбедни?',
-    answer: 'Да. Сите податоци се зачувуваат на сигурни европски сервери со шифрирање. Учесниците учествуваат анонимно — без регистрација и без потреба да даваат лични информации. Вие ги контролирате и бришете вашите настани во секое време.',
-  },
-  {
-    question: 'Може ли учесниците да се приклучат директно без да пишуваат код?',
-    answer: 'Да. Покрај кодот, можете да споделите директен линк (напр. slidea.mismath.net/event/ABC123) или QR код кој учесниците го скенираат и директно влегуваат — без да пишуваат ништо.',
-  },
-];
-
-const demoPollData = [
-  { label: 'Да, веднаш би ја користел/а', value: 64, color: 'bg-indigo-600' },
-  { label: 'Сакам прво кратко демо', value: 24, color: 'bg-violet-500' },
-  { label: 'Ми треба повеќе информации', value: 12, color: 'bg-slate-300' },
-];
-
-const demoQuizOptions = [
-  { label: 'Python', correct: true },
-  { label: 'Java', correct: false },
-  { label: 'C', correct: false },
-  { label: 'PHP', correct: false },
-];
 
 const Landing = ({ code, setCode, setView }) => {
   useSEO({
@@ -223,14 +150,6 @@ const Landing = ({ code, setCode, setView }) => {
       setDemoValue('');
     }
   };
-
-  const solutions = [
-    { title: 'Бизнис состаноци', desc: 'Собери мислења од целиот тим во реално време.', icon: <Presentation className="w-6 h-6" />, color: 'bg-indigo-50 text-indigo-600' },
-    { title: 'Предавања', desc: 'Провери го знаењето и задржи ја вниманието.', icon: <GraduationCap className="w-6 h-6" />, color: 'bg-emerald-50 text-emerald-600' },
-    { title: 'Обуки', desc: 'Интерактивни сесии со мерливи резултати.', icon: <Users className="w-6 h-6" />, color: 'bg-amber-50 text-amber-600' },
-    { title: 'Вебинари', desc: 'Ангажирај ја онлајн публиката исто како во сала.', icon: <MonitorPlay className="w-6 h-6" />, color: 'bg-rose-50 text-rose-600' },
-  ];
-
 
   const scrollToSection = (sectionId) => {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
