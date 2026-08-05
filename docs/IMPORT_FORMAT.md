@@ -42,11 +42,25 @@ outcome code per learning outcome:
 └─────────────── subject
 ```
 
-MathDigitizer already extracts these from the source programmes
-(`scripts/bro-curriculum-output.json`), the navigator's curriculum is built
-around the same documents, and Slidea has carried `polls.curriculum_tags` since
-the curriculum sprint. Nobody has to migrate to anybody. The state's code is the
-join key.
+MathDigitizer has already extracted the full table — 1,527 codes in
+`scripts/bro-curriculum-output.json`, which is the canonical list — and Slidea
+has carried `polls.curriculum_tags` since the curriculum sprint. Nobody has to
+migrate to anybody. The state's code is the join key.
+
+Being precise about where things stand: the table exists, but only Slidea
+currently carries codes *on content*. MathDigitizer's `MathTask`, the
+navigator's lessons and ActionBounty's `QuizStage` each need one optional
+field. That is the whole adoption cost, and it is written up for all four repos
+in [SHARED_CURRICULUM_CONTRACT.md](SHARED_CURRICULUM_CONTRACT.md).
+
+**A code is carried, never inferred from text.** This was measured, not
+assumed: the navigator and MathDigitizer transcribed the same БРО programmes,
+and only 40 of 87 grade I–V outcomes (46%) match the table verbatim. The rest
+are two transcriptions of one sentence — "Го користи знаењето за едноставни
+2Д-форми и 3Д-форми…" against "Користи знаење за едноставни 2Д-форми,
+3Д-форми…". If two tools cannot agree on the *text* of an outcome, they
+certainly cannot agree by matching it, and inference would silently mis-tag
+more than half of everything.
 
 What it buys, concretely — and this is machinery that already exists rather than
 machinery this format proposes:
