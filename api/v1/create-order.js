@@ -154,7 +154,9 @@ export default async function handler(req) {
   const order_id = sanitize(body.order_id, 64);
 
   if (!plan || !PLAN_AMOUNTS[plan]) return json({ error: 'Invalid plan' }, 400);
-  if (!['paypal', 'bank_eur', 'bank_mkd'].includes(method)) return json({ error: 'Invalid method' }, 400);
+  // PayPal cannot receive money in North Macedonia, so it is no longer
+  // accepted for new orders — see PAYMENT_METHODS in src/lib/billing.js.
+  if (!['bank_eur', 'bank_mkd'].includes(method)) return json({ error: 'Invalid method' }, 400);
   if (!validEmail(email)) return json({ error: 'Invalid email' }, 400);
   if (!/^SLD-[A-Z0-9-]{6,}$/.test(order_id)) return json({ error: 'Invalid order_id' }, 400);
 

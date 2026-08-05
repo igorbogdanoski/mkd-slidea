@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
-import { PLAN_CATALOG, SELLABLE_PLANS, yearlySavingPercent, yearlySavingAmount } from '../lib/billing';
+import { PLAN_CATALOG, SELLABLE_PLANS, PAYMENT_METHODS, BILLING, yearlySavingPercent, yearlySavingAmount } from '../lib/billing';
 import { PLANS, PAID_PLANS, isPro } from '../lib/plans';
 
 // The client shows a price, the server charges one, and the feature limits
@@ -103,6 +103,34 @@ describe('the price ladder is not inverted', () => {
     // 67% "off" was not a discount, it was a mispriced monthly plan.
     expect(yearlySavingPercent()).toBeGreaterThanOrEqual(10);
     expect(yearlySavingPercent()).toBeLessThanOrEqual(40);
+  });
+});
+
+describe('only payment methods that can actually receive money are offered', () => {
+  // PayPal supports North Macedonia for sending only — a Macedonian account
+  // cannot receive. Offering it meant a customer could follow the instructions
+  // and either fail at PayPal's end or send money that never arrived, then
+  // wait for an activation that could never come. Stripe does not operate here
+  // at all.
+  it('PayPal is not offered', () => {
+    expect(PAYMENT_METHODS.map((m) => m.id)).not.toContain('paypal');
+    expect(BILLING.paypal.enabled).toBe(false);
+  });
+
+  it('the server rejects methods the UI does not offer', () => {
+    const allowed = orderApi.match(/\[([^\]]*)\]\.includes\(method\)/)[1]
+      .split(',')
+      .map((s) => s.trim().replace(/['"]/g, ''));
+    expect(allowed.sort()).toEqual(PAYMENT_METHODS.map((m) => m.id).sort());
+  });
+
+  it('every offered method has the details needed to actually pay', () => {
+    for (const m of PAYMENT_METHODS) {
+      const config = m.id === 'bank_eur' ? BILLING.bankEUR : BILLING.bankMKD;
+      expect(config.enabled, `${m.id} is offered but disabled`).toBe(true);
+      expect(config.beneficiary, `${m.id} has no beneficiary`).toBeTruthy();
+      expect(config.iban || config.account, `${m.id} has no account number`).toBeTruthy();
+    }
   });
 });
 

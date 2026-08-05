@@ -18,7 +18,7 @@ const Checkout = ({ user }) => {
   const plan = useMemo(() => getPlan(planCode) || getPlan(searchParams.get('plan')) || PLAN_CATALOG.yearly, [planCode, searchParams]);
 
   const [orderId, setOrderId] = useState(() => searchParams.get('order') || generateOrderId());
-  const [method, setMethod] = useState('paypal');
+  const [method, setMethod] = useState(PAYMENT_METHODS[0].id);
   const [email, setEmail] = useState(user?.email || '');
   const [fullName, setFullName] = useState(user?.user_metadata?.full_name || '');
   const [orgName, setOrgName] = useState('');
@@ -33,7 +33,7 @@ const Checkout = ({ user }) => {
   useSEO({
     title: `Активирај ${plan.label} план | MKD Slidea — PayPal · IBAN · Банкарска уплата`,
     description: `Активирај го ${plan.label} планот (${formatAmount(plan.amount, plan.currency)}) преку PayPal, IBAN или трансакциска сметка. Рачна потврда во рок од 24 часа.`,
-    keywords: `активирај ${plan.label.toLowerCase()}, paypal, iban, swift, банкарска уплата, mkd slidea`,
+    keywords: `активирај ${plan.label.toLowerCase()}, iban, swift, банкарска уплата, фактура, mkd slidea`,
     path: `/checkout/${plan.code}`,
     jsonLd: {
       '@context': 'https://schema.org',
@@ -239,9 +239,9 @@ const Checkout = ({ user }) => {
 
             <div>
               <h2 className="text-xl font-black text-slate-900 mb-4">Избери метод на плаќање</h2>
-              <div className="grid sm:grid-cols-3 gap-3">
+              <div className="grid sm:grid-cols-2 gap-3">
                 {PAYMENT_METHODS.map((m) => {
-                  const Icon = m.id === 'paypal' ? CreditCard : m.id === 'bank_eur' ? Building2 : Banknote;
+                  const Icon = m.id === 'bank_eur' ? Building2 : Banknote;
                   const active = method === m.id;
                   return (
                     <button
@@ -362,13 +362,19 @@ const PaymentInstructions = ({ method, orderId, amount, currency, onCopy, copied
     </button>
   );
 
+  // Only reachable for an order created before PayPal was withdrawn — the
+  // method is no longer offered, and BILLING.paypal.enabled is false, because
+  // a Macedonian PayPal account can send but cannot receive. Kept so an old
+  // pending order still renders something coherent instead of a blank panel.
   if (method === 'paypal') {
     return (
       <div className="space-y-3 text-sm">
-        <Detail label="PayPal email" value={BILLING.paypal.email} copy={copyBtn(BILLING.paypal.email, 'pp-email')} />
-        {BILLING.paypal.meLink && <Detail label="PayPal.me" value={BILLING.paypal.meLink} />}
+        <p className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-medium">
+          PayPal повеќе не е достапен метод. Контактирајте нè на {BILLING.company.supportEmail} за
+          да ја префрлиме нарачката на банкарски трансфер.
+        </p>
         <Detail label="Износ" value={`${amount} ${currency}`} />
-        <Detail label="Note (задолжително)" value={orderId} copy={copyBtn(orderId, 'order')} highlight />
+        <Detail label="Број на нарачка" value={orderId} copy={copyBtn(orderId, 'order')} highlight />
       </div>
     );
   }

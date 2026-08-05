@@ -18,11 +18,13 @@ export const BILLING = {
     supportEmail: env.VITE_BILLING_SUPPORT || 'igorbogdanoski@mismath.net',
     phone: env.VITE_BILLING_PHONE || '+389 70 246 814',
   },
+  // Kept, disabled, so the moment receiving becomes possible it is one flag
+  // rather than a rebuild. See PAYMENT_METHODS below for why it is off.
   paypal: {
-    enabled: true,
-    email: env.VITE_PAYPAL_EMAIL || 'igor.bogdanoski@mismath.net',
+    enabled: false,
+    email: env.VITE_PAYPAL_EMAIL || '',
     meLink: env.VITE_PAYPAL_ME || '',
-    note: 'Во полето „Note“ внеси го бројот на нарачка (Order ID). PayPal.me не е достапен за Македонија — се користи email.',
+    note: 'PayPal во Северна Македонија поддржува само испраќање, не и примање средства.',
   },
   bankEUR: {
     enabled: true,
@@ -95,8 +97,17 @@ export function formatAmount(amount, currency = 'EUR') {
   }
 }
 
+// PayPal is deliberately absent.
+//
+// PayPal supports North Macedonia for *sending* money only — a Macedonian
+// account cannot receive a payment. Offering it as a method meant a customer
+// could pick it, follow the instructions, and either fail at PayPal's end or
+// send money that never arrives, then wait for an activation that could never
+// come. Stripe does not operate in North Macedonia either. Until a local card
+// gateway (CaSys/CPay through a bank contract) or a merchant-of-record is in
+// place, bank transfer is the only method that actually completes, so it is
+// the only one shown.
 export const PAYMENT_METHODS = [
-  { id: 'paypal', label: 'PayPal', icon: 'paypal', description: 'Брзо плаќање преку PayPal email.' },
-  { id: 'bank_eur', label: 'IBAN / SWIFT (EUR)', icon: 'bank', description: 'Меѓународен банкарски трансфер.' },
+  { id: 'bank_eur', label: 'IBAN / SWIFT (EUR)', icon: 'bank', description: 'Меѓународен банкарски трансфер во евра.' },
   { id: 'bank_mkd', label: 'Трансакциска сметка (МКД)', icon: 'bank-mk', description: 'Домашен трансфер во денари.' },
 ];
