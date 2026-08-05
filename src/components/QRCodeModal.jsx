@@ -3,6 +3,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { X, Copy, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useFocusTrap } from '../hooks/useFocusTrap';
+import { markSessionShared } from '../lib/onboarding';
 
 const QRCodeModal = ({ isOpen, onClose, eventCode }) => {
   // Focus containment + Escape. Without it Tab walks out of the open

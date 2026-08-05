@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, UserPlus, Copy, Eye, EyeOff, RotateCcw, Trophy, ArrowLeft, CalendarClock } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { markSessionShared } from '../../lib/onboarding';
 import { isPro } from '../../lib/plans';
 import { generateCode } from '../../lib/eventCode';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
@@ -392,7 +393,7 @@ const EventSettingsModal = ({
                   <a
                     href={`https://zoom.us/teaching`}
                     target="_blank" rel="noopener noreferrer"
-                    onClick={e => { e.preventDefault(); navigator.clipboard.writeText(joinUrl).catch(()=>{}); alert('Линкот е копиран — налепи го во Zoom Chat!'); }}
+                    onClick={e => { e.preventDefault(); navigator.clipboard.writeText(joinUrl).catch(()=>{}); markSessionShared(); alert('Линкот е копиран — налепи го во Zoom Chat!'); }}
                     className="flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-slate-100 rounded-xl text-sm font-bold text-slate-600 hover:border-sky-300 hover:text-sky-600 transition-all cursor-pointer"
                   >
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="#2D8CFF"><rect width="24" height="24" rx="4" fill="#2D8CFF"/><path d="M5 8.5A1.5 1.5 0 016.5 7h7A1.5 1.5 0 0115 8.5V14a1.5 1.5 0 01-1.5 1.5h-7A1.5 1.5 0 015 14V8.5zm10 1.5l3.5-2v7L15 13.5V10z" fill="white"/></svg>

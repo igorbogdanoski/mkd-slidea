@@ -50,3 +50,37 @@ export function shouldSeeWizard(userId, eventCount) {
 }
 
 export const ONBOARDING_KEYS = { LEGACY_GLOBAL_KEY, perUserKey };
+
+/**
+ * The single first-run path.
+ *
+ * Four systems used to compete for a new user's attention: the /onboarding
+ * redirect, a spotlight tour, a "Брз водич" modal on the dashboard home, and
+ * FirstSuccessWizard. All four fired for a new user with an empty browser, in
+ * an order decided by how fast a count query returned — so the same person on
+ * a slower connection got a different first experience.
+ *
+ * FirstSuccessWizard survives because it is the only one that ends in a
+ * finished lesson rather than an explanation: subject → ready-made class →
+ * Host, in three clicks. The other two are switched off here rather than
+ * deleted, so if the live product turns out to need one of them back it is a
+ * one-line change and not an archaeology exercise.
+ */
+export const LEGACY_TOURS_ENABLED = false;
+
+// ── Checklist: "Сподели со учесници" ────────────────────────────────────────
+// The sidebar checklist reads this key to decide whether the sharing step is
+// done. Nothing ever wrote it. The step could therefore never be completed,
+// the checklist could never reach 4/4, and the "🎉 Подготвен!" state it builds
+// towards was unreachable for every user who ever had it — a progress bar that
+// by construction stops at three quarters.
+const SHARED_KEY = 'mkd_shared_session';
+
+/** Record that the user actually shared a join link or QR code. */
+export function markSessionShared() {
+  write(SHARED_KEY);
+}
+
+export function hasSharedSession() {
+  return read(SHARED_KEY);
+}

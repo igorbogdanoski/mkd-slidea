@@ -11,6 +11,7 @@ import { STARTER_TEMPLATES } from '../../lib/starterTemplates';
 import FirstSuccessWizard, { shouldShowFirstSuccess } from '../FirstSuccessWizard';
 import ErrorBoundary from '../ErrorBoundary';
 import IllustrationPickerModal from '../IllustrationPickerModal';
+import { LEGACY_TOURS_ENABLED } from '../../lib/onboarding';
 
 const BrokenEventCard = () => (
   <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden opacity-50">
@@ -97,8 +98,12 @@ const HomeTab = ({ setView, setActiveTab, user, applyTemplate }) => {
     },
   ];
 
+  // The "Брз водич" modal opened on every first visit to the dashboard home,
+  // on top of whatever the spotlight tour and FirstSuccessWizard were already
+  // doing — three dialogs racing each other, the winner decided by query
+  // latency. Off behind LEGACY_TOURS_ENABLED rather than deleted.
   useEffect(() => {
-    if (!user?.id) return;
+    if (!LEGACY_TOURS_ENABLED || !user?.id) return;
     const key = `mkd_slidea_onboarding_seen_${user.id}`;
     if (!localStorage.getItem(key)) {
       setOnboardingOpen(true);
@@ -167,10 +172,12 @@ const HomeTab = ({ setView, setActiveTab, user, applyTemplate }) => {
       .limit(5);
     setUpcomingEvents(upcoming || []);
 
-    // First-success wizard: brand-new user with zero events.
+    // First-success wizard: brand-new user with zero events. This is now the
+    // only first-run path, so the 600ms delay that used to let the "Брз водич"
+    // modal win the race is gone — there is nothing left to yield to, and the
+    // pause only made the one screen we do want feel slow to arrive.
     if (shouldShowFirstSuccess({ user, hasEvents: list.length > 0, loadingEvents: false })) {
-      // Defer slightly so onboarding modal (if shown first) takes precedence.
-      setTimeout(() => setFirstSuccessOpen(true), 600);
+      setFirstSuccessOpen(true);
     }
   };
 

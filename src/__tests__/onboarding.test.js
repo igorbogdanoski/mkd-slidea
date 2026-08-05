@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { isOnboardingDone, markOnboardingDone, shouldSeeWizard, ONBOARDING_KEYS } from '../lib/onboarding';
+import {
+  isOnboardingDone, markOnboardingDone, shouldSeeWizard, ONBOARDING_KEYS,
+  markSessionShared, hasSharedSession, LEGACY_TOURS_ENABLED,
+} from '../lib/onboarding';
 
 // States taken straight from ONBOARDING_MAP.md. Four systems used to decide
 // this question independently, with four keys and four conditions; these tests
@@ -67,6 +70,37 @@ describe('onboarding state', () => {
     it('the legacy key still suppresses for everyone, by design', () => {
       localStorage.setItem(LEGACY_GLOBAL_KEY, 'true');
       expect(isOnboardingDone(OTHER)).toBe(true);
+    });
+  });
+
+  describe('the checklist sharing step', () => {
+    // The step read a key that nothing on earth ever wrote, so it could never
+    // be ticked, the checklist could never reach 4/4, and the "🎉 Подготвен!"
+    // state it counts towards was unreachable for every user who ever had it.
+    it('starts unshared and is satisfied by actually sharing', () => {
+      expect(hasSharedSession()).toBe(false);
+      markSessionShared();
+      expect(hasSharedSession()).toBe(true);
+    });
+
+    it('completing all four steps is reachable', () => {
+      // The other three are satisfied by real activity (an event exists, a
+      // poll exists, results were viewed); this one was the blocker.
+      const steps = { created_event: true, added_question: true, viewed_results: true, shared: hasSharedSession() };
+      expect(Object.values(steps).filter(Boolean).length).toBe(3);
+
+      markSessionShared();
+      const after = { ...steps, shared: hasSharedSession() };
+      expect(Object.values(after).every(Boolean)).toBe(true);
+    });
+  });
+
+  describe('the single first-run path', () => {
+    it('the legacy tour and quick-guide modal are off', () => {
+      // Four systems used to fire at once for a new user, ordered by whichever
+      // query returned first. FirstSuccessWizard is the one that survives
+      // because it ends in a finished lesson rather than an explanation.
+      expect(LEGACY_TOURS_ENABLED).toBe(false);
     });
   });
 

@@ -22,12 +22,18 @@ import { templates } from '../data/templates';
 import { STARTER_TEMPLATES } from '../lib/starterTemplates';
 import { useDashboardData } from '../hooks/useDashboardData';
 import OnboardingTour, { TOUR_DONE_KEY } from '../components/OnboardingTour';
-import { isOnboardingDone, shouldSeeWizard } from '../lib/onboarding';
+import { isOnboardingDone, shouldSeeWizard, LEGACY_TOURS_ENABLED } from '../lib/onboarding';
 
 const Dashboard = ({ setView, user, onLogout }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('home');
+  // The spotlight tour ran on every dashboard mount for anyone without its own
+  // key — including users who had already finished the /onboarding wizard, and
+  // including users who already had events. It also covered the dashboard it
+  // was explaining. Off behind LEGACY_TOURS_ENABLED; FirstSuccessWizard is the
+  // one first-run path now.
   const [showTour, setShowTour] = useState(() => {
+    if (!LEGACY_TOURS_ENABLED) return false;
     try { return !localStorage.getItem(TOUR_DONE_KEY); } catch { return false; }
   });
   const [selectedEvent, setSelectedEvent] = useState(null);

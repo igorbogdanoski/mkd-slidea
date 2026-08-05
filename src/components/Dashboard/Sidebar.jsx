@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { PLANS, isPro } from '../../lib/plans';
+import { hasSharedSession } from '../../lib/onboarding';
 
 const DISMISS_KEY = 'mkd_checklist_dismissed_until';
 
@@ -14,7 +15,7 @@ const useOnboardingProgress = (userId) => {
 
   useEffect(() => {
     if (!userId) return;
-    const shared = !!localStorage.getItem('mkd_shared_session');
+    const shared = hasSharedSession();
     const viewed = !!localStorage.getItem('mkd_viewed_results');
     (async () => {
       const { data: evs } = await supabase.from('events').select('id').eq('user_id', userId).limit(10);
@@ -50,7 +51,11 @@ const OnboardingChecklist = ({ user, setActiveTab }) => {
   const items = [
     { key: 'created_event',   label: 'Создај прв настан',       action: () => setActiveTab('presentations') },
     { key: 'added_question',  label: 'Додај прашање',            action: () => setActiveTab('home') },
-    { key: 'shared',          label: 'Сподели со учесници',      action: null },
+    // Was action: null — the one item in the list that did nothing when
+    // clicked, and whose flag nothing ever set. Both halves are fixed: the
+    // flag is written when a join link or QR code is actually copied, and the
+    // item now takes you to the sessions list where the sharing controls are.
+    { key: 'shared',          label: 'Сподели со учесници',      action: () => setActiveTab('presentations') },
     { key: 'viewed_results',  label: 'Прегледај резултати',      action: () => setActiveTab('analytics') },
   ];
   const done = items.filter(i => steps[i.key]).length;
