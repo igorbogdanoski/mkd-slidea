@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { ShieldCheck, CheckCircle2, XCircle, ArrowRight, Gift, RotateCcw, Zap, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSEO } from '../hooks/useSEO';
+import { PLAN_CATALOG, SELLABLE_PLANS, yearlySavingPercent, yearlySavingAmount } from '../lib/billing';
 
 // Single source for the FAQ: the accordion below and the FAQPage JSON-LD are
 // both built from this array. They used to be separate — the structured data
@@ -15,12 +16,20 @@ const FAQS = [
     a: 'Не. Бесплатниот план важи засекогаш и не бара кредитна картичка — вклучува до 200 учесници, 5 настани и 10 анкети по настан.',
   },
   {
-    q: 'Што добивам со Pro планот што го нема бесплатниот?',
-    a: 'AI генерирање на прашања, напредна аналитика, извоз на резултати во CSV и PDF, сопствено брендирање, ко-домаќин и вградување на настанот во друга страница. Бројот на учесници и анкети исто така расте со планот.',
+    q: 'Што добивам со платен план што го нема бесплатниот?',
+    a: 'До 500 учесници наместо 200, неограничени настани и анкети, AI генерирање на прашања, напредна аналитика, извоз во CSV и PDF, сопствено брендирање, ко-домаќин и вградување на настанот во друга страница.',
+  },
+  {
+    q: 'Правиме само еден вебинар годишно — мора ли претплата?',
+    a: 'Не. Планот „Еден настан" чини €80 еднократно, важи 7 дена и ги отклучува сите можности за до 500 учесници. Наменет е за НВО, конференции и еднократни обуки — нема обновување и нема обврска.',
+  },
+  {
+    q: 'Што добива училиште или организација?',
+    a: 'Годишен план за правно лице со места за целиот колектив, заедничка библиотека со шаблони, фактура со ЕДБ, приоритетна поддршка и воведна обука за наставниците. Бројот на места и точната цена се договараат според големината на колективот.',
   },
   {
     q: 'Како се плаќа?',
-    a: 'Плаќањето засега е рачно — по избор на план добивате инструкции за уплата на банкарска сметка или преку PayPal. Планот се активира по потврда на уплатата, најдоцна во рок од 24 часа.',
+    a: 'Плаќањето засега е рачно — по избор на план добивате инструкции за уплата на банкарска сметка или преку PayPal. Планот се активира по потврда на уплатата, најдоцна во рок од 24 часа. За правни лица издаваме фактура со ЕДБ.',
   },
   {
     q: 'Може ли да откажам претплата?',
@@ -32,7 +41,11 @@ const FAQS = [
   },
   {
     q: 'Колку учесници можат да гласаат истовремено?',
-    a: 'Бесплатниот план поддржува до 200 учесници во ист настан. Кварталниот до 500, семестралниот до 1000, а годишниот нема ограничување.',
+    // Deliberately not "неограничено": load testing from inside the datacenter
+    // proved 300 concurrent voters at 100% success and 500 at 85–94% under a
+    // fully synchronised burst. Nothing above that has been measured, so
+    // nothing above that is promised.
+    a: 'Бесплатниот план поддржува до 200 учесници во ист настан, а платените до 500. Тие бројки се измерени со реален тест на оптоварување, не проценети. За настан со повеќе од 500 учесници контактирајте нè однапред за да ја подготвиме инфраструктурата.',
   },
   {
     q: 'Дали MKD Slidea поддржува македонски јазик?',
@@ -43,12 +56,16 @@ const FAQS = [
 const Pricing = ({ setView }) => {
   const navigate = useNavigate();
   const [openFaq, setOpenFaq] = useState(null);
+  // Annual is the default because it is the better deal and we say so plainly
+  // — the old ladder made the frequent-payment option cost three times more
+  // for less, which is the kind of thing a buyer only notices after paying.
+  const [annual, setAnnual] = useState(true);
   const faqId = useId();
 
   useSEO({
     title: 'Цени | MKD Slidea — Бесплатен и Pro план за наставници и фирми',
-    description: 'Бесплатен план засекогаш — 200 учесници, без кредитна картичка. Pro план од €20/година. Македонска интерактивна платформа за настава, обуки и состаноци.',
-    keywords: 'цени, mentimeter алтернатива, slidea план, бесплатен квиз, pro план',
+    description: 'Бесплатен план засекогаш — 200 учесници, без кредитна картичка. Наставник од €36/година, план по настан €80, годишен план за училишта и НВО. Македонска платформа за интерактивна настава и вебинари.',
+    keywords: 'цени, mentimeter алтернатива, план за училиште, цена по вебинар, бесплатен квиз, интерактивна презентација',
     path: '/pricing',
     jsonLd: {
       '@context': 'https://schema.org',
@@ -58,10 +75,18 @@ const Pricing = ({ setView }) => {
           'name': 'MKD Slidea',
           'description': 'Македонска интерактивна платформа за настава, обуки и презентации.',
           'brand': { '@type': 'Brand', 'name': 'MKD Slidea' },
+          // Built from the catalogue so the structured data cannot advertise a
+          // price the checkout no longer charges — it used to hardcode €5 and
+          // €20 alongside a five-plan page.
           'offers': [
             { '@type': 'Offer', 'name': 'Бесплатен', 'price': '0', 'priceCurrency': 'EUR', 'availability': 'https://schema.org/InStock' },
-            { '@type': 'Offer', 'name': 'Месечен', 'price': '5', 'priceCurrency': 'EUR', 'availability': 'https://schema.org/InStock' },
-            { '@type': 'Offer', 'name': 'Годишен', 'price': '20', 'priceCurrency': 'EUR', 'availability': 'https://schema.org/InStock' },
+            ...SELLABLE_PLANS.map((p) => ({
+              '@type': 'Offer',
+              'name': p.label,
+              'price': String(p.amount),
+              'priceCurrency': p.currency,
+              'availability': 'https://schema.org/InStock',
+            })),
           ],
         },
         {
@@ -83,104 +108,76 @@ const Pricing = ({ setView }) => {
     },
   });
 
+  // Prices come from PLAN_CATALOG so the page cannot quote a number the
+  // checkout and the server do not agree with.
+  const teacher = annual ? PLAN_CATALOG.teacher_yearly : PLAN_CATALOG.teacher_monthly;
+
   const plans = [
     {
       code: null,
       name: "Бесплатен",
       price: "0",
       period: "/засекогаш",
-      target: "За наставници",
+      target: "За проба и мали часови",
       features: [
         "До 200 учесници",
         "10 анкети по настан",
-        "До 5 настани месечно",
-        "Основни извештаи",
-        "Реакции во живо"
+        "До 5 настани",
+        "Сите 8 типа активности",
+        "Резултати во живо"
       ],
       button: "Започни бесплатно",
-      // Was bg-slate-50 with no border, so the free plan alone read as a
-      // background panel rather than a card in a row of cards.
       color: "bg-white text-slate-900 border-2 border-slate-100",
       btnColor: "bg-slate-900 text-white",
-      tag: "ОСНОВЕН"
+      tag: "БЕЗ КАРТИЧКА",
     },
     {
-      code: 'monthly',
-      name: "Месечен",
-      price: "5",
-      period: "/мес",
-      target: "Флексибилен",
-      features: [
-        "До 200 учесници",
-        "10 анкети по настан",
-        "Неограничени настани",
-        "AI Генерирање (ограничено)",
-        "Приоритетна поддршка"
-      ],
-      button: "Избери план",
-      color: "bg-white text-slate-900 border-2 border-slate-100",
-      btnColor: "bg-indigo-600 text-white",
-      tag: "FLEX",
-    },
-    {
-      code: 'quarterly',
-      name: "Квартален",
-      price: "10",
-      period: "/3 мес",
-      target: "Заштеди 33%",
+      code: teacher.code,
+      name: "Наставник",
+      price: String(teacher.amount),
+      period: annual ? "/год" : "/мес",
+      target: "За еден наставник или предавач",
       features: [
         "До 500 учесници",
-        "Неограничени анкети",
-        "Целосен AI асистент",
+        "Неограничени настани и анкети",
+        "AI генерирање на прашања",
         "Напредна аналитика",
-        "Тимска соработка"
+        "Извоз во CSV и PDF",
+        "Ко-домаќин и вградување",
+        "Сопствени бои"
       ],
       button: "Избери план",
-      color: "bg-white text-slate-900 border-2 border-slate-100",
-      btnColor: "bg-indigo-600 text-white",
-      tag: "SAVER",
-    },
-    {
-      code: 'semester',
-      name: "Семестрален",
-      price: "15",
-      period: "/6 мес",
-      target: "Најпопуларно",
-      features: [
-        "До 1000 учесници",
-        "Сè од Кварталниот план",
-        "Експорт на извештаи",
-        "Сопствени бои",
-        "До 5 тимски членови"
-      ],
-      button: "Избери план",
-      color: "bg-white text-slate-900 border-2 border-indigo-100 shadow-xl shadow-indigo-50",
+      color: "bg-white text-slate-900 border-2 border-indigo-200 shadow-xl shadow-indigo-50",
       btnColor: "bg-indigo-600 text-white",
       tag: "ПОПУЛАРНО",
       popular: true,
     },
     {
-      code: 'yearly',
-      name: "Годишен",
-      price: "20",
+      code: 'school',
+      name: "Училиште / Организација",
+      price: String(PLAN_CATALOG.school.amount),
       period: "/год",
-      target: "Професионален",
+      target: "За колектив, НВО и обуки",
       features: [
-        "Неограничени учесници",
-        "Најдобра вредност",
-        "Сопствено брендирање",
-        "Експорт на податоци",
-        "Интеграции: PowerPoint, Google и e-дневник"
+        "Сè од планот Наставник",
+        "Места за целиот колектив",
+        "Заедничка библиотека шаблони",
+        "Фактура со ЕДБ за правно лице",
+        "Приоритетна поддршка",
+        "Воведна обука за колективот"
       ],
-      button: "Избери план",
+      button: "Побарај понуда",
       color: "bg-slate-900 text-white",
       btnColor: "bg-emerald-500 text-white",
-      tag: "НАЈДОБРА ПОНУДА",
-    }
+      tag: "ЗА ИНСТИТУЦИИ",
+      // Explicit, rather than the previous `plan.name === 'Годишен'` checks
+      // scattered through the card — a plan rename silently unstyled the card.
+      dark: true,
+    },
   ];
 
   const comparison = [
-    { feature: "Цена / година",          mkd: "€0–€20",  menti: "€300+",        mkdWins: true },
+    { feature: "Цена / година",          mkd: "€0–€36",  menti: "€300+",        mkdWins: true },
     { feature: "Учесници (бесплатен)",   mkd: "200",      menti: "2",            mkdWins: true },
     { feature: "Македонски јазик",       mkd: "✓",        menti: "✗",            mkdWins: true },
     { feature: "AI генерирање прашања",  mkd: "✓ Pro",    menti: "✗",            mkdWins: true },
@@ -224,8 +221,34 @@ const Pricing = ({ setView }) => {
         </p>
       </div>
 
+      {/* Billing cycle — the saving is computed from the catalogue, so the
+          badge can never advertise a discount the prices do not give. */}
+      <div className="flex justify-center mb-10">
+        <div className="inline-flex items-center gap-1 p-1.5 bg-white border-2 border-slate-100 rounded-2xl" role="group" aria-label="Период на плаќање">
+          <button
+            type="button"
+            onClick={() => setAnnual(false)}
+            aria-pressed={!annual}
+            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${!annual ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-50'}`}
+          >
+            Месечно
+          </button>
+          <button
+            type="button"
+            onClick={() => setAnnual(true)}
+            aria-pressed={annual}
+            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${annual ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-50'}`}
+          >
+            Годишно
+            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${annual ? 'bg-emerald-400 text-slate-900' : 'bg-emerald-50 text-emerald-700'}`}>
+              −{yearlySavingPercent()}%
+            </span>
+          </button>
+        </div>
+      </div>
+
       {/* Plans grid */}
-      <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
         {plans.map((plan, i) => (
           <motion.div
             key={i}
@@ -238,23 +261,30 @@ const Pricing = ({ setView }) => {
                 five columns on a 1440px screen sat directly on top of the plan
                 name. It is part of the flow now, so it can never collide. */}
             {plan.tag && (
-              <span className={`self-start mb-4 text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest ${plan.popular ? 'bg-indigo-600 text-white' : plan.name === 'Годишен' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-200 text-slate-600'}`}>
+              <span className={`self-start mb-4 text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest ${plan.popular ? 'bg-indigo-600 text-white' : plan.dark ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-200 text-slate-600'}`}>
                 {plan.tag}
               </span>
             )}
             <h3 className="text-2xl font-black mb-1">{plan.name}</h3>
-            <p className={`font-semibold text-xs mb-8 uppercase tracking-widest ${plan.name === 'Годишен' ? 'text-slate-400' : 'text-slate-500'}`}>{plan.target}</p>
+            <p className={`font-semibold text-xs mb-8 uppercase tracking-widest ${plan.dark ? 'text-slate-400' : 'text-slate-500'}`}>{plan.target}</p>
 
-            <div className="flex items-baseline gap-1 mb-10">
-              <span className={`text-5xl font-black ${plan.name === 'Годишен' ? 'text-emerald-400' : 'text-slate-900'}`}>€{plan.price}</span>
-              <span className={`text-lg font-semibold ${plan.name === 'Годишен' ? 'text-slate-400' : 'text-slate-500'}`}>{plan.period}</span>
+            <div className="flex items-baseline gap-1 mb-2">
+              <span className={`text-5xl font-black ${plan.dark ? 'text-emerald-400' : 'text-slate-900'}`}>€{plan.price}</span>
+              <span className={`text-lg font-semibold ${plan.dark ? 'text-slate-400' : 'text-slate-500'}`}>{plan.period}</span>
             </div>
+            <p className={`text-xs font-medium mb-8 h-4 ${plan.dark ? 'text-slate-400' : 'text-slate-500'}`}>
+              {plan.code === PLAN_CATALOG.teacher_yearly.code
+                ? `Заштедуваш €${yearlySavingAmount()} наспроти месечно плаќање`
+                : plan.code === PLAN_CATALOG.teacher_monthly.code
+                  ? `€${PLAN_CATALOG.teacher_monthly.amount * 12} годишно · откажи кога сакаш`
+                  : ''}
+            </p>
 
             <ul className="space-y-4 mb-10 flex-1">
               {plan.features.map((feat, j) => (
                 <li key={j} className="flex items-start gap-3 text-sm font-medium leading-snug">
-                  <ShieldCheck aria-hidden="true" className={`${plan.name === 'Годишен' ? 'text-emerald-400' : 'text-indigo-500'} shrink-0 mt-0.5`} size={18} />
-                  <span className={plan.name === 'Годишен' ? 'text-slate-300' : 'text-slate-600'}>{feat}</span>
+                  <ShieldCheck aria-hidden="true" className={`${plan.dark ? 'text-emerald-400' : 'text-indigo-500'} shrink-0 mt-0.5`} size={18} />
+                  <span className={plan.dark ? 'text-slate-300' : 'text-slate-600'}>{feat}</span>
                 </li>
               ))}
             </ul>
@@ -268,6 +298,51 @@ const Pricing = ({ setView }) => {
           </motion.div>
         ))}
       </div>
+
+      {/* One-off event — deliberately a different shape from the subscription
+          cards. An NGO running three donor-funded webinars a year does not
+          want a subscription at all, and until now the page had nothing to
+          sell them: they either overpaid for a year or used the free tier and
+          hit the 200-participant ceiling live, in front of an audience. */}
+      <motion.section
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.45 }}
+        className="max-w-6xl mx-auto mt-6"
+        aria-labelledby="event-plan-heading"
+      >
+        <div className="bg-white border-2 border-slate-100 rounded-[2rem] p-8 flex flex-col lg:flex-row lg:items-center gap-8">
+          <div className="flex-1">
+            <span className="inline-block mb-3 text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest bg-amber-100 text-amber-800">
+              Без претплата
+            </span>
+            <h2 id="event-plan-heading" className="text-2xl font-black text-slate-900 mb-2">
+              Само еден настан?
+            </h2>
+            <p className="text-slate-500 font-medium leading-relaxed max-w-2xl">
+              За вебинар, конференција или обука што ја правите еднаш. Ги отклучува сите Pro
+              можности за 7 дена околу вашиот настан — доволно за подготовка, изведба и извоз на
+              резултатите. Без обврска и без обновување.
+            </p>
+          </div>
+
+          <div className="lg:w-72 shrink-0 lg:border-l lg:border-slate-100 lg:pl-8">
+            <div className="flex items-baseline gap-1 mb-1">
+              <span className="text-4xl font-black text-slate-900">€{PLAN_CATALOG.event.amount}</span>
+              <span className="text-base font-semibold text-slate-500">еднократно</span>
+            </div>
+            <p className="text-xs font-medium text-slate-500 mb-5">
+              До 500 учесници · важи 7 дена
+            </p>
+            <button
+              onClick={() => navigate(`/checkout/${PLAN_CATALOG.event.code}`)}
+              className="w-full py-4 rounded-2xl font-semibold uppercase tracking-widest text-xs bg-amber-500 text-white shadow-lg shadow-amber-100 hover:bg-amber-600 transition-all active:scale-95"
+            >
+              Резервирај настан
+            </button>
+          </div>
+        </div>
+      </motion.section>
 
       {/* Trust badges */}
       <motion.div

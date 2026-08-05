@@ -29,11 +29,21 @@ const json = (data, status = 200) =>
     headers: { 'Content-Type': 'application/json; charset=utf-8', ...corsHeaders },
   });
 
+// Authoritative prices. The client sends a plan code and nothing else that
+// matters — the amount charged and the number of days granted are read here,
+// never from the request body. Mirrored in src/lib/billing.js for display;
+// a unit test fails if the two drift apart.
+//
+// The four legacy codes stay: a pending order created before the pricing
+// change, or a checkout link someone bookmarked, must still resolve at the
+// price it was quoted at rather than fail validation mid-purchase.
 const PLAN_AMOUNTS = {
+  teacher_monthly: 4, teacher_yearly: 36, event: 80, school: 390,
   monthly: 5, quarterly: 10, semester: 15, yearly: 20,
 };
 
 const PLAN_DAYS = {
+  teacher_monthly: 31, teacher_yearly: 366, event: 7, school: 366,
   monthly: 31, quarterly: 93, semester: 186, yearly: 366,
 };
 

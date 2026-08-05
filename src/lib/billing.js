@@ -43,12 +43,39 @@ export const BILLING = {
   },
 };
 
+// Prices are mirrored in api/v1/create-order.js, which is the authority — the
+// server never trusts an amount sent by the client. Keep the two in step; a
+// unit test fails if they drift.
 export const PLAN_CATALOG = {
-  monthly:   { code: 'monthly',   label: 'Месечен',     amount: 5,  currency: 'EUR', period: 'месечно',   days: 31 },
-  quarterly: { code: 'quarterly', label: 'Квартален',   amount: 10, currency: 'EUR', period: '3 месеци',  days: 93 },
-  semester:  { code: 'semester',  label: 'Семестрален', amount: 15, currency: 'EUR', period: '6 месеци',  days: 186 },
-  yearly:    { code: 'yearly',    label: 'Годишен',     amount: 20, currency: 'EUR', period: 'годишно',   days: 366 },
+  teacher_monthly: { code: 'teacher_monthly', label: 'Наставник',              amount: 4,   currency: 'EUR', period: 'месечно', days: 31 },
+  teacher_yearly:  { code: 'teacher_yearly',  label: 'Наставник (годишно)',    amount: 36,  currency: 'EUR', period: 'годишно', days: 366 },
+  event:           { code: 'event',           label: 'Еден настан',            amount: 80,  currency: 'EUR', period: 'еднократно', days: 7 },
+  school:          { code: 'school',          label: 'Училиште / Организација', amount: 390, currency: 'EUR', period: 'годишно', days: 366 },
+
+  // Legacy — no longer offered on /pricing, but a saved checkout link or an
+  // unpaid pending order from before the change must still resolve rather
+  // than 404 the customer mid-purchase.
+  monthly:   { code: 'monthly',   label: 'Месечен (стар)',     amount: 5,  currency: 'EUR', period: 'месечно',  days: 31,  legacy: true },
+  quarterly: { code: 'quarterly', label: 'Квартален (стар)',   amount: 10, currency: 'EUR', period: '3 месеци', days: 93,  legacy: true },
+  semester:  { code: 'semester',  label: 'Семестрален (стар)', amount: 15, currency: 'EUR', period: '6 месеци', days: 186, legacy: true },
+  yearly:    { code: 'yearly',    label: 'Годишен (стар)',     amount: 20, currency: 'EUR', period: 'годишно',  days: 366, legacy: true },
 };
+
+// What /pricing sells today.
+export const SELLABLE_PLANS = Object.values(PLAN_CATALOG).filter((p) => !p.legacy);
+
+// Saving of the yearly teacher plan against paying monthly for a year —
+// computed, never written by hand, so the badge on /pricing cannot claim a
+// discount the prices do not actually give.
+export function yearlySavingPercent() {
+  const monthlyYear = PLAN_CATALOG.teacher_monthly.amount * 12;
+  const yearly = PLAN_CATALOG.teacher_yearly.amount;
+  return Math.round(((monthlyYear - yearly) / monthlyYear) * 100);
+}
+
+export function yearlySavingAmount() {
+  return PLAN_CATALOG.teacher_monthly.amount * 12 - PLAN_CATALOG.teacher_yearly.amount;
+}
 
 export function getPlan(code) {
   return PLAN_CATALOG[code] || null;

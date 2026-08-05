@@ -1,21 +1,36 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import AiUsageWidget from '../AiUsageWidget';
+import { PLANS, isPro as isProUser } from '../../lib/plans';
+import { PLAN_CATALOG } from '../../lib/billing';
 
-const PLAN_INFO = {
-  free:      { name: 'Бесплатен',     price: '€0',  period: 'Засекогаш',  participants: '200', polls: '3', events: '5' },
-  basic:     { name: 'Бесплатен',     price: '€0',  period: 'Засекогаш',  participants: '200', polls: '3', events: '5' },
-  monthly:   { name: 'Месечен',       price: '€5',  period: '/месец',     participants: '∞',   polls: '∞', events: '∞' },
-  quarterly: { name: 'Квартален',     price: '€10', period: '/квартал',   participants: '∞',   polls: '∞', events: '∞' },
-  semester:  { name: 'Семестар',      price: '€15', period: '/семестар',  participants: '∞',   polls: '∞', events: '∞' },
-  yearly:    { name: 'Годишен',       price: '€20', period: '/година',    participants: '∞',   polls: '∞', events: '∞' },
-  pro:       { name: 'PRO',           price: '€20', period: '/година',    participants: '∞',   polls: '∞', events: '∞' },
-  admin:     { name: 'Администратор', price: '—',   period: 'Интерен',    participants: '∞',   polls: '∞', events: '∞' },
+// Derived, not duplicated. This table used to be hand-written here and had
+// drifted from lib/plans.js — it told free users they got 3 polls where the
+// real limit is 10, and quoted "∞ участници" for plans that are capped. Every
+// new plan also had to be remembered in two places or it rendered as blank.
+const fmt = (n) => (n === Infinity ? '∞' : String(n));
+
+const planInfo = (code) => {
+  const limits = PLANS[code] || PLANS.free;
+  const catalog = PLAN_CATALOG[code];
+  return {
+    name: limits.label,
+    price: code === 'admin' ? '—' : catalog ? `€${catalog.amount}` : '€0',
+    period: code === 'admin' ? 'Интерен' : catalog ? `/${catalog.period}` : 'Засекогаш',
+    participants: fmt(limits.maxParticipants),
+    polls: fmt(limits.maxPollsPerEvent),
+    events: fmt(limits.maxActiveEvents),
+  };
 };
 
 const PlanTab = ({ user, setView, setActiveTab }) => {
-  const currentPlan = PLAN_INFO[user?.plan] || PLAN_INFO.free;
-  const isPro = !['basic', 'free', undefined, null].includes(user?.plan);
+  // 'basic' is not a value this app writes; treat anything unknown as free.
+  const code = PLANS[user?.plan] ? user.plan : 'free';
+  const currentPlan = planInfo(code);
+  // The shared helper, which also honours pro_until — the local check here
+  // ignored expiry, so a lapsed subscription still looked active on this
+  // screen while every other surface had already downgraded it.
+  const isPro = isProUser(user);
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="p-12 max-w-5xl mx-auto">

@@ -42,7 +42,7 @@ const Landing = ({ code, setCode, setView }) => {
           'offers': [
             { '@type': 'Offer', 'price': '0', 'priceCurrency': 'EUR', 'name': 'Бесплатен' },
             { '@type': 'Offer', 'price': '5', 'priceCurrency': 'EUR', 'name': 'Месечен' },
-            { '@type': 'Offer', 'price': '20', 'priceCurrency': 'EUR', 'name': 'Годишен Pro' },
+            { '@type': 'Offer', 'price': '36', 'priceCurrency': 'EUR', 'name': 'Наставник (годишно)' },
           ],
         },
         {

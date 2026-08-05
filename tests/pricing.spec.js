@@ -26,6 +26,46 @@ test.describe('Pricing page', () => {
     expect(body).toMatch(/без кредитна картичка/i);
   });
 
+  // The previous ladder had five rungs where paying monthly cost €60 a year
+  // for less product than the €20 annual plan. These hold the shape of the
+  // replacement: three tiers, an honest annual discount, and a one-off for
+  // organisations that run a webinar or two a year and want no subscription.
+  test('PR-11 — the billing toggle changes the price and states the saving', async ({ page }) => {
+    await expect(page.getByRole('button', { name: /Годишно/ })).toHaveAttribute('aria-pressed', 'true');
+    // exact, or the price span and its wrapper both match.
+    await expect(page.getByText('€36', { exact: true })).toBeVisible();
+    await expect(page.getByText(/Заштедуваш €\d+ наспроти месечно/)).toBeVisible();
+
+    await page.getByRole('button', { name: 'Месечно' }).click();
+    await expect(page.getByText('€4', { exact: true })).toBeVisible();
+    await expect(page.getByText(/€48 годишно/)).toBeVisible();
+  });
+
+  test('PR-12 — annual never costs more than paying monthly for a year', async ({ page }) => {
+    await page.getByRole('button', { name: 'Месечно' }).click();
+    const monthly = Number((await page.getByText(/^€\d+$/).nth(1).innerText()).replace('€', ''));
+    await page.getByRole('button', { name: /Годишно/ }).click();
+    const yearly = Number((await page.getByText(/^€\d+$/).nth(1).innerText()).replace('€', ''));
+    expect(yearly).toBeLessThan(monthly * 12);
+  });
+
+  test('PR-13 — the one-off event plan is offered and reaches checkout', async ({ page }) => {
+    const section = page.locator('section[aria-labelledby="event-plan-heading"]');
+    await expect(section).toBeVisible();
+    await expect(section).toContainText('€80');
+    await expect(section).toContainText(/7 дена/);
+
+    await section.getByRole('button', { name: /Резервирај настан/i }).click();
+    await expect(page).toHaveURL(/\/checkout\/event/);
+    await expect(page.locator('body')).toContainText('€80');
+  });
+
+  test('PR-14 — no plan on the page promises more than the tested 500 participants', async ({ page }) => {
+    const body = await page.locator('body').innerText();
+    expect(body).not.toMatch(/[Нн]еограничени учесници/);
+    expect(body).toMatch(/До 500 учесници/);
+  });
+
   test('PR-03 — pricing cards are rendered (at least 2)', async ({ page }) => {
     // Cards have plan names — Основен, Про, Тим or similar
     const cardCount = await page.locator('[class*="rounded"][class*="border"]').count();
