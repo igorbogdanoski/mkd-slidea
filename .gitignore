@@ -18,6 +18,12 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Local secrets that must never reach the remote — credentials belong on the
+# machine that needs them, not in a repository's history, where deleting them
+# later does not remove them.
+.secrets.local.md
+.secrets.local*
+
 # Local env files
 .env.local
 .env.development.local
