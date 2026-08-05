@@ -1,9 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PartyPopper, Pause, Play, Timer, TimerOff } from 'lucide-react';
+import { PartyPopper, Pause, Play, Timer, TimerOff, Eye, EyeOff } from 'lucide-react';
 
 // ─── Footer controls: pause / timer / confetti ────────────────────────────────
-const PresenterControls = ({ event, onToggleLock, lockPending, handleToggleLock, timerRemaining, timerPickerOpen, setTimerPickerOpen, handleStartTimer, handleStopTimer, fireConfetti, onStartTimer, currentPoll }) => {
+const PresenterControls = ({ event, onToggleLock, lockPending, handleToggleLock, timerRemaining, timerPickerOpen, setTimerPickerOpen, handleStartTimer, handleStopTimer, fireConfetti, onStartTimer, currentPoll, onToggleAnswer }) => {
   const timerPickerRef = useRef(null);
 
   // Close timer picker on outside click
@@ -35,6 +35,27 @@ const PresenterControls = ({ event, onToggleLock, lockPending, handleToggleLock,
           {event?.is_locked
             ? <><Play className="w-3.5 h-3.5" /> Продолжи</>
             : <><Pause className="w-3.5 h-3.5" /> Паузирај</>
+          }
+        </button>
+      )}
+
+      {/* Reveal the answer key — only for the activity types that have one.
+          The reveal is written to the poll row, so this button changes what
+          every phone in the room shows at the same instant. */}
+      {onToggleAnswer && ['open', 'fill_blanks'].includes(currentPoll?.type) &&
+        (currentPoll?.correct_answer || (currentPoll?.blanks || []).length > 0) && (
+        <button
+          onClick={() => onToggleAnswer(currentPoll.id, !currentPoll.answer_revealed)}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-xs transition-all border ${
+            currentPoll.answer_revealed
+              ? 'bg-emerald-600 hover:bg-emerald-700 border-emerald-500 text-white'
+              : 'bg-slate-800 hover:bg-emerald-500/20 border-slate-700/50 text-slate-400 hover:text-emerald-400 hover:border-emerald-500/40'
+          }`}
+          title={currentPoll.answer_revealed ? 'Сокриј го точниот одговор' : 'Покажи го точниот одговор на сите'}
+        >
+          {currentPoll.answer_revealed
+            ? <><EyeOff className="w-3.5 h-3.5" /> Сокриј одговор</>
+            : <><Eye className="w-3.5 h-3.5" /> Покажи одговор</>
           }
         </button>
       )}

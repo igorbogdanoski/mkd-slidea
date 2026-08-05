@@ -6,9 +6,11 @@ import IllustrationPickerModal from './IllustrationPickerModal';
 import CurriculumTagPicker from './CurriculumTagPicker';
 import { applyInsertion } from '../lib/insertAtCursor';
 import { useFocusTrap } from '../hooks/useFocusTrap';
+import { validateFillBlanks } from '../lib/fillBlanks';
 
 const SURVEY_Q_TYPES = [
   { value: 'open',   label: 'Отворен текст' },
+  { value: 'fill_blanks', label: 'Пополни празнини' },
   { value: 'scale',  label: 'Скала 1–10' },
   { value: 'choice', label: 'Избор (повеќе)' },
 ];
@@ -26,6 +28,9 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
   const [pickerOpen, setPickerOpen] = useState(false);
   const [curriculumTags, setCurriculumTags] = useState([]);
   const [presenterNotes, setPresenterNotes] = useState('');
+  const [correctAnswer, setCorrectAnswer] = useState('');
+  const [answerExplanation, setAnswerExplanation] = useState('');
+  const [blanks, setBlanks] = useState([]);
   const questionRef = useRef(null);
   const optionRefs = useRef({});
   const activeFieldRef = useRef({ kind: 'question' });
@@ -49,6 +54,9 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
       setCoverMeta(null);
       setCurriculumTags([]);
       setPresenterNotes('');
+      setCorrectAnswer('');
+      setAnswerExplanation('');
+      setBlanks([]);
     }
   }, [initialData, isOpen]);
 
@@ -89,6 +97,7 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
       case 'wordcloud': return 'Нов облак со зборови';
       case 'rating':   return 'Ново оценување';
       case 'open':     return 'Нов отворен текст';
+      case 'fill_blanks': return 'Ново пополнување празнини';
       case 'ranking':  return 'Ново рангирање';
       case 'scale':    return 'Нова скала 1–10';
       case 'survey':   return 'Нов анкетен формулар';
@@ -99,6 +108,18 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
   const hasOptions = ['poll', 'ranking'].includes(type);
   const isScale = type === 'scale';
   const isSurvey = type === 'survey';
+  const isFillBlanks = type === 'fill_blanks';
+  // An answer key is offered for open questions too — the same interaction,
+  // with the answer attached. Leaving it empty keeps today's behaviour.
+  const hasAnswerKey = ['open', 'fill_blanks'].includes(type);
+  // Surfaced while the question is being written, not when a class is looking
+  // at it: a gap with no answer, or an answer whose gap is not in the text.
+  const fillBlanksProblems = isFillBlanks
+    ? validateFillBlanks(question, blanks.map((b) => ({
+        id: b.id,
+        accept: String(b.accept || '').split('|').map((a) => a.trim()).filter(Boolean),
+      })))
+    : [];
   const [isSaving, setIsSaving] = useState(false);
 
   const updateSurveyQ = (id, patch) =>
@@ -145,6 +166,20 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
           min: q.min || '',
           max: q.max || '',
         })) : undefined,
+        // Accepted answers are entered pipe-separated ("4 | четири"), because
+        // a teacher writing a question should not have to think about arrays.
+        blanks: isFillBlanks
+          ? blanks.map((b) => ({
+              id: b.id,
+              accept: String(b.accept || '').split('|').map((a) => a.trim()).filter(Boolean).slice(0, 8),
+            }))
+          : undefined,
+        correct_answer: hasAnswerKey && !isFillBlanks && correctAnswer.trim()
+          ? correctAnswer.trim().slice(0, 500)
+          : null,
+        answer_explanation: hasAnswerKey && answerExplanation.trim()
+          ? answerExplanation.trim().slice(0, 2000)
+          : null,
       });
     } finally {
       setIsSaving(false);
@@ -228,6 +263,91 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
                 <div className="mt-3">
                   <MathSymbolPicker onInsert={insertSymbol} />
                 </div>
+
+                {/* Gaps are marked inside the sentence, so the text and its
+                    answers cannot drift apart — a separate ordered list would
+                    let a reorder detach a gap from its answer silently. */}
+                {isFillBlanks && (
+                  <div className="mt-4 p-4 rounded-2xl bg-indigo-50/60 border border-indigo-100 space-y-3">
+                    <p className="text-xs font-medium text-slate-600 leading-relaxed">
+                      Означи ја секоја празнина во текстот со <code className="px-1 py-0.5 bg-white rounded font-mono text-indigo-700">{'{{b1}}'}</code>,{' '}
+                      <code className="px-1 py-0.5 bg-white rounded font-mono text-indigo-700">{'{{b2}}'}</code> и така натаму, па внеси го одговорот за секоја.
+                    </p>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const nextId = 'b' + (blanks.length + 1);
+                        setBlanks([...blanks, { id: nextId, accept: '' }]);
+                        setQuestion((q) => q + '{{' + nextId + '}}');
+                      }}
+                      className="text-xs font-semibold text-indigo-700 hover:text-indigo-900"
+                    >
+                      + Додади празнина
+                    </button>
+
+                    {blanks.map((b, i) => (
+                      <div key={b.id} className="flex items-center gap-2">
+                        <span className="font-mono text-xs text-indigo-700 w-16 shrink-0">{'{{' + b.id + '}}'}</span>
+                        <input
+                          value={b.accept}
+                          onChange={(e) => setBlanks(blanks.map((x, xi) => (xi === i ? { ...x, accept: e.target.value } : x)))}
+                          placeholder="точен одговор | друга прифатлива форма"
+                          className="flex-1 bg-white border-2 border-slate-100 rounded-xl px-3 py-2 text-sm font-medium focus:border-indigo-500 outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setBlanks(blanks.filter((_, xi) => xi !== i))}
+                          aria-label={'Отстрани ја празнината ' + b.id}
+                          className="text-xs text-slate-400 hover:text-red-500 px-1"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+
+                    {fillBlanksProblems.length > 0 && (
+                      <ul className="text-xs text-amber-700 space-y-1 pt-1">
+                        {fillBlanksProblems.map((p, i) => <li key={i}>⚠ {p}</li>)}
+                      </ul>
+                    )}
+                  </div>
+                )}
+
+                {/* Optional answer key. Left empty, an open question behaves
+                    exactly as it always has. Revealed by the host — never used
+                    to mark a student automatically. */}
+                {hasAnswerKey && (
+                  <div className="mt-4 space-y-3">
+                    {!isFillBlanks && (
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2 px-1">
+                          Точен одговор <span className="normal-case tracking-normal">(по избор)</span>
+                        </label>
+                        <input
+                          value={correctAnswer}
+                          onChange={(e) => setCorrectAnswer(e.target.value)}
+                          placeholder="Се прикажува кога ти ќе го откриеш — не оценува автоматски"
+                          maxLength={500}
+                          className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 text-sm font-medium focus:border-indigo-600 focus:bg-white outline-none"
+                        />
+                      </div>
+                    )}
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2 px-1">
+                        Објаснување <span className="normal-case tracking-normal">(по избор)</span>
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={answerExplanation}
+                        onChange={(e) => setAnswerExplanation(e.target.value)}
+                        placeholder="Зошто е тоа точниот одговор"
+                        maxLength={2000}
+                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 text-sm font-medium focus:border-indigo-600 focus:bg-white outline-none resize-none"
+                      />
+                    </div>
+                  </div>
+                )}
                 <div className="mt-4">
                   <CurriculumTagPicker
                     questionText={question}

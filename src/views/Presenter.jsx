@@ -39,7 +39,7 @@ const fireConfetti = () => {
 };
 
 // ─── Main Presenter ───────────────────────────────────────────────────────────
-const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reactions = [], markQuestionAnswered, setQuestionPinned, setQuestionHidden, onToggleLock, onStartTimer, onStopTimer }) => {
+const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reactions = [], markQuestionAnswered, setQuestionPinned, setQuestionHidden, onToggleLock, onStartTimer, onStopTimer, onToggleAnswer }) => {
   const { activeParticipants, activeNow } = useEventStore();
   const [chartMode, setChartMode] = useState('bars');
   const [timerPickerOpen, setTimerPickerOpen] = useState(false);
@@ -297,6 +297,7 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
           setTimerPickerOpen={setTimerPickerOpen}
           handleStartTimer={handleStartTimer}
           handleStopTimer={handleStopTimer}
+          onToggleAnswer={onToggleAnswer}
           fireConfetti={fireConfetti}
           onStartTimer={onStartTimer}
           currentPoll={currentPoll}

@@ -60,7 +60,7 @@ const EventWrapper = ({ type, username, setUsername }) => {
     upvoteQuestion, markQuestionAnswered,
     setQuestionPinned, setQuestionHidden,
     sendReaction, refetchLockState,
-    toggleLock, startTimer, stopTimer,
+    toggleLock, startTimer, stopTimer, toggleAnswerRevealed,
   } = useEvent(normalizedCode, username);
 
   const { setEvent } = useEventStore();
@@ -216,6 +216,7 @@ const EventWrapper = ({ type, username, setUsername }) => {
         setQuestionHidden={setQuestionHidden}
         onToggleLock={toggleLock}
         onStartTimer={startTimer}
+        onToggleAnswer={toggleAnswerRevealed}
         onStopTimer={stopTimer}
       />
     );
@@ -419,7 +420,18 @@ const EventWrapper = ({ type, username, setUsername }) => {
           let answerText = null;
           let isCorrect = null;
 
-          if (typeof val === 'string') {
+          // Fill-in-the-blanks arrives as { blankId: answer, … }. It has to be
+          // matched before the numeric branch below, which would otherwise
+          // treat the object as an option index and fail with "Invalid option
+          // selected" — silently losing the answer.
+          //
+          // There is no aggregate to increment: nothing is being counted, the
+          // responses are read. So it takes the votes-row path only, with the
+          // answers serialised into answer_text, which keeps CSV export and
+          // the results view working without a new table.
+          if (val && typeof val === 'object' && !Array.isArray(val)) {
+            answerText = JSON.stringify(val).slice(0, 2000);
+          } else if (typeof val === 'string') {
             answerText = val;
             // Mirrors the sanitising vote() applies before POSTing to /api/vote-text.
             const cleanText = val.replace(/<[^>]+>/g, '').trim().slice(0, 300);
@@ -503,12 +515,19 @@ const EventWrapper = ({ type, username, setUsername }) => {
                   poll_id: currentPoll.id,
                   session_id: getSessionId(),
                   username: username || 'Анонимен',
-                  answer_text: typeof val === 'string'
-                    ? val
-                    : Array.isArray(val)
-                      ? val.map((optIdx) => currentPoll.options?.[optIdx]?.text).filter(Boolean).join(' > ')
-                      : currentPoll.options?.[val]?.text ?? null,
-                  is_correct: (typeof val === 'string' || Array.isArray(val)) ? null : (currentPoll.options?.[val]?.is_correct ?? null),
+                  // Same ordering rule as the online path: the fill_blanks
+                  // object has to be matched before the option-index branch,
+                  // or an answer written offline is queued as `null`.
+                  answer_text: (val && typeof val === 'object' && !Array.isArray(val))
+                    ? JSON.stringify(val).slice(0, 2000)
+                    : typeof val === 'string'
+                      ? val
+                      : Array.isArray(val)
+                        ? val.map((optIdx) => currentPoll.options?.[optIdx]?.text).filter(Boolean).join(' > ')
+                        : currentPoll.options?.[val]?.text ?? null,
+                  is_correct: (typeof val === 'object' || typeof val === 'string' || Array.isArray(val))
+                    ? null
+                    : (currentPoll.options?.[val]?.is_correct ?? null),
                 },
                 // Without these the queued vote would replay into `votes` but
                 // never reach options.votes — counted nowhere, charted nowhere.

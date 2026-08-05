@@ -452,6 +452,18 @@ export const useEvent = (eventCode, username) => {
     setPolls((prev) => prev.map((p) => p.id === pollId ? { ...p, timer_ends_at: endsAt } : p));
   }, []);
 
+  // Reveal the answer key to everyone at once. Written to the poll row rather
+  // than held in host state so the projector and every phone in the room learn
+  // about it through the polls realtime subscription they already have — no
+  // second channel, no chance of one screen revealing before another.
+  const toggleAnswerRevealed = useCallback(async (pollId, next) => {
+    if (!pollId) return;
+    const { error } = await supabase.from('polls').update({ answer_revealed: next }).eq('id', pollId);
+    if (error) return { error };
+    setPolls((prev) => prev.map((p) => p.id === pollId ? { ...p, answer_revealed: next } : p));
+    return { error: null };
+  }, []);
+
   const stopTimer = useCallback(async (pollId) => {
     if (!pollId) return;
     await supabase.from('polls').update({ timer_ends_at: null }).eq('id', pollId);
@@ -468,6 +480,7 @@ export const useEvent = (eventCode, username) => {
     refetchLockState,
     toggleLock,
     startTimer,
+    toggleAnswerRevealed,
     stopTimer,
   };
 };

@@ -9,6 +9,8 @@ import { applyInsertion } from '../lib/insertAtCursor';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import { accessibleScaleColor } from '../lib/contrast';
 import MathText from '../components/MathText';
+import FillBlanksInput from '../components/FillBlanksInput';
+import AnswerReveal from '../components/AnswerReveal';
 import { toSpokenText } from '../lib/mathText';
 import { useLiveAnnouncer } from '../hooks/useLiveAnnouncer';
 
@@ -57,6 +59,8 @@ const Participant = ({
   const [surveySubmitting, setSurveySubmitting] = React.useState(false);
   const [rankingOrder, setRankingOrder] = React.useState([]);
   const [dragIndex, setDragIndex] = React.useState(null);
+  // Kept so the reveal can show the student what they themselves wrote.
+  const [lastBlankAnswers, setLastBlankAnswers] = React.useState(null);
 
   // Reaction bar — per-emoji cooldown (2 s) + burst counter for ripple key
   const [reactionCooldowns, setReactionCooldowns] = React.useState({});
@@ -220,6 +224,10 @@ const Participant = ({
   }
 
   const isTextType = ['wordcloud', 'open'].includes(currentPoll.type);
+  const isFillBlanks = currentPoll.type === 'fill_blanks';
+  // The host reveals the answer for everyone at once; it rides the same polls
+  // realtime subscription the rest of the question does.
+  const answerRevealed = !!currentPoll.answer_revealed;
   const formattedDeadline = asyncDeadline
     ? new Date(asyncDeadline).toLocaleString('mk-MK', {
       day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
@@ -363,9 +371,19 @@ const Participant = ({
               </span>
             </div>
             
-            <h2 id="poll-question" className="text-2xl font-black text-slate-900 mb-8 leading-tight whitespace-pre-line">
-              <MathText>{currentPoll.question}</MathText>
-            </h2>
+            {/* A fill_blanks prompt carries its gaps inline ("Симболот {{b1}}
+                означува…"), so printing it here would show the markers raw.
+                FillBlanksInput renders the same sentence with the fields in
+                place; the heading is kept for the accessible name only. */}
+            {isFillBlanks ? (
+              <h2 id="poll-question" className="sr-only">
+                {toSpokenText(String(currentPoll.question || '').replace(/\{\{[a-zA-Z0-9_]+\}\}/g, ' празнина '))}
+              </h2>
+            ) : (
+              <h2 id="poll-question" className="text-2xl font-black text-slate-900 mb-8 leading-tight whitespace-pre-line">
+                <MathText>{currentPoll.question}</MathText>
+              </h2>
+            )}
 
             {/* Vote error */}
             {voteError && (
@@ -665,6 +683,12 @@ const Participant = ({
                       Испрати рангирање
                     </button>
                   </div>
+                ) : isFillBlanks ? (
+                  <FillBlanksInput
+                    poll={currentPoll}
+                    disabled={userVoted}
+                    onSubmit={(answers) => { haptic([30]); setLastBlankAnswers(answers); handleVote(answers); }}
+                  />
                 ) : isTextType ? (
                   <div className="space-y-4">
                     <input 
@@ -710,7 +734,20 @@ const Participant = ({
                     ))}
                   </div>
                 )}
+
               </div>
+            )}
+
+            {/* Outside the voted / not-yet-voted branches on purpose: the
+                reveal matters most *after* answering, and that is exactly the
+                branch it would miss if it lived with the input.
+
+                Deliberately not a verdict on the student's own answer —
+                nothing has marked an open response, and for blanks the check
+                is advisory. They compare their answer to the key themselves,
+                which is also the better learning moment. */}
+            {answerRevealed && (
+              <AnswerReveal poll={currentPoll} given={lastBlankAnswers} />
             )}
           </div>
 
