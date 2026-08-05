@@ -35,12 +35,12 @@ const FAQS = [
     a: 'При 30 активни наставници тоа излегува на околу €13 годишно по наставник, наспроти €36 ако секој купува поединечно — и е една ставка со една фактура наместо триесет уплати.',
   },
   {
-    q: 'Може ли повеќе наставници да предаваат истовремено?',
-    // Honest about a real unknown: the load test measured one event with many
-    // participants, never many events at once. A 60-teacher school at peak is
-    // roughly a dozen simultaneous classes — near the proven boundary, but a
-    // different shape than what was measured.
-    a: 'Да. Секој наставник води сопствен настан со свој код, независно од другите. Измереното ограничување од 500 учесници важи по настан. Ако очекувате повеќе од десетина паралелни часови во ист момент, јавете се однапред — таквиот сценарио го подготвуваме заедно.',
+    q: 'Може ли цело училиште да работи истовремено?',
+    // Measured 05.08.2026, not estimated — scripts/loadtest/README.md.
+    // 24 simultaneous events with 624 participants completed at 100% with 7ms
+    // median vote latency. Above that the test harness saturated the VPS's two
+    // cores, so nothing higher is claimed.
+    a: 'Да, и тоа е измерено. Симулиравме цела смена: 24 паралелни часа со вкупно 624 ученици кои гласаат — сите гласови поминаа, со просечно време на одговор од 7 милисекунди. За едно училиште со 16 паралелни часа и 416 ученици резултатот беше идентичен: ниту еден изгубен глас. Секој наставник води сопствен настан со свој код, независно од другите.',
   },
   {
     q: 'Како се плаќа?',
