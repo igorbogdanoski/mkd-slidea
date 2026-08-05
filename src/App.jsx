@@ -1,4 +1,4 @@
-import React, { useState, lazy, Suspense, useEffect } from 'react';
+import React, { useState, lazy, Suspense, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, MotionConfig } from 'framer-motion';
 import Nav from './components/Nav';
@@ -102,6 +102,18 @@ const AppContent = () => {
   const [code, setCode] = useState('');
   const [username, setUsername] = useState(() => localStorage.getItem('mkd_slidea_user') || '');
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+
+  // Move focus to <main> on every route change. Skips the first render, where
+  // the browser's own initial focus is correct, and skips hash-only changes so
+  // an in-page anchor keeps its natural behaviour.
+  const mainRef = useRef(null);
+  const lastPathRef = useRef(null);
+  useEffect(() => {
+    if (lastPathRef.current === null) { lastPathRef.current = location.pathname; return; }
+    if (lastPathRef.current === location.pathname) return;
+    lastPathRef.current = location.pathname;
+    mainRef.current?.focus({ preventScroll: true });
+  }, [location.pathname]);
 
   // Bounded window to let an OAuth redirect's #access_token=... hash finish
   // processing before ProtectedRoute is allowed to bounce to the login modal.
@@ -244,7 +256,11 @@ const AppContent = () => {
         <Nav setView={setView} onLogin={handleLogin} onGoogleLogin={handleGoogleLogin} user={user} onLogout={handleLogout} onRequestPasswordReset={requestPasswordReset} />
       )}
 
-      <main id="main-content" className={isPublicRoute ? 'pt-16' : ''}>
+      {/* tabIndex allows the route-change effect below to move focus here. In
+          a single-page app the browser does not reset focus on navigation, so
+          a keyboard or screen-reader user stayed wherever they were — usually
+          on a nav link — while the entire page changed underneath them. */}
+      <main id="main-content" ref={mainRef} tabIndex={-1} className={`outline-none ${isPublicRoute ? 'pt-16' : ''}`}>
         <AnimatePresence mode="wait">
           <ErrorBoundary>
             <Suspense

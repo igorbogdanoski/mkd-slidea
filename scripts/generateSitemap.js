@@ -10,6 +10,12 @@ const ROOT = path.resolve(__dirname, '..');
 const SITE = 'https://slidea.mismath.net';
 const TODAY = new Date().toISOString().slice(0, 10);
 
+// Every URL used to carry the build date. Google discounts a sitemap where
+// all 73 lastmod values move together on every deploy, because it tells it
+// nothing: a CSS tweak looked identical to a rewritten blog post. Entries
+// that know their own date now say so, and TODAY is only the fallback for
+// pages that genuinely track the deploy.
+
 const STATIC_ROUTES = [
   { path: '/', priority: 1.0, changefreq: 'weekly' },
   { path: '/join', priority: 0.8, changefreq: 'monthly' },
@@ -37,6 +43,14 @@ async function loadTemplates() {
   }
 }
 
+// blogPosts store dates as YYYY-MM-DD already, but tolerate anything Date can
+// parse; an unparseable value falls back rather than emitting 'Invalid Date'.
+function normalizeDate(value) {
+  if (!value) return null;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
+}
+
 function urlEntry(route) {
   const loc = `${SITE}${route.path}`;
   const alternates = LOCALES.map(
@@ -44,7 +58,7 @@ function urlEntry(route) {
   ).join('\n');
   return `  <url>
     <loc>${loc}</loc>
-    <lastmod>${TODAY}</lastmod>
+    <lastmod>${route.lastmod || TODAY}</lastmod>
     <changefreq>${route.changefreq}</changefreq>
     <priority>${route.priority.toFixed(1)}</priority>
 ${alternates}
@@ -58,7 +72,7 @@ async function loadBlogRoutes() {
     const posts = mod.blogPosts || [];
     return [
       { path: '/blog', priority: 0.8, changefreq: 'weekly' },
-      ...posts.map(p => ({ path: `/blog/${p.slug}`, priority: 0.75, changefreq: 'monthly' })),
+      ...posts.map(p => ({ path: `/blog/${p.slug}`, priority: 0.75, changefreq: 'monthly', lastmod: normalizeDate(p.date) })),
     ];
   } catch (e) {
     console.warn('  ! не можеше да се вчита blogPosts.js:', e?.message);
