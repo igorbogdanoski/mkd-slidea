@@ -1,12 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useId } from 'react';
 import { motion } from 'framer-motion';
-import { ShieldCheck, CheckCircle2, XCircle, ArrowRight, Gift, RotateCcw, Zap } from 'lucide-react';
+import { ShieldCheck, CheckCircle2, XCircle, ArrowRight, Gift, RotateCcw, Zap, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSEO } from '../hooks/useSEO';
 
+// Single source for the FAQ: the accordion below and the FAQPage JSON-LD are
+// both built from this array. They used to be separate — the structured data
+// advertised five questions that appeared nowhere on the page, which is not
+// just wasted markup: Google requires FAQPage content to be visible to the
+// user, and marks up hidden Q&A as a structured-data violation.
+const FAQS = [
+  {
+    q: 'Дали треба кредитна картичка за да започнам?',
+    a: 'Не. Бесплатниот план важи засекогаш и не бара кредитна картичка — вклучува до 200 учесници, 5 настани и 10 анкети по настан.',
+  },
+  {
+    q: 'Што добивам со Pro планот што го нема бесплатниот?',
+    a: 'AI генерирање на прашања, напредна аналитика, извоз на резултати во CSV и PDF, сопствено брендирање, ко-домаќин и вградување на настанот во друга страница. Бројот на учесници и анкети исто така расте со планот.',
+  },
+  {
+    q: 'Како се плаќа?',
+    a: 'Плаќањето засега е рачно — по избор на план добивате инструкции за уплата на банкарска сметка или преку PayPal. Планот се активира по потврда на уплатата, најдоцна во рок од 24 часа.',
+  },
+  {
+    q: 'Може ли да откажам претплата?',
+    a: 'Да, можете да откажете во секое време. Нема обврски, договор ниту скриени такси — планот едноставно не се обновува.',
+  },
+  {
+    q: 'Каква е гаранцијата?',
+    a: 'Доколку планот не е искористен, имате право на поврат на средствата во рок од 14 дена од уплатата.',
+  },
+  {
+    q: 'Колку учесници можат да гласаат истовремено?',
+    a: 'Бесплатниот план поддржува до 200 учесници во ист настан. Кварталниот до 500, семестралниот до 1000, а годишниот нема ограничување.',
+  },
+  {
+    q: 'Дали MKD Slidea поддржува македонски јазик?',
+    a: 'Да, платформата е целосно на македонски и е направена за македонскиот образовен систем — вклучувајќи шаблони по предмет и одделение според наставната програма.',
+  },
+];
+
 const Pricing = ({ setView }) => {
   const navigate = useNavigate();
-  const [comparisonOpen, setComparisonOpen] = useState(false);
+  const [openFaq, setOpenFaq] = useState(null);
+  const faqId = useId();
 
   useSEO({
     title: 'Цени | MKD Slidea — Бесплатен и Pro план за наставници и фирми',
@@ -29,13 +66,11 @@ const Pricing = ({ setView }) => {
         },
         {
           '@type': 'FAQPage',
-          'mainEntity': [
-            { '@type': 'Question', 'name': 'Дали треба кредитна картичка за да започнам?', 'acceptedAnswer': { '@type': 'Answer', 'text': 'Не. Бесплатниот план важи засекогаш и не бара кредитна картичка — вклучува до 200 учесници, 5 настани и 10 анкети по настан.' } },
-            { '@type': 'Question', 'name': 'Може ли да откажам претплата?', 'acceptedAnswer': { '@type': 'Answer', 'text': 'Да, можете да откажете во секое време. Нема обврски или скриени такси.' } },
-            { '@type': 'Question', 'name': 'Каква е гаранцијата?', 'acceptedAnswer': { '@type': 'Answer', 'text': 'Доколку планот не е искористен, имате право на поврат на средствата во рок од 14 дена од уплатата.' } },
-            { '@type': 'Question', 'name': 'Колку учесници може да гласаат во реалното?', 'acceptedAnswer': { '@type': 'Answer', 'text': 'Бесплатниот план поддржува до 200 учесници. Про планот поддржува до неограничен број учесници во зависност од планот.' } },
-            { '@type': 'Question', 'name': 'Дали MKD Slidea поддржува македонски јазик?', 'acceptedAnswer': { '@type': 'Answer', 'text': 'Да, MKD Slidea е целосно на македонски јазик и е наменета специјално за македонскиот образовен систем.' } },
-          ],
+          'mainEntity': FAQS.map(({ q, a }) => ({
+            '@type': 'Question',
+            'name': q,
+            'acceptedAnswer': { '@type': 'Answer', 'text': a },
+          })),
         },
         {
           '@type': 'Organization',
@@ -308,6 +343,61 @@ const Pricing = ({ setView }) => {
           * Цените за Mentimeter се приближни врз основа на нивниот јавен ценовник и подлежат на промена без најава.
         </p>
       </motion.div>
+
+      {/* FAQ — same source as the FAQPage JSON-LD above */}
+      <motion.section
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.75 }}
+        className="max-w-3xl mx-auto mt-20"
+        aria-labelledby={`${faqId}-heading`}
+      >
+        <div className="text-center mb-8">
+          <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">Прашања</p>
+          <h2 id={`${faqId}-heading`} className="text-3xl md:text-4xl font-black text-slate-900">
+            Често поставувани прашања
+          </h2>
+        </div>
+
+        <div className="bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-xl shadow-slate-100/50">
+          {FAQS.map(({ q, a }, i) => {
+            const isOpen = openFaq === i;
+            return (
+              <div key={i} className="border-b border-slate-50 last:border-0">
+                <h3>
+                  <button
+                    type="button"
+                    onClick={() => setOpenFaq(isOpen ? null : i)}
+                    aria-expanded={isOpen}
+                    aria-controls={`${faqId}-panel-${i}`}
+                    id={`${faqId}-trigger-${i}`}
+                    className="w-full flex items-center justify-between gap-6 px-8 py-6 text-left hover:bg-slate-50/60 transition-colors"
+                  >
+                    <span className="font-black text-slate-900 text-base leading-snug">{q}</span>
+                    <ChevronDown
+                      size={20}
+                      aria-hidden="true"
+                      className={`shrink-0 text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
+                    />
+                  </button>
+                </h3>
+                <div
+                  id={`${faqId}-panel-${i}`}
+                  role="region"
+                  aria-labelledby={`${faqId}-trigger-${i}`}
+                  // Collapsed panels stay in the DOM: the answers are the
+                  // FAQPage structured data's visible counterpart, and content
+                  // removed from the DOM is not content Google can see.
+                  hidden={!isOpen}
+                  className="px-8 pb-6 -mt-1 text-slate-500 font-medium leading-relaxed"
+                >
+                  {a}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </motion.section>
 
       {/* Bottom CTA */}
       <motion.div

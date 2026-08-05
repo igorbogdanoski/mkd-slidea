@@ -36,19 +36,13 @@ test.describe('Pricing page', () => {
     await expect(page.locator('text=/Mentimeter|Наспроти/i').first()).toBeVisible();
   });
 
-  test('PR-05 — comparison table toggle/button expands the table', async ({ page }) => {
-    // Find the toggle button for comparison table
-    const toggle = page.locator('button:has-text(/Mentimeter|Споредба|Прикажи/i)').first();
-    const exists = await toggle.count();
-    if (exists > 0) {
-      await toggle.click();
-      await page.waitForTimeout(400);
-      // After clicking, table rows should be visible
-      await expect(page.locator('text=/Неограничени|Учесници|активности/i').first()).toBeVisible();
-    } else {
-      // Table may already be expanded by default
-      await expect(page.locator('text=/Неограничени|Учесници/i').first()).toBeVisible();
-    }
+  // Was "comparison table toggle/button expands the table" and carried the
+  // same broken selector as PR-07 — a regex inside :has-text() — so it threw
+  // on locator.count() every run and never reached either branch. There is no
+  // toggle: the table renders unconditionally. Assert what the page does.
+  test('PR-05 — the Mentimeter comparison table renders its rows', async ({ page }) => {
+    await expect(page.getByText('Учесници (бесплатен)')).toBeVisible();
+    await expect(page.getByText('Податоци во ЕУ')).toBeVisible();
   });
 
   test('PR-06 — trust strip is visible (money-back / cancel anytime)', async ({ page }) => {
@@ -66,10 +60,39 @@ test.describe('Pricing page', () => {
     expect(count).toBeGreaterThanOrEqual(1);
   });
 
-  test('PR-08 — FAQ section has at least 3 questions', async ({ page }) => {
-    const faqItems = page.locator('text=/Дали|Колку|Може|Која|How|Can|What/i');
-    const count = await faqItems.count();
-    expect(count).toBeGreaterThanOrEqual(3);
+  // The page carried FAQPage structured data for questions that appeared
+  // nowhere on it — markup Google treats as a violation, not a rich result.
+  // The accordion is now the visible counterpart of that JSON-LD, so this
+  // test guards the pairing rather than counting stray words on the page.
+  test('PR-08 — FAQ accordion is visible and expands', async ({ page }) => {
+    // Locate by attribute, not by aria-expanded state: a state-based locator
+    // stops matching the moment the button is clicked, and .first() silently
+    // re-resolves to the next collapsed row.
+    const triggers = page.locator('button[aria-controls*="-panel-"]');
+    expect(await triggers.count()).toBeGreaterThanOrEqual(3);
+
+    const first = triggers.first();
+    await expect(first).toHaveAttribute('aria-expanded', 'false');
+    await first.click();
+    await expect(first).toHaveAttribute('aria-expanded', 'true');
+
+    // React's useId produces ids containing ':', which is not a valid CSS id
+    // selector — match on the attribute instead.
+    const panelId = await first.getAttribute('aria-controls');
+    await expect(page.locator(`[id="${panelId}"]`)).toBeVisible();
+  });
+
+  test('PR-08b — every question in the FAQ JSON-LD is visible on the page', async ({ page }) => {
+    const blocks = await page.locator('script[type="application/ld+json"]').allTextContents();
+    const faq = blocks
+      .flatMap((b) => { try { const p = JSON.parse(b); return p['@graph'] || [p]; } catch { return []; } })
+      .find((n) => n['@type'] === 'FAQPage');
+    expect(faq, 'no FAQPage JSON-LD on /pricing').toBeTruthy();
+
+    const body = await page.locator('body').innerText();
+    for (const item of faq.mainEntity) {
+      expect(body, `JSON-LD advertises "${item.name}" but the page does not show it`).toContain(item.name);
+    }
   });
 
   test('PR-09 — page has a JSON-LD script tag (structured data)', async ({ page }) => {
