@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useSEO } from '../hooks/useSEO';
 import confetti from 'canvas-confetti';
@@ -67,6 +67,10 @@ const EventWrapper = ({ type, username, setUsername }) => {
   const [quizResult, setQuizResult] = useState(null);
   const [dbVotedPolls, setDbVotedPolls] = useState([]);
   const [isVoting, setIsVoting] = useState(false);
+  // Synchronous companion to isVoting. A fast double-tap (common on phones)
+  // fires both handlers before React re-renders, so the state flag is still
+  // stale on the second one — the ref is set in the same tick, so it isn't.
+  const isVotingRef = useRef(false);
   const [voteError, setVoteError] = useState(null);
   const [newQuestion, setNewQuestion] = useState('');
   const [pwdInput, setPwdInput] = useState('');
@@ -384,22 +388,32 @@ const EventWrapper = ({ type, username, setUsername }) => {
       asyncDeadline={event.async_deadline || null}
       handleSurvey={async (answers) => {
         const currentPoll = polls[activePollIndex];
-        if (!currentPoll || userVoted) return;
+        if (isVotingRef.current || !currentPoll || userVoted) return;
         const sid = getSessionId();
+        isVotingRef.current = true;
         try {
           await submitSurvey(currentPoll.id, answers, sid);
           markVoted(currentPoll.id);
         } catch (err) {
           console.error('Survey submit failed:', err);
+        } finally {
+          isVotingRef.current = false;
         }
       }}
       handleVote={async (val) => {
-        if (userVoted || isVoting || polls.length === 0) return;
+        if (isVotingRef.current || userVoted || polls.length === 0) return;
         const currentPoll = polls[activePollIndex];
         if (!currentPoll) return;
 
+        isVotingRef.current = true;
         setIsVoting(true);
         setVoteError(null);
+
+        // Aggregate increments not yet known to have landed. Each entry is
+        // removed the moment its call succeeds, so if we drop offline midway
+        // (ranking fires one call per option) only the missing ones get queued
+        // for replay — see offlineQueue.js.
+        const pendingOps = [];
 
         try {
           let answerText = null;
@@ -407,8 +421,12 @@ const EventWrapper = ({ type, username, setUsername }) => {
 
           if (typeof val === 'string') {
             answerText = val;
+            // Mirrors the sanitising vote() applies before POSTing to /api/vote-text.
+            const cleanText = val.replace(/<[^>]+>/g, '').trim().slice(0, 300);
+            if (cleanText) pendingOps.push({ kind: 'text', pollId: currentPoll.id, text: cleanText });
             const textVoteRes = await withLockRetry(() => vote(null, currentPoll.id, val, false));
             if (textVoteRes?.error) throw textVoteRes.error;
+            pendingOps.length = 0;
           } else if (Array.isArray(val)) {
             // Ranking: val is the full option-index order, most preferred first.
             // Borda count — top pick gets N points, last gets 1 — so the whole
@@ -418,17 +436,25 @@ const EventWrapper = ({ type, username, setUsername }) => {
             for (let rank = 0; rank < n; rank++) {
               const option = currentPoll.options[val[rank]];
               if (!option) continue;
+              pendingOps.push({ kind: 'weighted', optionId: option.id, weight: n - rank });
+            }
+            for (let rank = 0; rank < n; rank++) {
+              const option = currentPoll.options[val[rank]];
+              if (!option) continue;
               const weight = n - rank;
               const rankVoteRes = await withLockRetry(() => vote(option.id, currentPoll.id, null, weight));
               if (rankVoteRes?.error) throw rankVoteRes.error;
+              pendingOps.shift();
             }
           } else {
             const option = currentPoll.options[val];
             if (!option) throw new Error('Invalid option selected');
             answerText = option.text;
             isCorrect = option.is_correct ?? null;
+            pendingOps.push({ kind: 'option', optionId: option.id });
             const optionVoteRes = await withLockRetry(() => vote(option.id));
             if (optionVoteRes?.error) throw optionVoteRes.error;
+            pendingOps.length = 0;
             if (currentPoll.is_quiz) {
               const correctIndex = currentPoll.options.findIndex(o => o.is_correct);
               setQuizResult({ isCorrect: !!option.is_correct, selectedIndex: val, correctIndex });
@@ -484,6 +510,9 @@ const EventWrapper = ({ type, username, setUsername }) => {
                       : currentPoll.options?.[val]?.text ?? null,
                   is_correct: (typeof val === 'string' || Array.isArray(val)) ? null : (currentPoll.options?.[val]?.is_correct ?? null),
                 },
+                // Without these the queued vote would replay into `votes` but
+                // never reach options.votes — counted nowhere, charted nowhere.
+                ops: pendingOps,
               });
               markVoted(currentPoll.id);
               setVoteError('Офлајн сте — гласот е зачуван и ќе се испрати кога ќе се поврзете.');
@@ -494,6 +523,7 @@ const EventWrapper = ({ type, username, setUsername }) => {
             setVoteError('Гласањето не успеа. Обидете се повторно.');
           }
         } finally {
+          isVotingRef.current = false;
           setIsVoting(false);
         }
       }}
