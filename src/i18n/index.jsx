@@ -42,8 +42,17 @@ function detect() {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored && LOCALES[stored]) return stored;
   } catch { /* ignore */ }
-  const browser = (navigator.language || '').slice(0, 2).toLowerCase();
-  if (LOCALES[browser]) return browser;
+  // Deliberately NOT falling back to navigator.language.
+  //
+  // Translation coverage is nav, footer and a handful of common strings —
+  // everything else (landing copy, Participant, Presenter, Host, Dashboard,
+  // every modal) is Macedonian. Auto-switching on browser language therefore
+  // does not produce an English page, it produces a Macedonian page wearing an
+  // English hat, and it would do that to the largest single group of real
+  // users: Macedonian teachers running Chrome in English. Until a locale is
+  // actually complete, the language changes only when someone asks for it —
+  // via ?lang= (which is what hreflang points at, so search traffic still
+  // lands correctly) or the switcher.
   return DEFAULT_LOCALE;
 }
 

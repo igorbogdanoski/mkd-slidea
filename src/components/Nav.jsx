@@ -13,43 +13,57 @@ import { warmUp } from '../lib/supabase';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { useI18n } from '../i18n';
 
-const MegaMenu = ({ isOpen, items, setView, setActiveMenu }) => (
+// Every item is a real control with a real destination.
+//
+// Before: each was a <div onClick> — invisible to keyboard and screen
+// readers — and the whole menu only opened on mouseenter, so a keyboard user
+// could not reach any of it. Worse, items in "Ресурси" carried no `type` at
+// all, so their onClick just closed the menu: they looked like links and did
+// nothing. Items that route into the app land anonymous visitors on /demo
+// rather than bouncing them into a login modal from a public nav.
+const MegaMenu = ({ id, isOpen, items, setView, setActiveMenu, navigate, user }) => (
   <AnimatePresence>
     {isOpen && (
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 10 }}
+        id={id}
         className="absolute top-full -left-10 w-[700px] pt-4 z-50"
       >
         <div className="bg-white rounded-[3rem] shadow-2xl border border-slate-100 p-10 grid grid-cols-2 gap-10">
           {items.map((section, idx) => (
             <div key={idx}>
-              <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-8 border-b border-slate-50 pb-4">
+              <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-8 border-b border-slate-100 pb-4">
                 {section.title}
               </h4>
               <div className="space-y-8">
                 {section.links.map((link, lIdx) => (
-                  <div 
-                    key={lIdx} 
-                    className="flex gap-6 group cursor-pointer"
+                  <button
+                    key={lIdx}
+                    type="button"
+                    className="w-full text-left flex gap-6 group rounded-2xl"
                     onClick={() => {
-                      if (link.type) setView('host', link.type);
                       setActiveMenu(null);
+                      if (link.path) navigate(link.path);
+                      else if (link.type) {
+                        if (user) setView('host', link.type);
+                        else navigate('/demo');
+                      }
                     }}
                   >
-                    <div className={`w-12 h-12 rounded-2xl ${link.bg} ${link.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-slate-50`}>
+                    <span className={`w-12 h-12 shrink-0 rounded-2xl ${link.bg} ${link.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-slate-50`}>
                       {link.icon}
-                    </div>
-                    <div>
-                      <p className="font-black text-slate-900 group-hover:text-indigo-600 transition-colors mb-1">
+                    </span>
+                    <span className="block">
+                      <span className="block font-black text-slate-900 group-hover:text-indigo-600 transition-colors mb-1">
                         {link.label}
-                      </p>
-                      <p className="text-xs text-slate-400 font-bold leading-relaxed">
+                      </span>
+                      <span className="block text-xs text-slate-500 font-bold leading-relaxed">
                         {link.desc}
-                      </p>
-                    </div>
-                  </div>
+                      </span>
+                    </span>
+                  </button>
                 ))}
               </div>
             </div>
@@ -96,6 +110,16 @@ const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout, onRequestPasswor
     }
   };
 
+  // Escape closes an open mega-menu and hands focus back to its trigger, so a
+  // keyboard user is never stranded inside a panel they cannot dismiss.
+  const onMenuKeyDown = (e) => {
+    if (e.key !== 'Escape' || !activeMenu) return;
+    e.stopPropagation();
+    setActiveMenu(null);
+    const trigger = e.currentTarget.querySelector('button[aria-haspopup]');
+    trigger?.focus();
+  };
+
   const nextPath = (() => {
     const params = new URLSearchParams(location.search);
     const next = params.get('next');
@@ -125,34 +149,38 @@ const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout, onRequestPasswor
     {
       title: "Корпоративни",
       links: [
-        { label: "Бизнис состаноци", desc: "Попродуктивни тимови", icon: <Briefcase size={18} />, color: "text-slate-600", bg: "bg-slate-50" },
-        { label: "Хибридна работа", desc: "Поврзете ги сите", icon: <Globe size={18} />, color: "text-slate-600", bg: "bg-slate-50" },
-        { label: "Обуки", desc: "Развој на вработени", icon: <Users size={18} />, color: "text-slate-600", bg: "bg-slate-50" }
+        { label: "Бизнис состаноци", desc: "Попродуктивни тимови", icon: <Briefcase size={18} />, color: "text-slate-600", bg: "bg-slate-50", path: "/#solutions" },
+        { label: "Хибридна работа", desc: "Поврзете ги сите", icon: <Globe size={18} />, color: "text-slate-600", bg: "bg-slate-50", path: "/#solutions" },
+        { label: "Обуки", desc: "Развој на вработени", icon: <Users size={18} />, color: "text-slate-600", bg: "bg-slate-50", path: "/#solutions" }
       ]
     },
     {
       title: "Едукација",
       links: [
-        { label: "Предавања", desc: "Интерактивни часови", icon: <School size={18} />, color: "text-indigo-600", bg: "bg-indigo-50" },
-        { label: "Вебинари", desc: "Настани во живо", icon: <Presentation size={18} />, color: "text-indigo-600", bg: "bg-indigo-50" },
-        { label: "Училници", desc: "K-12 и Универзитети", icon: <Calendar size={18} />, color: "text-indigo-600", bg: "bg-indigo-50" }
+        { label: "Предавања", desc: "Интерактивни часови", icon: <School size={18} />, color: "text-indigo-600", bg: "bg-indigo-50", path: "/#education" },
+        { label: "Вебинари", desc: "Настани во живо", icon: <Presentation size={18} />, color: "text-indigo-600", bg: "bg-indigo-50", path: "/#education" },
+        { label: "Училници", desc: "K-12 и Универзитети", icon: <Calendar size={18} />, color: "text-indigo-600", bg: "bg-indigo-50", path: "/schools" }
       ]
     }
   ];
 
+  // "Студии на случај" is gone rather than given a destination: no case
+  // studies exist, and a nav item leading to an empty page is the same broken
+  // promise as one leading nowhere. Add it back when there is something to
+  // link to.
   const resources = [
     {
       title: "Учи",
       links: [
-        { label: "Блог", desc: "Најнови вести", icon: <Presentation size={18} />, color: "text-emerald-600", bg: "bg-emerald-50" },
-        { label: "Студии на случај", desc: "Примери од пракса", icon: <ClipboardList size={18} />, color: "text-emerald-600", bg: "bg-emerald-50" }
+        { label: "Блог", desc: "Најнови вести", icon: <Presentation size={18} />, color: "text-emerald-600", bg: "bg-emerald-50", path: "/blog" },
+        { label: "Шаблони", desc: "Готови часови по предмет", icon: <ClipboardList size={18} />, color: "text-emerald-600", bg: "bg-emerald-50", path: "/templates" }
       ]
     },
     {
       title: "Академија",
       links: [
-        { label: "Упатства", desc: "Како да започнете", icon: <Globe size={18} />, color: "text-blue-600", bg: "bg-blue-50" },
-        { label: "Чести прашања", desc: "Помош и поддршка", icon: <MessageSquare size={18} />, color: "text-blue-600", bg: "bg-blue-50" }
+        { label: "Како работи", desc: "Три чекори до час", icon: <Globe size={18} />, color: "text-blue-600", bg: "bg-blue-50", path: "/#how-it-works" },
+        { label: "Чести прашања", desc: "Помош и поддршка", icon: <MessageSquare size={18} />, color: "text-blue-600", bg: "bg-blue-50", path: "/#faq" }
       ]
     }
   ];
@@ -174,18 +202,37 @@ const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout, onRequestPasswor
           </div>
           
           <div className="hidden lg:flex items-center gap-2">
-            <div className="relative" onMouseEnter={() => setActiveMenu('features')} onMouseLeave={() => setActiveMenu(null)}>
-              <button className={`px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1 transition-colors ${activeMenu === 'features' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-50'}`}>
-                {t('nav.product')} <ChevronDown size={14} className={`transition-transform duration-300 ${activeMenu === 'features' ? 'rotate-180' : ''}`} />
+            {/* Each disclosure opens on hover *and* on click, exposes
+                aria-expanded/aria-haspopup, and closes on Escape — before, the
+                only way in was a mouse hovering the trigger, which left the
+                entire product and solutions navigation unreachable by
+                keyboard and unannounced to screen readers. */}
+            <div className="relative" onMouseEnter={() => setActiveMenu('features')} onMouseLeave={() => setActiveMenu(null)} onKeyDown={onMenuKeyDown}>
+              <button
+                type="button"
+                aria-haspopup="true"
+                aria-expanded={activeMenu === 'features'}
+                aria-controls="megamenu-features"
+                onClick={() => setActiveMenu(activeMenu === 'features' ? null : 'features')}
+                className={`px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1 transition-colors ${activeMenu === 'features' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-50'}`}
+              >
+                {t('nav.product')} <ChevronDown size={14} aria-hidden="true" className={`transition-transform duration-300 ${activeMenu === 'features' ? 'rotate-180' : ''}`} />
               </button>
-              <MegaMenu isOpen={activeMenu === 'features'} items={features} setView={setView} setActiveMenu={setActiveMenu} />
+              <MegaMenu id="megamenu-features" isOpen={activeMenu === 'features'} items={features} setView={setView} setActiveMenu={setActiveMenu} navigate={navigate} user={user} />
             </div>
 
-            <div className="relative" onMouseEnter={() => setActiveMenu('solutions')} onMouseLeave={() => setActiveMenu(null)}>
-              <button className={`px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1 transition-colors ${activeMenu === 'solutions' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-50'}`}>
-                {t('nav.solutions')} <ChevronDown size={14} className={`transition-transform duration-300 ${activeMenu === 'solutions' ? 'rotate-180' : ''}`} />
+            <div className="relative" onMouseEnter={() => setActiveMenu('solutions')} onMouseLeave={() => setActiveMenu(null)} onKeyDown={onMenuKeyDown}>
+              <button
+                type="button"
+                aria-haspopup="true"
+                aria-expanded={activeMenu === 'solutions'}
+                aria-controls="megamenu-solutions"
+                onClick={() => setActiveMenu(activeMenu === 'solutions' ? null : 'solutions')}
+                className={`px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1 transition-colors ${activeMenu === 'solutions' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-50'}`}
+              >
+                {t('nav.solutions')} <ChevronDown size={14} aria-hidden="true" className={`transition-transform duration-300 ${activeMenu === 'solutions' ? 'rotate-180' : ''}`} />
               </button>
-              <MegaMenu isOpen={activeMenu === 'solutions'} items={solutions} setView={setView} setActiveMenu={setActiveMenu} />
+              <MegaMenu id="megamenu-solutions" isOpen={activeMenu === 'solutions'} items={solutions} setView={setView} setActiveMenu={setActiveMenu} navigate={navigate} user={user} />
             </div>
 
             <button 
@@ -195,11 +242,18 @@ const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout, onRequestPasswor
               {t('nav.pricing')}
             </button>
             
-            <div className="relative" onMouseEnter={() => setActiveMenu('resources')} onMouseLeave={() => setActiveMenu(null)}>
-              <button className={`px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1 transition-colors ${activeMenu === 'resources' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-50'}`}>
-                {t('nav.resources')} <ChevronDown size={14} className={`transition-transform duration-300 ${activeMenu === 'resources' ? 'rotate-180' : ''}`} />
+            <div className="relative" onMouseEnter={() => setActiveMenu('resources')} onMouseLeave={() => setActiveMenu(null)} onKeyDown={onMenuKeyDown}>
+              <button
+                type="button"
+                aria-haspopup="true"
+                aria-expanded={activeMenu === 'resources'}
+                aria-controls="megamenu-resources"
+                onClick={() => setActiveMenu(activeMenu === 'resources' ? null : 'resources')}
+                className={`px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1 transition-colors ${activeMenu === 'resources' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-50'}`}
+              >
+                {t('nav.resources')} <ChevronDown size={14} aria-hidden="true" className={`transition-transform duration-300 ${activeMenu === 'resources' ? 'rotate-180' : ''}`} />
               </button>
-              <MegaMenu isOpen={activeMenu === 'resources'} items={resources} setView={setView} setActiveMenu={setActiveMenu} />
+              <MegaMenu id="megamenu-resources" isOpen={activeMenu === 'resources'} items={resources} setView={setView} setActiveMenu={setActiveMenu} navigate={navigate} user={user} />
             </div>
 
             <button

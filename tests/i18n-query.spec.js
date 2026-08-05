@@ -38,4 +38,17 @@ test.describe('?lang= locale selection', () => {
     await page.goto('/?lang=zz', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('html')).toHaveAttribute('lang', 'sq', { timeout: 15000 });
   });
+
+  // An English-language browser must not silently get the English shell: only
+  // nav and footer are translated, so the result would be a Macedonian page
+  // with an English hat — served to the largest group of real users, teachers
+  // running Chrome in English. Language changes only when asked for.
+  test('an English browser still gets Macedonian by default', async ({ browser }) => {
+    const ctx = await browser.newContext({ locale: 'en-US' });
+    const page = await ctx.newPage();
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('html')).toHaveAttribute('lang', 'mk', { timeout: 15000 });
+    await expect(page.getByRole('button', { name: 'Цени' }).first()).toBeVisible();
+    await ctx.close();
+  });
 });
