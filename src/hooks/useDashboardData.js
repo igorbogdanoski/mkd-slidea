@@ -10,17 +10,10 @@ export const useDashboardData = ({ user, activeTab, setView }) => {
   const [communityTemplates, setCommunityTemplates] = useState([]);
   const [templatesLoading, setTemplatesLoading] = useState(false);
 
-  useEffect(() => {
-    if (!user?.id) return;
-    let onboardingDone = false;
-    try { onboardingDone = !!localStorage.getItem('onboarding_v1_done'); } catch { /* private mode / quota — treat as not done */ }
-    if (onboardingDone) return;
-    supabase
-      .from('events')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .then(({ count }) => { if (count === 0) navigate('/onboarding'); });
-  }, [user?.id]);
+  // The onboarding redirect used to be duplicated here, identical to the copy
+  // in Dashboard.jsx — both fired on the same mount, so every new user's first
+  // dashboard visit ran the same count query twice and called navigate twice.
+  // A data hook is also the wrong place for navigation. Dashboard.jsx owns it.
 
   useEffect(() => {
     if (activeTab !== 'presentations' || !user?.id) return;

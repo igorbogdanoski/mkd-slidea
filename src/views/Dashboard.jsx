@@ -22,6 +22,7 @@ import { templates } from '../data/templates';
 import { STARTER_TEMPLATES } from '../lib/starterTemplates';
 import { useDashboardData } from '../hooks/useDashboardData';
 import OnboardingTour, { TOUR_DONE_KEY } from '../components/OnboardingTour';
+import { isOnboardingDone, shouldSeeWizard } from '../lib/onboarding';
 
 const Dashboard = ({ setView, user, onLogout }) => {
   const navigate = useNavigate();
@@ -34,14 +35,15 @@ const Dashboard = ({ setView, user, onLogout }) => {
   const { allEvents, eventsLoading, communityTemplates, templatesLoading, applyTemplate } =
     useDashboardData({ user, activeTab, setView });
 
-  // Redirect new users (zero events, flag not set) to onboarding wizard.
+  // Redirect new users (zero events, never onboarded) to the welcome wizard.
+  // The same block also lived in useDashboardData; it is here only now.
   useEffect(() => {
-    if (!user?.id || localStorage.getItem('onboarding_v1_done')) return;
+    if (!user?.id || isOnboardingDone(user.id)) return;
     supabase
       .from('events')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', user.id)
-      .then(({ count }) => { if (count === 0) navigate('/onboarding'); });
+      .then(({ count }) => { if (shouldSeeWizard(user.id, count)) navigate('/onboarding'); });
   }, [user?.id]);
 
   const renderContent = () => {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { markOnboardingDone } from '../lib/onboarding';
 
 const PATHS = [
   {
@@ -49,9 +50,20 @@ const Onboarding = ({ user }) => {
     || 'Наставник';
 
   const choose = (action) => {
-    localStorage.setItem('onboarding_v1_done', 'true');
+    markOnboardingDone(user?.id);
     if (action) localStorage.setItem('pending_host_action', action);
     navigate('/host');
+  };
+
+  // There was no way out of here except finishing. The completion flag was set
+  // on the line before navigating away, so anyone who registered, landed in
+  // the wizard, closed the tab and came back was dropped straight back in —
+  // every time, until they finished it or created an event through some other
+  // route. Someone who just wanted to look at their dashboard could not reach
+  // it. Skipping counts as onboarded: being asked twice is the bug.
+  const skip = () => {
+    markOnboardingDone(user?.id);
+    navigate('/dashboard');
   };
 
   return (
@@ -72,7 +84,13 @@ const Onboarding = ({ user }) => {
             >
               Продолжи →
             </button>
-            <p className="mt-6 text-sm text-slate-400 font-bold">Без кредитна картичка · Бесплатно засекогаш</p>
+            <p className="mt-6 text-sm text-slate-500 font-medium">Без кредитна картичка · Бесплатно засекогаш</p>
+            <button
+              onClick={skip}
+              className="mt-8 mx-auto block text-sm text-slate-500 font-semibold hover:text-slate-700 underline underline-offset-4 transition-colors"
+            >
+              Прескокни и оди на контролната табла
+            </button>
           </div>
         ) : (
           <div>
@@ -97,12 +115,20 @@ const Onboarding = ({ user }) => {
                 </button>
               ))}
             </div>
-            <button
-              onClick={() => setStep(1)}
-              className="mt-8 mx-auto block text-sm text-slate-400 font-bold hover:text-slate-600 transition-colors"
-            >
-              ← Назад
-            </button>
+            <div className="mt-8 flex items-center justify-center gap-6">
+              <button
+                onClick={() => setStep(1)}
+                className="text-sm text-slate-500 font-semibold hover:text-slate-700 transition-colors"
+              >
+                ← Назад
+              </button>
+              <button
+                onClick={skip}
+                className="text-sm text-slate-500 font-semibold hover:text-slate-700 underline underline-offset-4 transition-colors"
+              >
+                Прескокни
+              </button>
+            </div>
           </div>
         )}
       </div>
