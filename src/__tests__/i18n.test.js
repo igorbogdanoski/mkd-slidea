@@ -7,6 +7,7 @@ import { describe, it, expect } from 'vitest';
 import mk from '../i18n/locales/mk.js';
 import sq from '../i18n/locales/sq.js';
 import { LOCALES, DEFAULT_LOCALE } from '../i18n/index.jsx';
+import { LOCALES as SEO_LOCALES } from '../lib/locales.js';
 
 // Extract the pure lookup function by re-implementing it (it's not exported).
 const lookup = (dict, key) => {
@@ -30,7 +31,7 @@ const makeT = (locale) => (key, fallback) => {
 };
 
 describe('i18n — LOCALES structure', () => {
-  it('exports all 6 required locales', () => {
+  it('exports all 7 required locales', () => {
     const codes = Object.keys(LOCALES);
     expect(codes).toContain('mk');
     expect(codes).toContain('sq');
@@ -38,7 +39,19 @@ describe('i18n — LOCALES structure', () => {
     expect(codes).toContain('bg');
     expect(codes).toContain('hr');
     expect(codes).toContain('ro');
-    expect(codes).toHaveLength(6);
+    expect(codes).toContain('en');
+    expect(codes).toHaveLength(7);
+  });
+
+  // The 23.07 audit's biggest SEO finding: hreflang, the sitemap and the
+  // JSON-LD all advertised `en` while no en dictionary existed, so `?lang=en`
+  // served Macedonian and Google saw seven duplicates of one page. Advertising
+  // a locale we cannot serve must fail here, not in Search Console.
+  it('ships a dictionary for every locale advertised via hreflang', () => {
+    for (const { code } of SEO_LOCALES) {
+      const base = code.slice(0, 2).toLowerCase();
+      expect(LOCALES[base], `hreflang advertises "${code}" with no dictionary`).toBeDefined();
+    }
   });
 
   it('each locale has name, flag, dict and htmlLang', () => {
@@ -53,6 +66,14 @@ describe('i18n — LOCALES structure', () => {
 
   it('DEFAULT_LOCALE is mk', () => {
     expect(DEFAULT_LOCALE).toBe('mk');
+  });
+
+  it('en covers every key mk defines', () => {
+    const paths = (obj, prefix = '') =>
+      Object.entries(obj).flatMap(([k, v]) =>
+        typeof v === 'object' && v !== null ? paths(v, `${prefix}${k}.`) : [`${prefix}${k}`]
+      );
+    expect(paths(LOCALES.en.dict).sort()).toEqual(paths(mk).sort());
   });
 });
 
