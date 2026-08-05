@@ -3,6 +3,8 @@
 // Користени од scripts/prerenderRoutes.js.
 // ============================================================================
 
+import { LOCALES } from '../src/lib/locales.js';
+
 export function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({
     '&': '&amp;',
@@ -75,13 +77,28 @@ export function injectMeta(html, route, site = 'https://slidea.mismath.net') {
     }
   }
 
+  // index.html already carries a root-pointing hreflang cluster and og:url for
+  // the homepage. Appending page-specific ones on top left /pricing with 12
+  // hreflang links and two og:url tags — mutually contradictory signals that
+  // Google resolves by discarding the cluster. Strip the inherited ones first,
+  // then emit exactly one set.
+  out = out
+    .replace(/\s*<link\s+rel="alternate"[^>]*>/g, '')
+    .replace(/\s*<meta\s+property="og:url"[^>]*>/g, '')
+    .replace(/\s*<meta\s+name="twitter:url"[^>]*>/g, '');
+
+  // All seven locales from the shared source, not the three that used to be
+  // hardcoded here — sr, hr, bg and ro were advertised in the sitemap but
+  // missing from every prerendered page.
+  const alternates = LOCALES.map(
+    ({ code, q }) => `<link rel="alternate" hreflang="${code}" href="${url}${q}" />`
+  ).join('\n    ');
+
   const hreflang = `
     <meta property="og:url" content="${url}" />
     <meta name="twitter:url" content="${url}" />
     ${route.keywords ? `<meta name="keywords" content="${escapeAttr(route.keywords)}" />` : ''}
-    <link rel="alternate" hreflang="mk-MK" href="${url}" />
-    <link rel="alternate" hreflang="sq-AL" href="${url}?lang=sq" />
-    <link rel="alternate" hreflang="en" href="${url}?lang=en" />
+    ${alternates}
     <link rel="alternate" hreflang="x-default" href="${url}" />
   `;
 

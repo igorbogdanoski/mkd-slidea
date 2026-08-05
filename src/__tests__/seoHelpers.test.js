@@ -2,6 +2,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { escapeHtml, escapeAttr, injectMeta } from '../../scripts/seoHelpers.js';
+import { LOCALES } from '../lib/locales.js';
 
 const BASE_HTML = `<!doctype html><html><head><title>old</title><link rel="canonical" href="https://x" /><meta name="description" content="old" /><meta property="og:title" content="old" /><meta property="og:description" content="old" /></head><body></body></html>`;
 
@@ -54,11 +55,32 @@ describe('seoHelpers', () => {
       assert.match(out, /<meta name="twitter:url" content="https:\/\/example\.com\/pricing" \/>/);
     });
 
-    it('injects four hreflang links (mk-MK, sq-AL, en, x-default)', () => {
-      assert.match(out, /hreflang="mk-MK"/);
-      assert.match(out, /hreflang="sq-AL".*\?lang=sq/);
-      assert.match(out, /hreflang="en".*\?lang=en/);
+    it('injects an alternate for every locale plus x-default', () => {
+      for (const { code, q } of LOCALES) {
+        assert.match(out, new RegExp(`<link rel="alternate" hreflang="${code}" href="https://example\\.com/pricing${q.replace('?', '\\?')}" />`));
+      }
       assert.match(out, /hreflang="x-default"/);
+    });
+
+    // Prerendered pages inherit index.html's root-pointing cluster. Appending
+    // page alternates on top of it left production /pricing with 12 hreflang
+    // links and two og:url tags — contradictory signals that make Google drop
+    // the cluster. There must be exactly one set after injection.
+    it('replaces inherited alternates instead of stacking on them', () => {
+      const inherited = `<!doctype html><html><head><title>old</title>
+        <meta property="og:url" content="https://example.com/" />
+        <meta name="twitter:url" content="https://example.com/" />
+        <link rel="alternate" hreflang="mk-MK" href="https://example.com/" />
+        <link rel="alternate" hreflang="sq-AL" href="https://example.com/?lang=sq" />
+        <link rel="alternate" hreflang="x-default" href="https://example.com/" />
+        </head><body></body></html>`;
+      const o = injectMeta(inherited, ROUTE, 'https://example.com');
+
+      assert.equal((o.match(/rel="alternate"/g) || []).length, LOCALES.length + 1);
+      assert.equal((o.match(/property="og:url"/g) || []).length, 1);
+      assert.equal((o.match(/name="twitter:url"/g) || []).length, 1);
+      // and none of them may still point at the inherited root URL
+      assert.ok(!/hreflang="mk-MK" href="https:\/\/example\.com\/"/.test(o));
     });
 
     it('injects keywords meta when provided', () => {
