@@ -67,3 +67,8 @@ mismath-finansiski-izvestaj.html
 mkd-slidea-finansiski-izvestaj.html
 
 .env*.local
+
+# Generated from the curriculum quiz bank and seeded into the database, not
+# imported by the app — 1.3MB has no business in a bundle or a diff.
+# Rebuild with: node scripts/buildMathTemplates.mjs <quiz-export.json>
+src/lib/mathCurriculumTemplates.js
