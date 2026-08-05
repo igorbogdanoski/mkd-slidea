@@ -7,6 +7,8 @@ import ParticipantCaptions from '../components/ParticipantCaptions';
 import MathSymbolPicker from '../components/MathSymbolPicker';
 import { applyInsertion } from '../lib/insertAtCursor';
 import { usePushNotifications } from '../hooks/usePushNotifications';
+import { accessibleScaleColor } from '../lib/contrast';
+import { useLiveAnnouncer } from '../hooks/useLiveAnnouncer';
 
 const haptic = (pattern = [30]) => {
   try { navigator.vibrate?.(pattern); } catch { /* unsupported */ }
@@ -35,6 +37,7 @@ const Participant = ({
   asyncDeadline,
 }) => {
   const { activeParticipants } = useEventStore();
+  const { announce } = useLiveAnnouncer();
   const { supported: pushSupported, subscribed: pushSubscribed, loading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotifications(eventCode);
   const currentPoll = polls[activePollIndex] || { question: 'Чекаме настан...', options: [], type: 'poll' };
   const [response, setResponse] = React.useState('');
@@ -130,6 +133,31 @@ const Participant = ({
     }
   }, [currentPoll.id, currentPoll.type]);
 
+  // The host advancing to the next activity changes this screen completely,
+  // but silently: Presenter has an announcer, Participant had none, so a
+  // screen-reader user sat on a question that was no longer the live one with
+  // nothing to tell them. Announce the new question and how to answer it.
+  const isFirstPollRef = React.useRef(true);
+  React.useEffect(() => {
+    if (!currentPoll?.id) return;
+    if (isFirstPollRef.current) {
+      // Skip the initial render — the page is already being read out.
+      isFirstPollRef.current = false;
+      return;
+    }
+    const count = Array.isArray(currentPoll.options) ? currentPoll.options.length : 0;
+    announce(
+      count
+        ? `Ново прашање: ${currentPoll.question}. ${count} опции.`
+        : `Ново прашање: ${currentPoll.question}.`
+    );
+  }, [currentPoll?.id]);
+
+  // Confirm the vote landed. Without this the only feedback is visual.
+  React.useEffect(() => {
+    if (userVoted) announce('Вашиот одговор е примен.');
+  }, [userVoted, currentPoll?.id]);
+
   const submitResponse = async () => {
     const clean = response.trim();
     const minLen = currentPoll.type === 'wordcloud' ? 2 : 3;
@@ -139,10 +167,12 @@ const Participant = ({
   };
 
   const submitRating = async (val) => {
-    const idx = currentPoll.options.findIndex(o => o.text === val.toString());
-    if (idx !== -1) {
-      handleVote(idx);
-    }
+    // Was matched by label — findIndex(o => o.text === String(val)) — so the
+    // moment a rating's options were labelled anything other than "1".."5"
+    // the lookup returned -1 and tapping a star did nothing at all, with no
+    // error and no feedback. Stars are positional; map them positionally.
+    const idx = Math.min(Math.max(val - 1, 0), currentPoll.options.length - 1);
+    if (currentPoll.options[idx]) handleVote(idx);
   };
 
   const [nameInput, setNameInput] = React.useState('');
@@ -443,18 +473,27 @@ const Participant = ({
                         {sq.type === 'scale' && (
                           <div className="space-y-2">
                             <div className="grid grid-cols-5 gap-1.5 sm:grid-cols-10">
-                              {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
-                                <button key={n}
-                                  onClick={() => setSurveyAnswers(a => ({ ...a, [sq.id]: n }))}
-                                  className="aspect-square rounded-xl font-black text-sm transition-all active:scale-90"
-                                  style={{
-                                    backgroundColor: surveyAnswers[sq.id] === n
-                                      ? `hsl(${(n-1)*12},75%,45%)`
-                                      : surveyAnswers[sq.id] > n ? `hsl(${(n-1)*12},75%,80%)` : '#f1f5f9',
-                                    color: surveyAnswers[sq.id] >= n ? '#fff' : '#94a3b8',
-                                  }}
-                                >{n}</button>
-                              ))}
+                              {Array.from({ length: 10 }, (_, i) => i + 1).map(n => {
+                                const selected = surveyAnswers[sq.id] === n;
+                                const below = surveyAnswers[sq.id] > n;
+                                // The "below the selection" pastels took white
+                                // text at ~1.5:1 — the numbers effectively
+                                // vanished. Each state now derives a readable
+                                // pair, and selection is carried by a ring as
+                                // well as by colour.
+                                const swatch = selected ? accessibleScaleColor((n - 1) * 12, { l: 45 })
+                                  : below ? accessibleScaleColor((n - 1) * 12, { l: 80 })
+                                  : { backgroundColor: '#f1f5f9', color: '#475569' };
+                                return (
+                                  <button key={n}
+                                    onClick={() => setSurveyAnswers(a => ({ ...a, [sq.id]: n }))}
+                                    aria-label={`${n} од 10${n === 1 && sq.min ? ` — ${sq.min}` : ''}${n === 10 && sq.max ? ` — ${sq.max}` : ''}`}
+                                    aria-pressed={selected}
+                                    className={`aspect-square rounded-xl font-black text-sm transition-all active:scale-90 ${selected ? 'ring-2 ring-offset-1 ring-slate-900' : ''}`}
+                                    style={swatch}
+                                  >{n}</button>
+                                );
+                              })}
                             </div>
                             {(sq.min || sq.max) && (
                               <div className="flex justify-between text-[10px] font-black text-slate-400 uppercase tracking-widest px-0.5">
@@ -497,15 +536,25 @@ const Participant = ({
                   </div>
                 ) : currentPoll.type === 'scale' ? (
                   <div className="space-y-4 py-4">
-                    <div className="grid grid-cols-5 gap-2 sm:grid-cols-10">
+                    <div className="grid grid-cols-5 gap-2 sm:grid-cols-10" role="group" aria-labelledby="poll-question">
                       {currentPoll.options.map((opt, i) => {
                         const hue = Math.round(i * 12);
+                        // Was hardcoded white text on hsl(hue,75%,50%): fine at
+                        // the red and blue ends, ~2:1 through the yellows.
+                        const swatch = accessibleScaleColor(hue);
+                        const lowLabel = currentPoll.options[0]?.label;
+                        const highLabel = currentPoll.options[currentPoll.options.length - 1]?.label;
+                        const endLabel =
+                          i === 0 && lowLabel ? ` — ${lowLabel}`
+                          : i === currentPoll.options.length - 1 && highLabel ? ` — ${highLabel}`
+                          : '';
                         return (
                           <button
                             key={i}
                             onClick={() => handleVote(i)}
-                            className="aspect-square rounded-2xl font-black text-white text-lg transition-all active:scale-90 hover:scale-110 shadow-md"
-                            style={{ backgroundColor: `hsl(${hue},75%,50%)` }}
+                            aria-label={`${opt.text} од ${currentPoll.options.length}${endLabel}`}
+                            className="aspect-square rounded-2xl font-black text-lg transition-all active:scale-90 hover:scale-110 shadow-md"
+                            style={swatch}
                           >
                             {opt.text}
                           </button>
@@ -530,14 +579,20 @@ const Participant = ({
                           submitRating(star);
                         }}
                         onMouseEnter={() => !userVoted && setRating(star)}
+                        aria-label={`Оцени ${star} од 5`}
+                        aria-pressed={star <= rating}
                         className="transition-transform active:scale-90"
                       >
-                        <Star 
+                        <Star
+                          aria-hidden="true"
                           className={`w-12 h-12 ${
-                            star <= rating 
-                              ? 'fill-amber-400 text-amber-400' 
-                              : 'text-slate-200'
-                          } transition-colors`} 
+                            star <= rating
+                              ? 'fill-amber-400 text-amber-500'
+                              // Was text-slate-200 — about 1.3:1 against white,
+                              // below the 3:1 WCAG asks of a control's own
+                              // shape. An unrated star has to be visible.
+                              : 'text-slate-500'
+                          } transition-colors`}
                         />
                       </button>
                     ))}
@@ -632,12 +687,16 @@ const Participant = ({
                     </button>
                   </div>
                 ) : (
-                  <div role="radiogroup" aria-labelledby="poll-question" className="contents">
+                  // Not a radiogroup: these options submit the vote the instant
+                  // they are pressed, there is no selected-but-unsubmitted
+                  // state to convey, and aria-checked was hardcoded "false" so
+                  // a screen reader announced every option as "not checked" —
+                  // including the one just voted for. Plain buttons in a
+                  // labelled group describe what actually happens.
+                  <div role="group" aria-labelledby="poll-question" className="contents">
                     {currentPoll.options.map((option, i) => (
                       <button
                         key={i}
-                        role="radio"
-                        aria-checked="false"
                         aria-label={option.text}
                         onClick={() => { haptic([30]); handleVote(i); }}
                         className="w-full group relative overflow-hidden p-6 rounded-3xl border-2 border-slate-100 hover:border-indigo-600 hover:bg-indigo-50 active:scale-[0.98] transition-all text-left"
