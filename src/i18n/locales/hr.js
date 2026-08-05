@@ -15,6 +15,7 @@ export default {
     darkMode: 'Tamna tema',
     lightMode: 'Svijetla tema',
     language: 'Jezik',
+    menu: 'Izbornik',
   },
   footer: {
     privacy: 'Politika privatnosti',

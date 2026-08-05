@@ -15,6 +15,7 @@ export default {
     darkMode: 'Dark mode',
     lightMode: 'Light mode',
     language: 'Language',
+    menu: 'Menu',
   },
   footer: {
     privacy: 'Privacy policy',

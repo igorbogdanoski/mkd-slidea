@@ -15,6 +15,7 @@ export default {
     darkMode: 'Tema e errët',
     lightMode: 'Tema e ndritshme',
     language: 'Gjuha',
+    menu: 'Menuja',
   },
   footer: {
     privacy: 'Politika e privatësisë',

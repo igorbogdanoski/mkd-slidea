@@ -196,12 +196,17 @@ const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout, onRequestPasswor
             <div className="bg-indigo-600 p-2 rounded-xl group-hover:rotate-12 transition-transform shadow-lg shadow-indigo-200">
               <Zap className="text-white w-6 h-6 fill-white" />
             </div>
-            <span className="text-2xl font-black tracking-tight text-slate-900 dark:text-slate-100">
+            <span className="text-2xl font-black tracking-tight text-slate-900 dark:text-slate-100 whitespace-nowrap">
               MKD <span className="text-indigo-600 dark:text-indigo-400">Slidea</span>
             </span>
           </div>
           
-          <div className="hidden lg:flex items-center gap-2">
+          {/* Collapses at xl, not lg. Six primary links plus a six-item utility
+              cluster do not fit 1024–1279px: at 1440 the "Регистрирај се"
+              button was clipped by the viewport edge and the login/join pair
+              wrapped to two lines — the most expensive button on the site,
+              unreachable at the most common desktop width. */}
+          <div className="hidden nav:flex items-center gap-1">
             {/* Each disclosure opens on hover *and* on click, exposes
                 aria-expanded/aria-haspopup, and closes on Escape — before, the
                 only way in was a mouse hovering the trigger, which left the
@@ -214,7 +219,7 @@ const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout, onRequestPasswor
                 aria-expanded={activeMenu === 'features'}
                 aria-controls="megamenu-features"
                 onClick={() => setActiveMenu(activeMenu === 'features' ? null : 'features')}
-                className={`px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1 transition-colors ${activeMenu === 'features' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-50'}`}
+                className={`px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-1 transition-colors ${activeMenu === 'features' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-50'}`}
               >
                 {t('nav.product')} <ChevronDown size={14} aria-hidden="true" className={`transition-transform duration-300 ${activeMenu === 'features' ? 'rotate-180' : ''}`} />
               </button>
@@ -228,7 +233,7 @@ const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout, onRequestPasswor
                 aria-expanded={activeMenu === 'solutions'}
                 aria-controls="megamenu-solutions"
                 onClick={() => setActiveMenu(activeMenu === 'solutions' ? null : 'solutions')}
-                className={`px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1 transition-colors ${activeMenu === 'solutions' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-50'}`}
+                className={`px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-1 transition-colors ${activeMenu === 'solutions' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-50'}`}
               >
                 {t('nav.solutions')} <ChevronDown size={14} aria-hidden="true" className={`transition-transform duration-300 ${activeMenu === 'solutions' ? 'rotate-180' : ''}`} />
               </button>
@@ -237,7 +242,7 @@ const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout, onRequestPasswor
 
             <button 
               onClick={() => setView('pricing')}
-              className="px-4 py-2 rounded-xl text-sm font-bold text-slate-500 hover:text-indigo-600 hover:bg-slate-50 transition-colors"
+              className="px-3 py-2 rounded-xl text-sm font-semibold text-slate-500 hover:text-indigo-600 hover:bg-slate-50 transition-colors"
             >
               {t('nav.pricing')}
             </button>
@@ -249,7 +254,7 @@ const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout, onRequestPasswor
                 aria-expanded={activeMenu === 'resources'}
                 aria-controls="megamenu-resources"
                 onClick={() => setActiveMenu(activeMenu === 'resources' ? null : 'resources')}
-                className={`px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1 transition-colors ${activeMenu === 'resources' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-50'}`}
+                className={`px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-1 transition-colors ${activeMenu === 'resources' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-50'}`}
               >
                 {t('nav.resources')} <ChevronDown size={14} aria-hidden="true" className={`transition-transform duration-300 ${activeMenu === 'resources' ? 'rotate-180' : ''}`} />
               </button>
@@ -258,84 +263,99 @@ const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout, onRequestPasswor
 
             <button
               onClick={() => navigate('/templates')}
-              className="px-4 py-2 rounded-xl text-sm font-bold text-slate-500 hover:text-indigo-600 hover:bg-slate-50 transition-colors"
+              className="px-3 py-2 rounded-xl text-sm font-semibold text-slate-500 hover:text-indigo-600 hover:bg-slate-50 transition-colors"
             >
               {t('nav.templates')}
             </button>
             <button
               onClick={() => navigate('/scoreboard')}
-              className="px-4 py-2 rounded-xl text-sm font-bold text-slate-500 hover:text-indigo-600 hover:bg-slate-50 transition-colors"
+              className="px-3 py-2 rounded-xl text-sm font-semibold text-slate-500 hover:text-indigo-600 hover:bg-slate-50 transition-colors"
             >
               {t('nav.scoreboard')}
             </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          {/* Hamburger — mobile only */}
-          <button
-            className="lg:hidden p-2.5 rounded-xl text-slate-500 hover:bg-slate-50 transition-all"
-            onClick={() => setMobileOpen(v => !v)}
-            aria-label="Мени"
-          >
-            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
+        {/* Three tiers rather than one switch. The header used to mount the
+            language switcher, theme toggle, join link, login and register at
+            every width, which ran a 390px phone header off screen and clipped
+            the register button at 1440. Collapsing all of it at one breakpoint
+            fixed the overflow but hid the primary CTA on 1280px laptops — a
+            very common width — so the sign-up path now survives everywhere
+            except phones, and only the secondary utilities drop out first. */}
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Utilities: widest screens only */}
+          <div className="hidden nav:flex items-center gap-2">
+            <LanguageSwitcher />
+            <button
+              onClick={toggleDark}
+              aria-label={isDark ? t('nav.lightMode') : t('nav.darkMode')}
+              title={isDark ? t('nav.lightMode') : t('nav.darkMode')}
+              className="p-2.5 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:text-indigo-300 dark:hover:bg-slate-800 transition-all"
+            >
+              {isDark ? <Sun size={18} aria-hidden="true" /> : <Moon size={18} aria-hidden="true" />}
+            </button>
+            <button
+              onClick={() => setView('join')}
+              className="text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all px-3 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 whitespace-nowrap"
+            >
+              {t('nav.join')}
+            </button>
+            <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1" />
+          </div>
 
-          <LanguageSwitcher />
-          <button
-            onClick={toggleDark}
-            aria-label={isDark ? t('nav.lightMode') : t('nav.darkMode')}
-            title={isDark ? t('nav.lightMode') : t('nav.darkMode')}
-            className="p-2.5 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:text-indigo-300 dark:hover:bg-slate-800 transition-all"
-          >
-            {isDark ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
-          <button 
-            onClick={() => setView('join')}
-            className="text-sm font-black text-slate-500 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all px-4 py-2 uppercase tracking-widest"
-          >
-            {t('nav.join')}
-          </button>
-          <div className="w-px h-6 bg-slate-100 dark:bg-slate-700 mx-2" />
-          {user ? (
-            <div className="flex items-center gap-4">
-              {user.role === 'admin' && (
-                <button 
+          {/* Account / sign-up: everything but phones */}
+          <div className="hidden md:flex items-center gap-2">
+            {user ? (
+              <>
+                {user.role === 'admin' && (
+                  <button
+                    onClick={() => setView('dashboard')}
+                    className="hidden nav:flex bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-semibold hover:bg-slate-800 transition-all items-center gap-2 whitespace-nowrap"
+                  >
+                    <LayoutGrid size={14} aria-hidden="true" /> {t('nav.adminPanel')}
+                  </button>
+                )}
+                <button
                   onClick={() => setView('dashboard')}
-                  className="bg-slate-900 text-white px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center gap-2"
+                  className="text-sm font-semibold text-slate-900 dark:text-slate-100 hover:text-indigo-600 px-3 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 whitespace-nowrap"
                 >
-                  <LayoutGrid size={14} /> {t('nav.adminPanel')}
+                  {t('nav.myProfile')}
                 </button>
-              )}
-              <button 
-                onClick={() => setView('dashboard')}
-                className="text-sm font-black text-slate-900 hover:text-indigo-600"
-              >
-                {t('nav.myProfile')}
-              </button>
-              <button 
-                onClick={onLogout}
-                className="text-sm font-black text-red-500 hover:text-red-600"
-              >
-                {t('nav.logout')}
-              </button>
-            </div>
-          ) : (
-            <>
-              <button 
-                onClick={openLogin}
-                className="text-sm font-black text-slate-900 hover:text-indigo-600 transition-all px-6 py-2"
-              >
-                {t('nav.login')}
-              </button>
-              <button 
-                onClick={openLogin}
-                className="bg-indigo-600 text-white px-8 py-3.5 rounded-2xl text-sm font-black hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 active:scale-95 flex items-center gap-2"
-              >
-                {t('nav.register')}
-              </button>
-            </>
-          )}
+                <button
+                  onClick={onLogout}
+                  className="hidden nav:block text-sm font-semibold text-red-600 hover:text-red-700 px-3 py-2 rounded-xl hover:bg-red-50 whitespace-nowrap"
+                >
+                  {t('nav.logout')}
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={openLogin}
+                  className="text-sm font-semibold text-slate-900 dark:text-slate-100 hover:text-indigo-600 transition-all px-3 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 whitespace-nowrap"
+                >
+                  {t('nav.login')}
+                </button>
+                <button
+                  onClick={openLogin}
+                  className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 active:scale-95 whitespace-nowrap"
+                >
+                  {t('nav.register')}
+                </button>
+              </>
+            )}
+          </div>
+
+          <button
+            className="nav:hidden p-2.5 rounded-xl text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800 transition-all"
+            onClick={() => setMobileOpen(v => !v)}
+            aria-label={t('nav.menu', 'Мени')}
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-menu"
+          >
+            {mobileOpen ? <X size={22} aria-hidden="true" /> : <Menu size={22} aria-hidden="true" />}
+          </button>
         </div>
       </div>
 
@@ -347,38 +367,77 @@ const Nav = ({ setView, onLogin, onGoogleLogin, user, onLogout, onRequestPasswor
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.22, ease: 'easeInOut' }}
-            className="lg:hidden overflow-hidden border-t border-slate-100 bg-white/95 backdrop-blur-md"
+            id="mobile-menu"
+            className="nav:hidden overflow-hidden border-t border-slate-100 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md max-h-[calc(100vh-5rem)] overflow-y-auto"
           >
             <div className="max-w-7xl mx-auto px-6 py-5 space-y-1">
+              {/* "Производ" used to call setView('host') — a protected route, so
+                  a visitor with no account was bounced into a login modal by a
+                  menu item that promised a product tour. */}
               {[
-                { label: t('nav.product'),    action: () => { setView('host'); setMobileOpen(false); } },
-                { label: t('nav.solutions'),  action: () => { document.getElementById('solutions')?.scrollIntoView({ behavior: 'smooth' }); setMobileOpen(false); } },
-                { label: t('nav.pricing'),    action: () => { setView('pricing'); setMobileOpen(false); } },
-                { label: t('nav.templates'),  action: () => { navigate('/templates'); setMobileOpen(false); } },
-                { label: t('nav.scoreboard'), action: () => { navigate('/scoreboard'); setMobileOpen(false); } },
+                { label: t('nav.product'),    action: () => navigate('/demo') },
+                { label: t('nav.solutions'),  action: () => { document.getElementById('solutions')?.scrollIntoView({ behavior: 'smooth' }); } },
+                { label: t('nav.pricing'),    action: () => setView('pricing') },
+                { label: t('nav.templates'),  action: () => navigate('/templates') },
+                { label: t('nav.resources'),  action: () => navigate('/blog') },
+                { label: t('nav.scoreboard'), action: () => navigate('/scoreboard') },
+                { label: t('nav.join'),       action: () => setView('join') },
               ].map((item) => (
                 <button
                   key={item.label}
-                  onClick={item.action}
-                  className="w-full text-left px-4 py-3 rounded-xl text-sm font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+                  onClick={() => { item.action(); setMobileOpen(false); }}
+                  className="w-full text-left px-4 py-3 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-800 hover:text-indigo-600 transition-colors"
                 >
                   {item.label}
                 </button>
               ))}
-              <div className="pt-3 border-t border-slate-100 flex gap-3">
+
+              {/* The language switcher and theme toggle used to sit in the
+                  header at every width, which is what pushed it off-screen on
+                  a phone. They belong here. */}
+              <div className="pt-3 mt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 px-1">
+                <LanguageSwitcher />
                 <button
-                  onClick={() => { setIsLoginOpen(true); setMobileOpen(false); }}
-                  className="flex-1 py-3 text-center text-sm font-black text-slate-700 border border-slate-200 rounded-2xl hover:border-indigo-400 transition-all"
+                  onClick={toggleDark}
+                  aria-label={isDark ? t('nav.lightMode') : t('nav.darkMode')}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
                 >
-                  {t('nav.login')}
-                </button>
-                <button
-                  onClick={() => { setIsLoginOpen(true); setMobileOpen(false); }}
-                  className="flex-1 py-3 text-center text-sm font-black text-white bg-indigo-600 rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
-                >
-                  {t('nav.register')}
+                  {isDark ? <Sun size={16} aria-hidden="true" /> : <Moon size={16} aria-hidden="true" />}
+                  {isDark ? t('nav.lightMode') : t('nav.darkMode')}
                 </button>
               </div>
+
+              {user ? (
+                <div className="pt-3 mt-2 border-t border-slate-100 dark:border-slate-800 flex gap-3">
+                  <button
+                    onClick={() => { setView('dashboard'); setMobileOpen(false); }}
+                    className="flex-1 py-3 text-center text-sm font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition-all"
+                  >
+                    {t('nav.myProfile')}
+                  </button>
+                  <button
+                    onClick={() => { onLogout(); setMobileOpen(false); }}
+                    className="flex-1 py-3 text-center text-sm font-semibold text-red-600 border border-red-200 rounded-xl hover:bg-red-50 transition-all"
+                  >
+                    {t('nav.logout')}
+                  </button>
+                </div>
+              ) : (
+                <div className="pt-3 mt-2 border-t border-slate-100 dark:border-slate-800 flex gap-3">
+                  <button
+                    onClick={() => { setIsLoginOpen(true); setMobileOpen(false); }}
+                    className="flex-1 py-3 text-center text-sm font-semibold text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-indigo-400 transition-all"
+                  >
+                    {t('nav.login')}
+                  </button>
+                  <button
+                    onClick={() => { setIsLoginOpen(true); setMobileOpen(false); }}
+                    className="flex-1 py-3 text-center text-sm font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
+                  >
+                    {t('nav.register')}
+                  </button>
+                </div>
+              )}
             </div>
           </motion.div>
         )}

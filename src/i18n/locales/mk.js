@@ -15,6 +15,7 @@ export default {
     darkMode: 'Темна тема',
     lightMode: 'Светла тема',
     language: 'Јазик',
+    menu: 'Мени',
   },
   footer: {
     privacy: 'Политика на приватност',

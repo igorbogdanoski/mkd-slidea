@@ -15,6 +15,7 @@ export default {
     darkMode: 'Temă întunecată',
     lightMode: 'Temă luminoasă',
     language: 'Limba',
+    menu: 'Meniu',
   },
   footer: {
     privacy: 'Politica de confidențialitate',

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, X, CheckCircle, Loader2 } from 'lucide-react';
@@ -14,6 +14,14 @@ const SupportWidget = ({ user }) => {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 400);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const reset = () => { setMessage(''); setEmail(''); setSent(false); setError(''); setLoading(false); };
 
@@ -44,12 +52,19 @@ const SupportWidget = ({ user }) => {
 
   return (
     <>
+      {/* Hidden over the fold on phones. Fixed bottom-right on a 390px screen
+          put this bubble directly on top of the join-code "ВЛЕЗИ" button — a
+          support affordance covering the single action the page exists for.
+          It appears once the visitor scrolls past the hero, where nothing
+          competes with it. Desktop has the room and keeps it always. */}
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 z-[190] w-14 h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-2xl shadow-indigo-600/30 flex items-center justify-center transition-all active:scale-95"
+        className={`fixed bottom-6 right-6 z-[190] w-14 h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-2xl shadow-indigo-600/30 flex items-center justify-center transition-all active:scale-95 ${
+          scrolled ? 'flex' : 'hidden md:flex'
+        }`}
         aria-label="Прашање или фидбек"
       >
-        <MessageCircle className="w-6 h-6" />
+        <MessageCircle className="w-6 h-6" aria-hidden="true" />
       </button>
 
       {createPortal(

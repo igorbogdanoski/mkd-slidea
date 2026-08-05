@@ -6,7 +6,16 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      screens: {
+        // The full desktop header — wordmark, six primary links, language,
+        // theme, join, login and register — needs about 1330px. Tailwind's xl
+        // (1280) is 50px short, which is exactly how the register button came
+        // to be clipped at common laptop widths. Below this it collapses to
+        // the menu sheet.
+        nav: '1360px',
+      },
+    },
   },
   plugins: [],
 }
