@@ -1,0 +1,153 @@
+// Turns the state matura question bank into Slidea templates.
+//
+//   node scripts/buildMaturaTemplates.mjs <matura-export.json> [out.js]
+//
+// 2,986 real exam questions from 2016–2026. Transformation only: nothing here
+// invents a question or an answer.
+//
+// Three filters, each for a reason that would otherwise reach a student:
+//
+//   language === 'mk'  — the bank is trilingual (1,574 mk, 706 al, 706 tr).
+//                        Unfiltered, Albanian questions land in Macedonian
+//                        templates. The al/tr sets are a separate product,
+//                        not waste.
+//   !hasImage          — 106 questions depend on a figure that is not in the
+//                        export. Without it the question cannot be answered.
+//   correctAnswer      — 334 have none. A quiz without a key marks everyone
+//                        wrong.
+//
+// Grouped by specific topic rather than by the nine broad areas: a student
+// searches "матура аритметичка прогресија", not "матура алгебра".
+import { readFileSync, writeFileSync } from 'fs';
+import { fixHyphenation } from '../src/lib/textCleanup.js';
+
+const IN = process.argv[2];
+const OUT = process.argv[3] || 'src/lib/maturaTemplates.js';
+if (!IN) {
+  console.error('usage: node scripts/buildMaturaTemplates.mjs <matura-export.json> [out.js]');
+  process.exit(1);
+}
+
+const MIN_PER_TOPIC = 3;
+const MAX_PER_TEMPLATE = 5;
+const ICONS = ['🎓', '📐', '📊', '∑', '📈', '🧮'];
+
+const slugify = (s) => {
+  const map = {
+    а:'a',б:'b',в:'v',г:'g',д:'d',ѓ:'gj',е:'e',ж:'zh',з:'z',ѕ:'dz',и:'i',ј:'j',к:'k',
+    л:'l',љ:'lj',м:'m',н:'n',њ:'nj',о:'o',п:'p',р:'r',с:'s',т:'t',ќ:'kj',у:'u',ф:'f',
+    х:'h',ц:'c',ч:'ch',џ:'dj',ш:'sh',
+  };
+  return String(s).toLowerCase().split('').map((ch) => map[ch] ?? ch).join('')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
+};
+
+function toQuiz(q) {
+  const entries = Object.entries(q.choices || {});
+  if (entries.length < 2) return null;
+  const key = String(q.correctAnswer).trim();
+  const idx = entries.findIndex(([label]) => label === key);
+  if (idx === -1) return null;  // unresolvable key — drop rather than guess
+  return {
+    question: q.questionText,
+    type: 'quiz',
+    is_quiz: true,
+    options: entries.map(([, text], i) => ({ text: String(text), is_correct: i === idx })),
+    answer_explanation: q.aiSolution || null,
+  };
+}
+
+function toOpen(q) {
+  const answer = String(q.correctAnswer || '').trim();
+  if (!answer) return null;
+  return {
+    question: q.questionText,
+    type: 'open',
+    is_quiz: false,
+    options: [],
+    correct_answer: answer.slice(0, 500),
+    answer_explanation: q.aiSolution || null,
+  };
+}
+
+const all = JSON.parse(readFileSync(IN, 'utf8')).docs;
+
+const usable = all.filter((q) =>
+  q.language === 'mk' &&
+  !q.hasImage &&
+  String(q.correctAnswer ?? '').trim() &&
+  String(q.questionText ?? '').trim()
+);
+
+const groups = new Map();
+for (const q of usable) {
+  const topic = fixHyphenation(String(q.topic || '').trim());
+  if (!topic) continue;
+  if (!groups.has(topic)) groups.set(topic, []);
+  groups.get(topic).push(q);
+}
+
+const templates = [];
+const stats = { topics: groups.size, skippedThin: 0, dropped: 0, quiz: 0, open: 0 };
+
+for (const [topic, questions] of groups) {
+  if (questions.length < MIN_PER_TOPIC) { stats.skippedThin++; continue; }
+
+  // Multiple choice first — it scores itself and reads well on a projector —
+  // then easiest to hardest so a class warms up rather than stalls.
+  const ordered = [...questions].sort((a, b) => {
+    const aMc = a.choices && Object.keys(a.choices).length >= 2 ? 0 : 1;
+    const bMc = b.choices && Object.keys(b.choices).length >= 2 ? 0 : 1;
+    return aMc - bMc || (a.dokLevel ?? 2) - (b.dokLevel ?? 2);
+  });
+
+  const polls = [];
+  const seen = new Set();
+  const years = new Set();
+  for (const q of ordered) {
+    if (polls.length >= MAX_PER_TEMPLATE) break;
+    const text = String(q.questionText).trim();
+    if (seen.has(text)) continue;
+    const converted = (q.choices && Object.keys(q.choices).length >= 2) ? toQuiz(q) : toOpen(q);
+    if (!converted) { stats.dropped++; continue; }
+    seen.add(text);
+    if (q.year) years.add(q.year);
+    polls.push(converted);
+    stats[converted.type === 'quiz' ? 'quiz' : 'open']++;
+  }
+
+  if (polls.length < MIN_PER_TOPIC) { stats.skippedThin++; continue; }
+
+  const yearList = [...years].sort();
+  templates.push({
+    id: `matura-math-${slugify(topic)}`,
+    title: `Матура: ${topic}`,
+    subject: 'Математика',
+    grade: 'Матура',
+    icon: ICONS[templates.length % ICONS.length],
+    color: 'from-violet-500 to-indigo-600',
+    description: `${polls.length} оригинални задачи од државна матура (${yearList[0]}–${yearList[yearList.length - 1]}) по темата ${topic}.`,
+    source: 'Државна матура',
+    polls,
+  });
+}
+
+templates.sort((a, b) => a.title.localeCompare(b.title, 'mk'));
+
+const banner = `// Generated by scripts/buildMaturaTemplates.mjs — do not edit by hand.
+//
+// Source: the state matura question bank (Firestore matura_questions,
+// ${all.length} questions, 2016-2026). Transformed, not generated.
+//
+// Filtered to Macedonian only — the bank is trilingual and unfiltered the
+// Albanian questions would land in Macedonian templates — and to questions
+// that have both an answer key and no missing figure.
+`;
+
+writeFileSync(OUT, `${banner}\nexport const MATURA_TEMPLATES = ${JSON.stringify(templates, null, 2)};\n`);
+
+console.log(`bank: ${all.length} · usable (mk, no image, has answer): ${usable.length}`);
+console.log(`topics: ${stats.topics} · too thin (<${MIN_PER_TOPIC}): ${stats.skippedThin}`);
+console.log(`templates: ${templates.length} · activities: ${templates.reduce((s, t) => s + t.polls.length, 0)}`);
+console.log(`converted — quiz: ${stats.quiz}, open: ${stats.open} · dropped: ${stats.dropped}`);
+console.log(`→ ${OUT}`);

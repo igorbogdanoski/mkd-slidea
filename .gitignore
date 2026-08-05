@@ -72,3 +72,4 @@ mkd-slidea-finansiski-izvestaj.html
 # imported by the app — 1.3MB has no business in a bundle or a diff.
 # Rebuild with: node scripts/buildMathTemplates.mjs <quiz-export.json>
 src/lib/mathCurriculumTemplates.js
+src/lib/maturaTemplates.js

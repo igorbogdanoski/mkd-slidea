@@ -14,6 +14,7 @@
 import { readFileSync } from 'fs';
 import { createClient } from '@supabase/supabase-js';
 import { MATH_CURRICULUM_TEMPLATES } from '../src/lib/mathCurriculumTemplates.js';
+import { MATURA_TEMPLATES } from '../src/lib/maturaTemplates.js';
 
 const DRY = process.argv.includes('--dry');
 
@@ -25,7 +26,7 @@ const env = Object.fromEntries(
 
 const db = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
 
-const rows = MATH_CURRICULUM_TEMPLATES.map((t) => ({
+const rows = [...MATH_CURRICULUM_TEMPLATES, ...MATURA_TEMPLATES].map((t) => ({
   slug: t.id,
   title: t.title,
   subject: t.subject,
@@ -34,7 +35,7 @@ const rows = MATH_CURRICULUM_TEMPLATES.map((t) => ({
   description: t.description,
   icon: t.icon,
   polls: t.polls,
-  author_name: 'БРО наставна програма',
+  author_name: t.source || 'БРО наставна програма',
   is_public: true,
   is_published: true,
 }));
