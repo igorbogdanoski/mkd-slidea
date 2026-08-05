@@ -200,19 +200,32 @@ test.describe('A11Y — Focus Management', () => {
     }
   });
 
-  test('A-11: Modal traps focus when open', async ({ page }) => {
-    await page.goto(`${BASE}/join`);
-    await page.waitForTimeout(1000);
+  // This was named "Modal traps focus when open" but opened no modal: it typed
+  // an event code on /join and asserted document.activeElement wasn't BODY.
+  // It also called input.tap() in a project without hasTouch, so it threw
+  // before reaching the assertion — it had never passed. Rewritten to test the
+  // thing its name claims, on the co-host dialog, which needs no auth.
+  test('A-11: modal contains focus and closes on Escape', async ({ page }) => {
+    await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+    await page.getByRole('button', { name: /Ко-домаќин/i }).first().click();
 
-    const input = page.locator('input').first();
-    await input.tap();
-    await input.fill(EVENT_CODE);
-    await page.keyboard.press('Enter');
-    await page.waitForTimeout(2000);
+    const dialog = page.getByRole('dialog', { name: /Ко-домаќин/i });
+    await expect(dialog).toBeVisible({ timeout: 10000 });
 
-    // After navigating, focus should be in the new page
-    const focused = await page.evaluate(() => document.activeElement?.tagName);
-    expect(focused).not.toBe('BODY');
+    // Focus must start inside the dialog, not left behind on the trigger.
+    expect(await dialog.evaluate((el) => el.contains(document.activeElement))).toBe(true);
+
+    // Tab all the way round: focus must never escape to the page behind.
+    for (let i = 0; i < 8; i++) {
+      await page.keyboard.press('Tab');
+      expect(
+        await dialog.evaluate((el) => el.contains(document.activeElement)),
+        `focus escaped the dialog after ${i + 1} Tab presses`
+      ).toBe(true);
+    }
+
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
   });
 });
 

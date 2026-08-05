@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Upload, FileText, Check, Loader, ChevronRight, AlertCircle, Sparkles } from 'lucide-react';
 import { getAuthHeader } from '../lib/authHeader';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 // JSZip loaded on demand — only when user actually opens this modal
 
 // Extract all text nodes from a slide XML string
@@ -88,6 +89,9 @@ const TYPE_OPTIONS = [
 ];
 
 const ImportPPTXModal = ({ isOpen, onClose, onImport, user }) => {
+  // Focus containment + Escape. Without it Tab walks out of the open
+  // dialog into the page behind, and a keyboard user has no way to close.
+  const trapRef = useFocusTrap(isOpen, { onEscape: onClose });
   const inputRef = useRef();
   const [slides, setSlides] = useState([]);
   const [selected, setSelected] = useState([]);
@@ -285,7 +289,7 @@ const ImportPPTXModal = ({ isOpen, onClose, onImport, user }) => {
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             onClick={e => e.stopPropagation()}
-            role="dialog" aria-modal="true" aria-label="Увоз на PowerPoint"
+            ref={trapRef} role="dialog" aria-modal="true" aria-label="Увоз на PowerPoint"
             className="relative bg-white rounded-[3rem] w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden"
           >
             {/* Top bar */}

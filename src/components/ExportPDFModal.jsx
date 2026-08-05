@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, Printer, FileDown } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 const TYPE_LABELS = {
   poll: 'Анкета',
@@ -22,6 +23,9 @@ const escapeHtml = (value) => String(value ?? '')
   .replace(/'/g, '&#39;');
 
 const ExportPDFModal = ({ isOpen, onClose, event, polls }) => {
+  // Focus containment + Escape. Without it Tab walks out of the open
+  // dialog into the page behind, and a keyboard user has no way to close.
+  const trapRef = useFocusTrap(isOpen, { onEscape: onClose });
   const rootRef = useRef(null);
   const [printing, setPrinting] = useState(false);
   const [printError, setPrintError] = useState('');
@@ -238,7 +242,7 @@ const ExportPDFModal = ({ isOpen, onClose, event, polls }) => {
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
-        role="dialog" aria-modal="true" aria-label="Извоз на PDF"
+        ref={trapRef} role="dialog" aria-modal="true" aria-label="Извоз на PDF"
         className="relative bg-white rounded-[2rem] p-8 max-w-lg w-full shadow-2xl z-10"
         onClick={e => e.stopPropagation()}
       >

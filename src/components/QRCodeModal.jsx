@@ -2,8 +2,12 @@ import React from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { X, Copy, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 const QRCodeModal = ({ isOpen, onClose, eventCode }) => {
+  // Focus containment + Escape. Without it Tab walks out of the open
+  // dialog into the page behind, and a keyboard user has no way to close.
+  const trapRef = useFocusTrap(isOpen, { onEscape: onClose });
   const [copied, setCopied] = React.useState(false);
   const joinUrl = `${window.location.origin}/event/${eventCode}`;
 
@@ -28,7 +32,7 @@ const QRCodeModal = ({ isOpen, onClose, eventCode }) => {
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            role="dialog" aria-modal="true" aria-label="QR код за настанот"
+            ref={trapRef} role="dialog" aria-modal="true" aria-label="QR код за настанот"
             className="relative bg-white rounded-[3rem] p-10 max-w-sm w-full shadow-2xl text-center"
           >
             <button

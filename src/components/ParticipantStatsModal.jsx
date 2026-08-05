@@ -2,8 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Users, Trophy, CheckCircle, Clock, Download } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 const ParticipantStatsModal = ({ isOpen, onClose, event, polls }) => {
+  // Focus containment + Escape. Without it Tab walks out of the open
+  // dialog into the page behind, and a keyboard user has no way to close.
+  const trapRef = useFocusTrap(isOpen, { onEscape: onClose });
   const [stats, setStats] = useState([]);
   const [loading, setLoading] = useState(false);
   const [sortBy, setSortBy] = useState('points'); // 'points' | 'answers' | 'time'
@@ -140,7 +144,7 @@ const ParticipantStatsModal = ({ isOpen, onClose, event, polls }) => {
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
-        role="dialog" aria-modal="true" aria-label="Статистики на учесник"
+        ref={trapRef} role="dialog" aria-modal="true" aria-label="Статистики на учесник"
         className="relative bg-white rounded-[2rem] shadow-2xl z-10 w-full max-w-2xl max-h-[85vh] flex flex-col"
         onClick={e => e.stopPropagation()}
       >

@@ -5,6 +5,7 @@ import MathSymbolPicker from './MathSymbolPicker';
 import IllustrationPickerModal from './IllustrationPickerModal';
 import CurriculumTagPicker from './CurriculumTagPicker';
 import { applyInsertion } from '../lib/insertAtCursor';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 const SURVEY_Q_TYPES = [
   { value: 'open',   label: 'Отворен текст' },
@@ -15,6 +16,9 @@ const SURVEY_Q_TYPES = [
 const newSurveyQ = () => ({ id: crypto.randomUUID(), text: '', type: 'open', options: ['', ''], min: '', max: '' });
 
 const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData = null }) => {
+  // Focus containment + Escape. Without it Tab walks out of the open
+  // dialog into the page behind, and a keyboard user has no way to close.
+  const trapRef = useFocusTrap(isOpen, { onEscape: onClose });
   const [question, setQuestion] = useState('');
   const [options, setOptions] = useState(['', '']);
   const [coverUrl, setCoverUrl] = useState('');
@@ -192,7 +196,7 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            role="dialog" aria-modal="true" aria-label="Создај активност"
+            ref={trapRef} role="dialog" aria-modal="true" aria-label="Создај активност"
             className="relative bg-white rounded-2xl max-w-xl w-full shadow-2xl flex flex-col max-h-[92vh]"
           >
             {/* Header — fixed */}

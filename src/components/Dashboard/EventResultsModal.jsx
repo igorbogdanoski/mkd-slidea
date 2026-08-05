@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Download, BarChart2, Cloud, Star, AlignLeft, ListOrdered, Trophy } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { supabase } from '../../lib/supabase';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 const PALETTE = ['#6366f1','#8b5cf6','#10b981','#f59e0b','#ef4444','#06b6d4'];
 
@@ -139,6 +140,10 @@ const exportCSV = (event, polls) => {
 
 // ── Main modal ────────────────────────────────────────────────────────────────
 const EventResultsModal = ({ event, onClose }) => {
+  // Focus containment + Escape. Without it Tab walks out of the open
+  // dialog into the page behind, and a keyboard user has no way to close.
+  // This modal has no isOpen prop — the parent mounts it only while open.
+  const trapRef = useFocusTrap(Boolean(event), { onEscape: onClose });
   const [polls, setPolls] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -179,7 +184,7 @@ const EventResultsModal = ({ event, onClose }) => {
           initial={{ scale: 0.92, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.92, opacity: 0, y: 20 }}
-          role="dialog" aria-modal="true" aria-label="Резултати на настан"
+          ref={trapRef} role="dialog" aria-modal="true" aria-label="Резултати на настан"
           className="relative bg-[#F8FAFC] rounded-[3rem] w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl pointer-events-auto overflow-hidden"
         >
           {/* Header */}

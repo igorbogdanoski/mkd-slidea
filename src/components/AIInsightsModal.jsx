@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertTriangle, Brain, Lightbulb, ListChecks, Loader2, Sparkles, X } from 'lucide-react';
 import { getAuthHeader } from '../lib/authHeader';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 const safePercent = (value) => {
   if (value === null || value === undefined || Number.isNaN(Number(value))) return null;
@@ -46,6 +47,9 @@ const buildPayload = (event, polls) => {
 };
 
 const AIInsightsModal = ({ isOpen, onClose, event, polls }) => {
+  // Focus containment + Escape. Without it Tab walks out of the open
+  // dialog into the page behind, and a keyboard user has no way to close.
+  const trapRef = useFocusTrap(isOpen, { onEscape: onClose });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [insights, setInsights] = useState(null);
@@ -95,7 +99,7 @@ const AIInsightsModal = ({ isOpen, onClose, event, polls }) => {
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            role="dialog" aria-modal="true" aria-label="AI анализа на сесија" className="relative bg-white rounded-[2.5rem] w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl"
+            ref={trapRef} role="dialog" aria-modal="true" aria-label="AI анализа на сесија" className="relative bg-white rounded-[2.5rem] w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl"
           >
             <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-500" />
 

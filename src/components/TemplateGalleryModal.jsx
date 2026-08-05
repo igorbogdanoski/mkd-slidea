@@ -2,8 +2,12 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Search, Sparkles, Plus, BookOpen } from 'lucide-react';
 import { STARTER_TEMPLATES, TEMPLATE_SUBJECTS } from '../lib/starterTemplates';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 export default function TemplateGalleryModal({ isOpen, onClose, onApply }) {
+  // Focus containment + Escape. Without it Tab walks out of the open
+  // dialog into the page behind, and a keyboard user has no way to close.
+  const trapRef = useFocusTrap(isOpen, { onEscape: onClose });
   const [query, setQuery] = useState('');
   const [subject, setSubject] = useState('Сите');
 
@@ -35,7 +39,7 @@ export default function TemplateGalleryModal({ isOpen, onClose, onApply }) {
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
           onClick={(e) => e.stopPropagation()}
-          role="dialog" aria-modal="true" aria-label="Галерија на шаблони"
+          ref={trapRef} role="dialog" aria-modal="true" aria-label="Галерија на шаблони"
           className="bg-white rounded-[2rem] shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col overflow-hidden"
         >
           {/* Header */}

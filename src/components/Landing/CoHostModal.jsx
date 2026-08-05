@@ -3,10 +3,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { UserPlus, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 // ─── Co-host modal: access-code login via SECURITY DEFINER RPC ────────────────
 const CoHostModal = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
+  // This one had no dialog semantics at all — not even role/aria-modal — so a
+  // screen reader announced it as ordinary page content behind nothing, and
+  // Tab wandered straight out of it.
+  const trapRef = useFocusTrap(isOpen, { onEscape: onClose });
   const [coHostCode, setCoHostCode] = useState('');
   const [coHostError, setCoHostError] = useState('');
   const [coHostLoading, setCoHostLoading] = useState(false);
@@ -20,6 +25,10 @@ const CoHostModal = ({ isOpen, onClose }) => {
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            ref={trapRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cohost-title"
             className="relative bg-white rounded-[2rem] p-8 max-w-sm w-full shadow-2xl z-10"
             onClick={e => e.stopPropagation()}
           >
@@ -30,7 +39,7 @@ const CoHostModal = ({ isOpen, onClose }) => {
                   <UserPlus className="w-5 h-5 text-indigo-600" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-black text-slate-900">Ко-домаќин</h3>
+                  <h3 id="cohost-title" className="text-xl font-black text-slate-900">Ко-домаќин</h3>
                   <p className="text-xs font-bold text-slate-400 mt-0.5">Внесете го кодот за пристап</p>
                 </div>
               </div>

@@ -3,8 +3,12 @@ import { X, Plus, Trash2, Save, CheckCircle2, Trophy } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MathSymbolPicker from './MathSymbolPicker';
 import { applyInsertion } from '../lib/insertAtCursor';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 const CreateQuizModal = ({ isOpen, onClose, onSave, initialData = null }) => {
+  // Focus containment + Escape. Without it Tab walks out of the open
+  // dialog into the page behind, and a keyboard user has no way to close.
+  const trapRef = useFocusTrap(isOpen, { onEscape: onClose });
   const [question, setQuestion] = useState('');
   const questionRef = useRef(null);
   const optionRefs = useRef({});
@@ -119,7 +123,7 @@ const CreateQuizModal = ({ isOpen, onClose, onSave, initialData = null }) => {
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            role="dialog" aria-modal="true" aria-label="Создај квиз"
+            ref={trapRef} role="dialog" aria-modal="true" aria-label="Создај квиз"
             className="relative bg-white rounded-2xl max-w-xl w-full shadow-2xl flex flex-col max-h-[92vh]"
           >
             {/* Header */}

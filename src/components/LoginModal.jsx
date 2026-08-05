@@ -3,8 +3,12 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mail, CheckCircle, UserPlus, LogIn, Loader2 } from 'lucide-react';
 import { warmUp } from '../lib/supabase';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin, onRequestPasswordReset }) => {
+  // Focus containment + Escape. Without it Tab walks out of the open
+  // dialog into the page behind, and a keyboard user has no way to close.
+  const trapRef = useFocusTrap(isOpen, { onEscape: onClose });
   const [mode, setMode] = useState('login'); // 'login' | 'register' | 'magic' | 'forgot'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -190,7 +194,7 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin, onRequestPassword
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              role="dialog" aria-modal="true" aria-label="Најава"
+              ref={trapRef} role="dialog" aria-modal="true" aria-label="Најава"
               className="relative bg-white rounded-[3rem] p-10 max-w-md w-full shadow-2xl"
             >
               <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-600 to-violet-600" />

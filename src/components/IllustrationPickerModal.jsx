@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Search, Upload, Wand2, Loader2, Check, ExternalLink } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 // Sprint 7.B + 7.E — Multi-source illustration picker.
 // Tabs:
@@ -18,6 +19,9 @@ const TABS = [
 const OPENVERSE = 'https://api.openverse.org/v1/images/?page_size=24&license_type=all-cc&q=';
 
 const IllustrationPickerModal = ({ isOpen, onClose, onSelect, initialQuery = '' }) => {
+  // Focus containment + Escape. Without it Tab walks out of the open
+  // dialog into the page behind, and a keyboard user has no way to close.
+  const trapRef = useFocusTrap(isOpen, { onEscape: onClose });
   const [tab, setTab] = useState('search');
   const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState([]);
@@ -138,7 +142,7 @@ const IllustrationPickerModal = ({ isOpen, onClose, onSelect, initialQuery = '' 
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
             onClick={(e) => e.stopPropagation()}
             className="relative bg-white rounded-[2.5rem] w-full max-w-3xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden"
-            role="dialog"
+            ref={trapRef} role="dialog"
             aria-modal="true"
             aria-labelledby="illu-picker-title"
           >
