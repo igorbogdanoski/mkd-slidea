@@ -65,7 +65,7 @@ const PreviewPanel = ({ result, onInsert, onRegenerate, onBack, regenerating, in
         <button
           type="button"
           onClick={onBack}
-          className="flex items-center gap-2 text-slate-400 hover:text-slate-700 font-black text-sm transition-colors"
+          className="flex items-center gap-2 text-slate-400 hover:text-slate-700 font-bold text-sm transition-colors"
         >
           <ChevronLeft size={16} /> Назад
         </button>
@@ -96,7 +96,7 @@ const PreviewPanel = ({ result, onInsert, onRegenerate, onBack, regenerating, in
             <button
               type="button"
               onClick={addOption}
-              className="flex items-center gap-1 text-indigo-600 hover:text-indigo-800 font-black text-xs"
+              className="flex items-center gap-1 text-indigo-600 hover:text-indigo-800 font-semibold text-xs"
             >
               <Plus size={12} /> Додај
             </button>
@@ -144,7 +144,7 @@ const PreviewPanel = ({ result, onInsert, onRegenerate, onBack, regenerating, in
           type="button"
           onClick={onRegenerate}
           disabled={regenerating}
-          className="flex-1 py-4 rounded-2xl border-2 border-slate-100 text-slate-600 font-black text-sm flex items-center justify-center gap-2 hover:border-indigo-200 hover:text-indigo-600 transition-all disabled:opacity-50"
+          className="flex-1 py-4 rounded-2xl border-2 border-slate-100 text-slate-600 font-bold text-sm flex items-center justify-center gap-2 hover:border-indigo-200 hover:text-indigo-600 transition-all disabled:opacity-50"
         >
           {regenerating ? (
             <Loader2 size={16} className="animate-spin" />
@@ -157,7 +157,7 @@ const PreviewPanel = ({ result, onInsert, onRegenerate, onBack, regenerating, in
           type="button"
           onClick={handleInsert}
           disabled={!question.trim() || inserting}
-          className="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 disabled:opacity-50"
+          className="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 disabled:opacity-50"
         >
           {inserting ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
           Вметни
@@ -384,7 +384,7 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
                 >
                   {/* Prompt strategy */}
                   <div>
-                    <label className="block text-sm font-black text-slate-700 mb-4">Избери Мод на Разум (Prompt Strategy)</label>
+                    <label className="block text-sm font-bold text-slate-700 mb-4">Избери Мод на Разум (Prompt Strategy)</label>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       {[
                         { id: 'default', label: 'Стандарден', icon: <Sparkles size={16} />, locked: false },
@@ -394,7 +394,7 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
                         <button
                           key={s.id}
                           onClick={() => !s.locked && setStrategy(s.id)}
-                          className={`relative py-4 px-4 rounded-2xl font-black text-xs transition-all border-2 flex items-center justify-center gap-2 ${
+                          className={`relative py-4 px-4 rounded-2xl font-semibold text-xs transition-all border-2 flex items-center justify-center gap-2 ${
                             strategy === s.id
                               ? 'border-indigo-600 bg-indigo-50 text-indigo-600'
                               : s.locked ? 'border-slate-50 bg-slate-50 text-slate-300 cursor-not-allowed' : 'border-slate-100 text-slate-400 hover:border-indigo-200'
@@ -410,7 +410,7 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
 
                   {/* Activity type */}
                   <div>
-                    <label className="block text-sm font-black text-slate-700 mb-4">Тип на активност</label>
+                    <label className="block text-sm font-bold text-slate-700 mb-4">Тип на активност</label>
                     <div className="grid grid-cols-3 gap-4">
                       {[
                         { id: 'quiz', label: 'Квиз' },
@@ -420,7 +420,7 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
                         <button
                           key={t.id}
                           onClick={() => setType(t.id)}
-                          className={`py-3 px-4 rounded-2xl font-black text-sm transition-all border-2 ${
+                          className={`py-3 px-4 rounded-2xl font-bold text-sm transition-all border-2 ${
                             type === t.id
                               ? 'border-indigo-600 bg-indigo-50 text-indigo-600'
                               : 'border-slate-100 text-slate-400 hover:border-indigo-200'
@@ -441,7 +441,7 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
                     >
                       <TrendingUp size={20} className="text-emerald-600 shrink-0" />
                       <div>
-                        <p className="text-xs font-black text-emerald-700 uppercase tracking-widest mb-0.5">
+                        <p className="text-xs font-semibold text-emerald-700 uppercase tracking-widest mb-0.5">
                           Адаптивна препорака · {Math.round(adaptiveSuggestion.accuracy * 100)}% точност
                         </p>
                         <p className="text-sm font-bold text-emerald-900">{adaptiveSuggestion.label}</p>
@@ -451,13 +451,13 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
 
                   {/* Bloom taxonomy */}
                   <div>
-                    <label className="block text-sm font-black text-slate-700 mb-4">Bloom-ова таксономија (опционално)</label>
+                    <label className="block text-sm font-bold text-slate-700 mb-4">Bloom-ова таксономија (опционално)</label>
                     <div className="grid grid-cols-3 gap-2">
                       {BLOOM_LEVELS.map((b) => (
                         <button
                           key={b.id}
                           onClick={() => setBloom(bloom === b.id ? '' : b.id)}
-                          className={`py-2 px-3 rounded-xl font-black text-xs transition-all border-2 ${
+                          className={`py-2 px-3 rounded-xl font-semibold text-xs transition-all border-2 ${
                             bloom === b.id
                               ? 'border-indigo-600 bg-indigo-50 text-indigo-600'
                               : 'border-slate-100 text-slate-400 hover:border-indigo-200'
@@ -472,13 +472,13 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
                   {/* Prompt input */}
                   <div>
                     <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-                      <label className="block text-sm font-black text-slate-700">Внесете тема или концепт</label>
+                      <label className="block text-sm font-bold text-slate-700">Внесете тема или концепт</label>
                       <div className="flex items-center gap-2 flex-wrap">
                         <DictateButton onTranscript={appendDictation} />
                         <button
                           type="button"
                           onClick={() => fileRef.current?.click()}
-                          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border-2 border-slate-200 text-slate-600 font-black text-xs hover:border-indigo-400 hover:text-indigo-600 transition-all"
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border-2 border-slate-200 text-slate-600 font-semibold text-xs hover:border-indigo-400 hover:text-indigo-600 transition-all"
                           aria-label="Прикачи слика"
                           title="Прикачи слика (или Ctrl+V)"
                         >
@@ -511,7 +511,7 @@ const AIAssistantModal = ({ isOpen, onClose, onGenerate, user, adaptiveSuggestio
                           className="w-20 h-20 object-cover rounded-xl border border-indigo-200"
                         />
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-black text-indigo-700 uppercase tracking-widest mb-1">
+                          <p className="text-xs font-semibold text-indigo-700 uppercase tracking-widest mb-1">
                             Vision активен · {image.sizeKB} KB
                           </p>
                           <p className="text-xs font-bold text-slate-600 leading-relaxed">

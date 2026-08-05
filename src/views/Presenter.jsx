@@ -233,12 +233,12 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
           {/* Chart mode switcher — only for switchable types */}
           {supportsChartSwitch && (
             <div className="flex items-center gap-3 pt-2">
-              <span className="text-slate-600 font-black text-xs uppercase tracking-widest mr-2">Приказ:</span>
+              <span className="text-slate-600 font-semibold text-xs uppercase tracking-widest mr-2">Приказ:</span>
               {MODES.map(m => (
                 <button
                   key={m.id}
                   onClick={() => setChartMode(m.id)}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl font-black text-sm transition-all ${
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl font-bold text-sm transition-all ${
                     chartMode === m.id
                       ? 'text-white shadow-lg'
                       : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white border border-slate-700'
@@ -282,7 +282,7 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
       />
 
       {/* Footer */}
-      <div className="mt-auto pt-8 flex items-center justify-between border-t border-slate-800/50 text-slate-600 font-black text-xs uppercase tracking-[0.2em]">
+      <div className="mt-auto pt-8 flex items-center justify-between border-t border-slate-800/50 text-slate-600 font-semibold text-xs uppercase tracking-[0.2em]">
         <p>© 2026 MKD Slidea • Автор: Игор Богданоски • Направено во 🇲🇰</p>
 
         {/* Presenter controls */}

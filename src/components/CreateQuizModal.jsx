@@ -142,7 +142,7 @@ const CreateQuizModal = ({ isOpen, onClose, onSave, initialData = null }) => {
             {/* Scrollable body */}
             <div className="overflow-y-auto flex-1 px-7 py-5 space-y-5">
               <div>
-                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Прашање</label>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2 px-1">Прашање</label>
                 <textarea
                   ref={questionRef}
                   rows={2}
@@ -159,7 +159,7 @@ const CreateQuizModal = ({ isOpen, onClose, onSave, initialData = null }) => {
 
               <div>
                 <div className="flex items-center justify-between mb-2 px-1">
-                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Опции — клик на ✓ за точен одговор</label>
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Опции — клик на ✓ за точен одговор</label>
                   <span className="text-xs font-bold text-slate-300">{options.length}/8</span>
                 </div>
                 <div className="space-y-2">

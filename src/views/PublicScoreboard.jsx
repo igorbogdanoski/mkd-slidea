@@ -70,7 +70,7 @@ const PublicScoreboard = () => {
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-12"
       >
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 rounded-full text-xs font-black uppercase tracking-widest mb-4">
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 rounded-full text-xs font-semibold uppercase tracking-widest mb-4">
           <Trophy className="w-3.5 h-3.5" />
           Топ играчи
         </div>
@@ -89,7 +89,7 @@ const PublicScoreboard = () => {
             role="tab"
             aria-selected={tab === 'players'}
             onClick={() => setTab('players')}
-            className={`px-5 py-2.5 rounded-xl text-sm font-black transition-all flex items-center gap-2 ${
+            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${
               tab === 'players' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-slate-500 hover:text-indigo-600'
             }`}
           >
@@ -100,7 +100,7 @@ const PublicScoreboard = () => {
             role="tab"
             aria-selected={tab === 'teachers'}
             onClick={() => setTab('teachers')}
-            className={`px-5 py-2.5 rounded-xl text-sm font-black transition-all flex items-center gap-2 ${
+            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${
               tab === 'teachers' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-slate-500 hover:text-indigo-600'
             }`}
           >
@@ -145,7 +145,7 @@ const PublicScoreboard = () => {
                         : 'bg-slate-50 hover:bg-slate-100'
                     }`}
                   >
-                    <span className={`flex-shrink-0 w-10 h-10 rounded-xl font-black text-sm flex items-center justify-center gap-1 ${b.color}`}>
+                    <span className={`flex-shrink-0 w-10 h-10 rounded-xl font-bold text-sm flex items-center justify-center gap-1 ${b.color}`}>
                       {b.icon || `#${row.rank}`}
                       {b.icon && <span>{row.rank}</span>}
                     </span>
@@ -203,7 +203,7 @@ const PublicScoreboard = () => {
                         : 'bg-slate-50 hover:bg-slate-100'
                     }`}
                   >
-                    <span className={`flex-shrink-0 w-10 h-10 rounded-xl font-black text-sm flex items-center justify-center gap-1 ${b.color}`}>
+                    <span className={`flex-shrink-0 w-10 h-10 rounded-xl font-bold text-sm flex items-center justify-center gap-1 ${b.color}`}>
                       {b.icon || `#${row.rank}`}
                       {b.icon && <span>{row.rank}</span>}
                     </span>
@@ -235,10 +235,10 @@ const PublicScoreboard = () => {
               <ul className="space-y-3">
                 {recent.map((r, i) => (
                   <li key={i} className="p-3 bg-slate-50 rounded-xl">
-                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1">
                       #{r.event_code} · {formatDate(r.played_at)}
                     </p>
-                    <p className="font-black text-slate-900 text-sm line-clamp-1">
+                    <p className="font-bold text-slate-900 text-sm line-clamp-1">
                       {r.event_title || 'Квиз настан'}
                     </p>
                     <p className="text-xs font-bold text-indigo-600 mt-1">

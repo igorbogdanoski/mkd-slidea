@@ -6,7 +6,7 @@ const ComparisonSection = () => (
   <section className="py-24 bg-white border-t border-slate-100">
     <div className="max-w-5xl mx-auto px-6">
       <div className="text-center space-y-3 mb-14">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 font-black text-xs uppercase tracking-widest">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 font-semibold text-xs uppercase tracking-widest">
           <Zap size={13} /> Зошто MKD Slidea?
         </div>
         <h2 className="text-4xl font-black text-slate-900">Споредба со конкурентите</h2>
@@ -19,23 +19,23 @@ const ComparisonSection = () => (
           <caption className="sr-only">Споредба на функционалности меѓу MKD Slidea, Mentimeter и Kahoot, врз основа на нивните јавно достапни бесплатни планови.</caption>
           <thead>
             <tr className="border-b border-slate-200">
-              <th scope="col" className="text-left p-5 font-black text-slate-500 text-xs uppercase tracking-widest w-[38%]">Функционалност</th>
+              <th scope="col" className="text-left p-5 font-semibold text-slate-500 text-xs uppercase tracking-widest w-[38%]">Функционалност</th>
               <th scope="col" className="p-5 text-center w-[20%]">
                 <div className="flex flex-col items-center gap-1">
                   <div className="w-8 h-8 bg-indigo-600 rounded-xl flex items-center justify-center"><Zap size={14} className="text-white" /></div>
-                  <span className="font-black text-indigo-600 text-sm">MKD Slidea</span>
+                  <span className="font-bold text-indigo-600 text-sm">MKD Slidea</span>
                 </div>
               </th>
               <th scope="col" className="p-5 text-center w-[20%]">
                 <div className="flex flex-col items-center gap-1">
-                  <div className="w-8 h-8 bg-slate-200 rounded-xl flex items-center justify-center text-slate-500 font-black text-xs">M</div>
-                  <span className="font-black text-slate-500 text-sm">Mentimeter</span>
+                  <div className="w-8 h-8 bg-slate-200 rounded-xl flex items-center justify-center text-slate-500 font-semibold text-xs">M</div>
+                  <span className="font-bold text-slate-500 text-sm">Mentimeter</span>
                 </div>
               </th>
               <th scope="col" className="p-5 text-center w-[20%]">
                 <div className="flex flex-col items-center gap-1">
-                  <div className="w-8 h-8 bg-slate-200 rounded-xl flex items-center justify-center text-slate-500 font-black text-xs">K</div>
-                  <span className="font-black text-slate-500 text-sm">Kahoot</span>
+                  <div className="w-8 h-8 bg-slate-200 rounded-xl flex items-center justify-center text-slate-500 font-semibold text-xs">K</div>
+                  <span className="font-bold text-slate-500 text-sm">Kahoot</span>
                 </div>
               </th>
             </tr>
@@ -61,7 +61,7 @@ const ComparisonSection = () => (
               const Cell = ({ val }) => val === true
                 ? <><CheckCircle2 size={20} aria-hidden="true" className="text-emerald-600 mx-auto" /><span className="sr-only">Да</span></>
                 : val === 'partial'
-                ? <span className="text-amber-600 font-black text-xs mx-auto block text-center">Делумно</span>
+                ? <span className="text-amber-600 font-semibold text-xs mx-auto block text-center">Делумно</span>
                 : <><XCircle size={20} aria-hidden="true" className="text-slate-400 mx-auto" /><span className="sr-only">Не</span></>;
               return (
                 <motion.tr

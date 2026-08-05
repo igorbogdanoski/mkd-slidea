@@ -6,7 +6,7 @@ const TestimonialsSection = ({ testimonials }) => (
   <section className="bg-slate-50 py-24 border-t border-slate-100">
     <div className="max-w-7xl mx-auto px-6">
       <div className="text-center space-y-3 mb-14">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-50 border border-amber-200 text-amber-700 font-black text-xs uppercase tracking-widest">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-50 border border-amber-200 text-amber-700 font-semibold text-xs uppercase tracking-widest">
           <Star size={13} className="fill-amber-400 text-amber-400" /> Искуства на корисници
         </div>
         <h2 className="text-4xl font-black text-slate-900">Наставниците веруваат во MKD Slidea</h2>
@@ -34,11 +34,11 @@ const TestimonialsSection = ({ testimonials }) => (
             </p>
             {/* Author */}
             <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
-              <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-black text-sm flex-shrink-0 ${t.color}`}>
+              <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold text-sm flex-shrink-0 ${t.color}`}>
                 {t.initials}
               </div>
               <div>
-                <div className="font-black text-slate-900 text-sm">{t.name}</div>
+                <div className="font-bold text-slate-900 text-sm">{t.name}</div>
                 <div className="text-xs font-bold text-slate-400">{t.role}</div>
                 <div className="text-xs font-bold text-indigo-500">{t.school}</div>
               </div>

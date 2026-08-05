@@ -104,7 +104,7 @@ const ProfileTab = ({ user }) => {
       className="p-12 max-w-3xl mx-auto"
     >
       <div className="mb-8">
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-full text-xs font-black uppercase tracking-widest mb-3">
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-full text-xs font-semibold uppercase tracking-widest mb-3">
           <User className="w-3.5 h-3.5" /> Профил
         </div>
         <h2 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">Мој профил</h2>
@@ -113,7 +113,7 @@ const ProfileTab = ({ user }) => {
 
       <form onSubmit={handleSave} className="bg-white dark:bg-slate-800 p-8 rounded-3xl border-2 border-slate-100 dark:border-slate-700 shadow-sm space-y-6">
         <div>
-          <label htmlFor="profile-name" className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+          <label htmlFor="profile-name" className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2">
             Име за прикажување
           </label>
           <input
@@ -165,14 +165,14 @@ const ProfileTab = ({ user }) => {
 
         <div className="flex justify-end gap-3 pt-2">
           {savedAt > 0 && (
-            <span className="text-sm font-black text-emerald-600 flex items-center gap-1.5">
+            <span className="text-sm font-bold text-emerald-600 flex items-center gap-1.5">
               <Check className="w-4 h-4" /> Зачувано!
             </span>
           )}
           <button
             type="submit"
             disabled={saving || loading}
-            className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-black text-sm hover:bg-indigo-700 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold text-sm hover:bg-indigo-700 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Save className="w-4 h-4" /> {saving ? 'Се зачувува...' : 'Зачувај'}
           </button>
@@ -189,7 +189,7 @@ const ProfileTab = ({ user }) => {
 
         <label className="flex items-center justify-between cursor-pointer group mb-5">
           <div>
-            <p className="font-black text-slate-800 dark:text-slate-200 text-sm">Неделен дигест</p>
+            <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">Неделен дигест</p>
             <p className="text-xs text-slate-400 dark:text-slate-500 font-medium mt-0.5">Резиме на твоите настани и статистики секоја недела.</p>
           </div>
           <button
@@ -211,7 +211,7 @@ const ProfileTab = ({ user }) => {
                 ? <Moon className="w-4 h-4 text-indigo-400" />
                 : <Sun className="w-4 h-4 text-amber-500" />}
               <div>
-                <p className="font-black text-slate-800 dark:text-slate-200 text-sm">Темна тема</p>
+                <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">Темна тема</p>
                 <p className="text-xs text-slate-400 dark:text-slate-500 font-medium mt-0.5">Прекинувач за темен/светол режим на интерфејсот.</p>
               </div>
             </div>
@@ -232,7 +232,7 @@ const ProfileTab = ({ user }) => {
           <button
             onClick={handleSave}
             disabled={saving || loading}
-            className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-black text-xs hover:bg-indigo-700 active:scale-95 transition-all disabled:opacity-50"
+            className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold text-xs hover:bg-indigo-700 active:scale-95 transition-all disabled:opacity-50"
           >
             <Save className="w-3.5 h-3.5" /> {saving ? 'Се зачувува...' : 'Зачувај'}
           </button>
@@ -251,14 +251,14 @@ const ProfileTab = ({ user }) => {
           <button
             onClick={exportData}
             disabled={exporting}
-            className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-2xl font-black text-sm hover:bg-slate-800 active:scale-95 transition-all disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 active:scale-95 transition-all disabled:opacity-50"
           >
             <Download className="w-4 h-4" />
             {exporting ? 'Се извезува...' : 'Преземи CSV (настани + гласови)'}
           </button>
           <a
             href={`mailto:support@mismath.net?subject=Барање за бришење на податоци&body=Барам бришење на сите мои податоци. Мој е-маил: ${user?.email || ''}`}
-            className="flex items-center gap-2 px-6 py-3 bg-red-50 text-red-600 rounded-2xl font-black text-sm hover:bg-red-100 transition-all border border-red-100"
+            className="flex items-center gap-2 px-6 py-3 bg-red-50 text-red-600 rounded-2xl font-bold text-sm hover:bg-red-100 transition-all border border-red-100"
           >
             <Trash2 className="w-4 h-4" /> Барај бришење на сметка
           </a>

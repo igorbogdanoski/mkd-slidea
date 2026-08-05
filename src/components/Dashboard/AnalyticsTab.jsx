@@ -418,9 +418,9 @@ const AnalyticsTab = ({ user }) => {
                   <div key={i} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                      <span className="text-xs font-black text-slate-500 uppercase tracking-widest">{entry.name}</span>
+                      <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest">{entry.name}</span>
                     </div>
-                    <span className="text-sm font-black text-slate-900">{entry.value}</span>
+                    <span className="text-sm font-bold text-slate-900">{entry.value}</span>
                   </div>
                 ))}
               </div>
@@ -524,7 +524,7 @@ const AnalyticsTab = ({ user }) => {
                         <div className={`flex-1 text-center px-3 py-3 rounded-2xl font-black text-lg ${aWins ? 'bg-indigo-600 text-white' : 'bg-white text-slate-900'}`}>
                           {va}
                         </div>
-                        <span className="text-xs font-black text-slate-300 pb-2">vs</span>
+                        <span className="text-xs font-semibold text-slate-300 pb-2">vs</span>
                         <div className={`flex-1 text-center px-3 py-3 rounded-2xl font-black text-lg ${bWins ? 'bg-violet-600 text-white' : 'bg-white text-slate-900'}`}>
                           {vb}
                         </div>
@@ -538,7 +538,7 @@ const AnalyticsTab = ({ user }) => {
             {!cmpLoading && !cmpData && (
               <div className="flex flex-col items-center justify-center h-32 text-slate-300 gap-2">
                 <GitCompare size={36} className="opacity-30" />
-                <p className="font-black text-sm">Избери два настани за да ги споредиш</p>
+                <p className="font-bold text-sm">Избери два настани за да ги споредиш</p>
               </div>
             )}
           </div>
@@ -589,7 +589,7 @@ const AnalyticsTab = ({ user }) => {
             {!drillLoading && drillChartData === null && !drillPollId && (
               <div className="flex flex-col items-center justify-center h-48 text-slate-300 gap-3">
                 <Activity size={40} className="opacity-30" />
-                <p className="font-black text-sm">Избери настан и анкета за да видиш тајмлајн на гласови</p>
+                <p className="font-bold text-sm">Избери настан и анкета за да видиш тајмлајн на гласови</p>
               </div>
             )}
 
@@ -652,7 +652,7 @@ const AnalyticsTab = ({ user }) => {
               <button
                 onClick={generateInsights}
                 disabled={!aiEventId || aiLoading}
-                className="flex items-center gap-2 px-7 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-2xl font-black text-sm hover:from-violet-700 hover:to-indigo-700 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+                className="flex items-center gap-2 px-7 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-2xl font-bold text-sm hover:from-violet-700 hover:to-indigo-700 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
               >
                 {aiLoading
                   ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Анализирам...</>
@@ -670,7 +670,7 @@ const AnalyticsTab = ({ user }) => {
             {!aiLoading && !aiInsights && !aiError && (
               <div className="flex flex-col items-center justify-center h-36 text-slate-300 gap-3">
                 <Sparkles size={40} className="opacity-30" />
-                <p className="font-black text-sm">Избери настан и кликни „Генерирај AI Увид"</p>
+                <p className="font-bold text-sm">Избери настан и кликни „Генерирај AI Увид"</p>
               </div>
             )}
 
@@ -682,7 +682,7 @@ const AnalyticsTab = ({ user }) => {
               >
                 {/* Overview */}
                 <div className="p-6 bg-gradient-to-br from-indigo-50 to-violet-50 rounded-3xl border border-indigo-100">
-                  <p className="text-xs font-black text-indigo-500 uppercase tracking-widest mb-2">Резиме</p>
+                  <p className="text-xs font-semibold text-indigo-500 uppercase tracking-widest mb-2">Резиме</p>
                   <p className="font-bold text-slate-700 leading-relaxed">{aiInsights.overview}</p>
                 </div>
 
@@ -694,7 +694,7 @@ const AnalyticsTab = ({ user }) => {
                       onClick={() => setAiOpenSection(s => ({ ...s, quick: !s.quick }))}
                       aria-expanded={aiOpenSection.quick}
                     >
-                      <span className="flex items-center gap-2 font-black text-emerald-700 text-sm">
+                      <span className="flex items-center gap-2 font-bold text-emerald-700 text-sm">
                         <Zap size={16} /> Брзи дејствија
                         <span className="ml-1 px-2 py-0.5 bg-emerald-200 text-emerald-800 rounded-full text-[10px] font-black">{aiInsights.quickActions.length}</span>
                       </span>
@@ -720,7 +720,7 @@ const AnalyticsTab = ({ user }) => {
                       onClick={() => setAiOpenSection(s => ({ ...s, weak: !s.weak }))}
                       aria-expanded={aiOpenSection.weak}
                     >
-                      <span className="flex items-center gap-2 font-black text-amber-700 text-sm">
+                      <span className="flex items-center gap-2 font-bold text-amber-700 text-sm">
                         <Lightbulb size={16} /> Слаби точки
                         <span className="ml-1 px-2 py-0.5 bg-amber-200 text-amber-800 rounded-full text-[10px] font-black">{aiInsights.weakPoints.length}</span>
                       </span>
@@ -730,7 +730,7 @@ const AnalyticsTab = ({ user }) => {
                       <div className="px-5 pb-5 space-y-4">
                         {aiInsights.weakPoints.map((w, i) => (
                           <div key={i} className="p-4 bg-white rounded-2xl border border-amber-100">
-                            <p className="font-black text-amber-800 text-sm mb-1">{w.topic}</p>
+                            <p className="font-bold text-amber-800 text-sm mb-1">{w.topic}</p>
                             <p className="text-xs font-bold text-slate-500 mb-2">{w.signal}</p>
                             <p className="text-xs font-bold text-amber-700">→ {w.recommendation}</p>
                           </div>
@@ -748,7 +748,7 @@ const AnalyticsTab = ({ user }) => {
                       onClick={() => setAiOpenSection(s => ({ ...s, misc: !s.misc }))}
                       aria-expanded={aiOpenSection.misc}
                     >
-                      <span className="flex items-center gap-2 font-black text-rose-700 text-sm">
+                      <span className="flex items-center gap-2 font-bold text-rose-700 text-sm">
                         <AlertTriangle size={16} /> Погрешни разбирања
                         <span className="ml-1 px-2 py-0.5 bg-rose-200 text-rose-800 rounded-full text-[10px] font-black">{aiInsights.misconceptions.length}</span>
                       </span>
@@ -759,12 +759,12 @@ const AnalyticsTab = ({ user }) => {
                         {aiInsights.misconceptions.map((m, i) => (
                           <div key={i} className="p-4 bg-white rounded-2xl border border-rose-100">
                             <div className="flex items-start justify-between gap-3 mb-2">
-                              <p className="font-black text-rose-800 text-sm flex-1">{m.question}</p>
+                              <p className="font-bold text-rose-800 text-sm flex-1">{m.question}</p>
                               <span className="flex-shrink-0 px-2 py-0.5 bg-rose-100 text-rose-600 rounded-full text-[10px] font-black">{m.share}% грешка</span>
                             </div>
                             <p className="text-xs font-bold text-slate-500 mb-1">Избрале: <span className="text-rose-600">{m.wrongAnswer}</span></p>
                             <p className="text-xs font-bold text-slate-600 mb-2">{m.explanation}</p>
-                            <p className="text-xs font-black text-rose-700 bg-rose-50 p-2 rounded-xl">→ {m.intervention}</p>
+                            <p className="text-xs font-semibold text-rose-700 bg-rose-50 p-2 rounded-xl">→ {m.intervention}</p>
                           </div>
                         ))}
                       </div>
@@ -780,7 +780,7 @@ const AnalyticsTab = ({ user }) => {
                       onClick={() => setAiOpenSection(s => ({ ...s, plan: !s.plan }))}
                       aria-expanded={aiOpenSection.plan}
                     >
-                      <span className="flex items-center gap-2 font-black text-violet-700 text-sm">
+                      <span className="flex items-center gap-2 font-bold text-violet-700 text-sm">
                         <BookOpen size={16} /> План за следен час
                         <span className="ml-1 px-2 py-0.5 bg-violet-200 text-violet-800 rounded-full text-[10px] font-black">{aiInsights.nextLessonPlan.length} чекори</span>
                       </span>

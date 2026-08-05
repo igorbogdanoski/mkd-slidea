@@ -297,7 +297,7 @@ const ExportPDFModal = ({ isOpen, onClose, event, polls }) => {
                   </span>
                   <span className="text-sm font-bold text-slate-700 truncate">{poll.question}</span>
                 </div>
-                <span className="text-xs font-black text-slate-400 flex-shrink-0 ml-2">{votes} одг.</span>
+                <span className="text-xs font-semibold text-slate-400 flex-shrink-0 ml-2">{votes} одг.</span>
               </div>
             );
           })}

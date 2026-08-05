@@ -163,7 +163,7 @@ const IllustrationPickerModal = ({ isOpen, onClose, onSelect, initialQuery = '' 
                   <button
                     key={t.id}
                     onClick={() => { setTab(t.id); setError(''); }}
-                    className={`flex items-center gap-2 px-4 py-3 -mb-px border-b-2 font-black text-xs uppercase tracking-widest transition-all ${
+                    className={`flex items-center gap-2 px-4 py-3 -mb-px border-b-2 font-semibold text-xs uppercase tracking-widest transition-all ${
                       tab === t.id
                         ? 'border-indigo-600 text-indigo-600'
                         : 'border-transparent text-slate-400 hover:text-slate-600'
@@ -197,7 +197,7 @@ const IllustrationPickerModal = ({ isOpen, onClose, onSelect, initialQuery = '' 
                     <button
                       onClick={searchOpenverse}
                       disabled={loading || query.trim().length < 2}
-                      className="px-5 py-3 bg-indigo-600 text-white rounded-2xl font-black text-sm hover:bg-indigo-700 disabled:opacity-50 transition-all flex items-center gap-2"
+                      className="px-5 py-3 bg-indigo-600 text-white rounded-2xl font-bold text-sm hover:bg-indigo-700 disabled:opacity-50 transition-all flex items-center gap-2"
                     >
                       {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
                       Пребарај
@@ -276,7 +276,7 @@ const IllustrationPickerModal = ({ isOpen, onClose, onSelect, initialQuery = '' 
               {tab === 'generate' && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2">
                       Опис (на македонски или англиски)
                     </label>
                     <textarea
@@ -290,7 +290,7 @@ const IllustrationPickerModal = ({ isOpen, onClose, onSelect, initialQuery = '' 
                   <button
                     onClick={generateWithPollinations}
                     disabled={generating || genPrompt.trim().length < 3}
-                    className="w-full py-3 bg-indigo-600 text-white rounded-2xl font-black text-sm hover:bg-indigo-700 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                    className="w-full py-3 bg-indigo-600 text-white rounded-2xl font-bold text-sm hover:bg-indigo-700 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
                   >
                     {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
                     {generating ? 'Се генерира...' : 'Генерирај'}
@@ -306,7 +306,7 @@ const IllustrationPickerModal = ({ isOpen, onClose, onSelect, initialQuery = '' 
                       <img src={genUrl} alt="AI генерирана илустрација" loading="lazy" className="w-full rounded-2xl border-2 border-slate-100" />
                       <button
                         onClick={() => choose(genUrl, { source: 'pollinations', prompt: genPrompt })}
-                        className="w-full py-3 bg-emerald-600 text-white rounded-2xl font-black text-sm hover:bg-emerald-700 transition-all flex items-center justify-center gap-2"
+                        className="w-full py-3 bg-emerald-600 text-white rounded-2xl font-bold text-sm hover:bg-emerald-700 transition-all flex items-center justify-center gap-2"
                       >
                         <Check className="w-4 h-4" /> Употреби ја
                       </button>

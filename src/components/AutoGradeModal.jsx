@@ -144,7 +144,7 @@ const AutoGradeModal = ({ isOpen, onClose, poll }) => {
           {!results && (
             <div className="space-y-5">
               <div>
-                <label className="block text-sm font-black text-slate-700 mb-2">Рубрика (опционално)</label>
+                <label className="block text-sm font-bold text-slate-700 mb-2">Рубрика (опционално)</label>
                 <textarea
                   value={rubric}
                   onChange={(e) => setRubric(e.target.value)}
@@ -154,7 +154,7 @@ const AutoGradeModal = ({ isOpen, onClose, poll }) => {
               </div>
 
               <div className="flex items-center gap-4">
-                <label className="text-sm font-black text-slate-700">Макс. поени</label>
+                <label className="text-sm font-bold text-slate-700">Макс. поени</label>
                 <input
                   type="number"
                   min="1"

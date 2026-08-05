@@ -244,7 +244,7 @@ const Participant = ({
             animate={{ y: 0 }}
             exit={{ y: -60 }}
             transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-            className="fixed top-0 left-0 right-0 z-50 bg-red-600 text-white flex items-center justify-center gap-2 py-3 px-4 text-sm font-black shadow-xl"
+            className="fixed top-0 left-0 right-0 z-50 bg-red-600 text-white flex items-center justify-center gap-2 py-3 px-4 text-sm font-bold shadow-xl"
             role="alert"
             aria-live="assertive"
           >
@@ -263,7 +263,7 @@ const Participant = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.25 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white flex items-center gap-2 py-3 px-6 rounded-2xl text-sm font-black shadow-2xl shadow-emerald-200"
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white flex items-center gap-2 py-3 px-6 rounded-2xl text-sm font-bold shadow-2xl shadow-emerald-200"
             role="status"
             aria-live="polite"
           >
@@ -339,18 +339,18 @@ const Participant = ({
         <div className="space-y-8">
           {asyncMode && formattedDeadline && (
             <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-5 py-4">
-              <p className="text-emerald-700 font-black text-sm">📚 Homework режим е активен</p>
+              <p className="text-emerald-700 font-bold text-sm">📚 Homework режим е активен</p>
               <p className="text-emerald-600 font-bold text-xs mt-1">Рок за одговор: {formattedDeadline}</p>
             </div>
           )}
 
           <div className="bg-white rounded-[2.5rem] p-8 shadow-2xl shadow-indigo-100/50 border border-slate-100 relative overflow-hidden">
             {currentPoll.is_quiz && (
-              <div className="absolute top-0 right-0 bg-amber-100 text-amber-600 px-6 py-2 rounded-bl-3xl font-black text-xs tracking-widest">КВИЗ</div>
+              <div className="absolute top-0 right-0 bg-amber-100 text-amber-600 px-6 py-2 rounded-bl-3xl font-semibold text-xs tracking-widest">КВИЗ</div>
             )}
             <div className="flex items-center gap-2 mb-6">
               {currentPoll.is_quiz ? <Trophy className="text-amber-500 w-5 h-5" /> : <PieChart className="text-indigo-600 w-5 h-5" />}
-              <span className={`font-black text-xs uppercase tracking-widest ${currentPoll.is_quiz ? 'text-amber-500' : 'text-indigo-600'}`}>
+              <span className={`font-semibold text-xs uppercase tracking-widest ${currentPoll.is_quiz ? 'text-amber-500' : 'text-indigo-600'}`}>
                 {currentPoll.type === 'wordcloud' ? 'Облак со зборови' : 
                  currentPoll.type === 'ranking' ? 'Рангирање' :
                  currentPoll.type === 'rating' ? 'Оценување' :
@@ -375,7 +375,7 @@ const Participant = ({
             {/* Tимеr bar */}
             {timerRemaining > 0 && (
               <div className={`mb-6 rounded-2xl px-5 py-3 flex items-center justify-between ${timerRemaining <= 10 ? 'bg-red-50 border border-red-200' : 'bg-indigo-50 border border-indigo-100'}`}>
-                <span className={`font-black text-sm ${timerRemaining <= 10 ? 'text-red-600' : 'text-indigo-600'}`}>⏱ Преостанато</span>
+                <span className={`font-bold text-sm ${timerRemaining <= 10 ? 'text-red-600' : 'text-indigo-600'}`}>⏱ Преостанато</span>
                 <span className={`font-black text-2xl tabular-nums ${timerRemaining <= 10 ? 'text-red-600 animate-pulse' : 'text-indigo-700'}`}>
                   {String(Math.floor(timerRemaining / 60)).padStart(2,'0')}:{String(timerRemaining % 60).padStart(2,'0')}
                 </span>
@@ -438,7 +438,7 @@ const Participant = ({
                       href={`/event/${eventCode}/scores`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-3 flex items-center justify-center gap-2 w-full py-3 rounded-2xl border-2 border-amber-200 bg-amber-50 text-amber-700 font-black text-sm hover:bg-amber-100 transition-all active:scale-95"
+                      className="mt-3 flex items-center justify-center gap-2 w-full py-3 rounded-2xl border-2 border-amber-200 bg-amber-50 text-amber-700 font-bold text-sm hover:bg-amber-100 transition-all active:scale-95"
                       onClick={() => haptic([20])}
                     >
                       <Trophy className="w-4 h-4" /> Погледни го скорбордот
@@ -467,7 +467,7 @@ const Participant = ({
                   <div className="space-y-5">
                     {(currentPoll.survey_questions || []).map((sq, idx) => (
                       <div key={sq.id} className="space-y-2">
-                        <p className="font-black text-slate-800 text-sm">
+                        <p className="font-bold text-slate-800 text-sm">
                           <span className="text-green-600 mr-1">{idx + 1}.</span> {sq.text}
                         </p>
                         {sq.type === 'scale' && (
@@ -489,7 +489,7 @@ const Participant = ({
                                     onClick={() => setSurveyAnswers(a => ({ ...a, [sq.id]: n }))}
                                     aria-label={`${n} од 10${n === 1 && sq.min ? ` — ${sq.min}` : ''}${n === 10 && sq.max ? ` — ${sq.max}` : ''}`}
                                     aria-pressed={selected}
-                                    className={`aspect-square rounded-xl font-black text-sm transition-all active:scale-90 ${selected ? 'ring-2 ring-offset-1 ring-slate-900' : ''}`}
+                                    className={`aspect-square rounded-xl font-bold text-sm transition-all active:scale-90 ${selected ? 'ring-2 ring-offset-1 ring-slate-900' : ''}`}
                                     style={swatch}
                                   >{n}</button>
                                 );
@@ -562,7 +562,7 @@ const Participant = ({
                       })}
                     </div>
                     {(currentPoll.options[0]?.label || currentPoll.options[9]?.label) && (
-                      <div className="flex justify-between text-xs font-black text-slate-400 uppercase tracking-widest px-1">
+                      <div className="flex justify-between text-xs font-semibold text-slate-400 uppercase tracking-widest px-1">
                         <span>{currentPoll.options[0]?.label}</span>
                         <span>{currentPoll.options[9]?.label}</span>
                       </div>
@@ -599,7 +599,7 @@ const Participant = ({
                   </div>
                 ) : currentPoll.type === 'ranking' ? (
                   <div className="space-y-4">
-                    <p className="text-sm font-black text-slate-500">Постави ги во редослед по важност — на прво место ставете го најважното.</p>
+                    <p className="text-sm font-bold text-slate-500">Постави ги во редослед по важност — на прво место ставете го најважното.</p>
                     <div className="space-y-2">
                       {rankingOrder.map((optIdx, rank) => {
                         const opt = currentPoll.options[optIdx];
@@ -621,7 +621,7 @@ const Participant = ({
                             className="w-full p-4 rounded-2xl border-2 border-slate-100 bg-slate-50 flex items-center gap-3"
                           >
                             <GripVertical className="w-5 h-5 text-slate-400" />
-                            <span className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 font-black flex items-center justify-center text-sm">{rank + 1}</span>
+                            <span className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-sm">{rank + 1}</span>
                             <span className="font-bold text-slate-700 flex-1">{opt.text}</span>
                             <div className="flex items-center gap-1">
                               <button
@@ -715,7 +715,7 @@ const Participant = ({
           <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-100">
             <div className="flex items-center gap-2 mb-6">
               <MessageSquare className="text-indigo-600 w-5 h-5" />
-              <span className="font-black text-xs text-indigo-600 uppercase tracking-widest">Прашај нешто</span>
+              <span className="font-semibold text-xs text-indigo-600 uppercase tracking-widest">Прашај нешто</span>
             </div>
 
             <div className="flex gap-2 mb-8">
@@ -761,7 +761,7 @@ const Participant = ({
                     className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${isUp ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-slate-400 hover:text-indigo-600 hover:bg-white'}`}
                   >
                     <ThumbsUp className={`w-4 h-4 ${isUp ? 'fill-white' : ''}`} />
-                    <span className="text-xs font-black">{q.votes}</span>
+                    <span className="text-xs font-semibold">{q.votes}</span>
                   </button>
                 </div>
                 );

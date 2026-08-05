@@ -49,7 +49,7 @@ const NotFound = () => {
         </div>
 
         <div className="mt-12 bg-white rounded-[2rem] border border-slate-100 p-6">
-          <p className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4">Можеби барате...</p>
+          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Можеби барате...</p>
           <div className="flex flex-col gap-2">
             {[
               { label: 'Приклучи се на настан', path: '/join' },

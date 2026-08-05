@@ -250,7 +250,7 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin, onRequestPassword
               {mode !== 'forgot' && (
                 <div className="flex items-center gap-3 mb-4">
                   <div className="flex-1 h-px bg-slate-100" />
-                  <span className="text-xs font-black text-slate-300 uppercase tracking-widest">или</span>
+                  <span className="text-xs font-semibold text-slate-300 uppercase tracking-widest">или</span>
                   <div className="flex-1 h-px bg-slate-100" />
                 </div>
               )}
@@ -260,7 +260,7 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin, onRequestPassword
                 <div className="flex bg-slate-100 rounded-2xl p-1 mb-6">
                   <button
                     onClick={() => { setMode('login'); setError(''); }}
-                    className={`flex-1 py-3 rounded-xl font-black text-sm transition-all flex items-center justify-center gap-2 ${
+                    className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${
                       mode === 'login' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'
                     }`}
                   >
@@ -268,7 +268,7 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin, onRequestPassword
                   </button>
                   <button
                     onClick={() => { setMode('register'); setError(''); }}
-                    className={`flex-1 py-3 rounded-xl font-black text-sm transition-all flex items-center justify-center gap-2 ${
+                    className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${
                       mode === 'register' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'
                     }`}
                   >
@@ -276,7 +276,7 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin, onRequestPassword
                   </button>
                   <button
                     onClick={() => { setMode('magic'); setError(''); }}
-                    className={`flex-1 py-3 rounded-xl font-black text-sm transition-all flex items-center justify-center gap-2 ${
+                    className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${
                       mode === 'magic' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'
                     }`}
                   >
@@ -323,7 +323,7 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin, onRequestPassword
                   </button>
                   {loadingMsg && !loading && (
                     <button type="button" onClick={handleLogin}
-                      className="w-full py-3 text-indigo-600 font-black text-sm hover:underline"
+                      className="w-full py-3 text-indigo-600 font-bold text-sm hover:underline"
                     >
                       Обиди се повторно
                     </button>
@@ -406,7 +406,7 @@ const LoginModal = ({ isOpen, onClose, onLogin, onGoogleLogin, onRequestPassword
                     <p className="text-slate-400 font-bold">
                       Проверете го е-маилот на <span className="text-indigo-600">{email}</span> и кликнете на линкот.
                     </p>
-                    <button onClick={onClose} className="mt-6 text-sm font-black text-slate-400 hover:text-slate-600 transition-colors">
+                    <button onClick={onClose} className="mt-6 text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors">
                       Затвори
                     </button>
                   </div>

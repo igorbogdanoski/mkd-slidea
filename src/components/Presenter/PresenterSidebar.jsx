@@ -26,7 +26,7 @@ const PresenterSidebar = ({ currentPoll, leaderboard, questions, activeParticipa
               <span className="text-xl">{activeParticipants} во живо</span>
               {activeNow > 0 && (
                 <span
-                  className="ml-2 text-xs font-black px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"
+                  className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"
                   title="Активни во последните 4 секунди"
                 >
                   🔥 {activeNow} активни сега
@@ -36,7 +36,7 @@ const PresenterSidebar = ({ currentPoll, leaderboard, questions, activeParticipa
             {activeParticipants > 0 && ['poll','quiz','rating','ranking','scale','wordcloud','open'].includes(currentPoll.type) && (
               <div className="flex items-center gap-2 px-4 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
                 <Users className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="text-emerald-400 font-black text-sm">
+                <span className="text-emerald-400 font-bold text-sm">
                   {Math.min(totalVotes, activeParticipants)}/{activeParticipants} одговориле
                 </span>
               </div>
@@ -77,7 +77,7 @@ const PresenterSidebar = ({ currentPoll, leaderboard, questions, activeParticipa
               >
                 <p className="text-2xl font-bold mb-4 text-slate-200">{q.text}</p>
                 <div className="flex justify-between items-center">
-                  <span className="text-xs font-black text-slate-500 uppercase tracking-widest">
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest">
                     {q.author}
                     {q.is_pinned && <span className="ml-2 text-amber-400">📌</span>}
                   </span>

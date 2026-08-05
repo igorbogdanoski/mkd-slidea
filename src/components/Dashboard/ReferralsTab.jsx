@@ -75,7 +75,7 @@ const ReferralsTab = ({ user }) => {
       className="p-12 max-w-5xl mx-auto"
     >
       <div className="mb-8">
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-violet-50 text-violet-700 rounded-full text-xs font-black uppercase tracking-widest mb-3">
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-violet-50 text-violet-700 rounded-full text-xs font-semibold uppercase tracking-widest mb-3">
           <Gift className="w-3.5 h-3.5" /> Програма за препораки
         </div>
         <h2 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">
@@ -88,17 +88,17 @@ const ReferralsTab = ({ user }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white p-6 rounded-3xl border-2 border-slate-100 shadow-sm">
-          <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Препораки</p>
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Препораки</p>
           <p className="text-4xl font-black text-slate-900">{loading ? '—' : stats.total}</p>
           <p className="text-xs font-bold text-slate-400 mt-2">Регистрирани преку твоја врска</p>
         </div>
         <div className="bg-white p-6 rounded-3xl border-2 border-slate-100 shadow-sm">
-          <p className="text-xs font-black text-emerald-600 uppercase tracking-widest mb-3">Наградени</p>
+          <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-3">Наградени</p>
           <p className="text-4xl font-black text-emerald-600">{loading ? '—' : stats.rewarded}</p>
           <p className="text-xs font-bold text-slate-400 mt-2">Создадоа барем еден настан</p>
         </div>
         <div className="bg-gradient-to-br from-violet-600 to-indigo-700 p-6 rounded-3xl text-white shadow-xl shadow-indigo-100">
-          <p className="text-xs font-black uppercase tracking-widest mb-3 opacity-80 flex items-center gap-1">
+          <p className="text-xs font-semibold uppercase tracking-widest mb-3 opacity-80 flex items-center gap-1">
             <Crown className="w-3.5 h-3.5" /> Pro статус
           </p>
           <p className="text-4xl font-black">
@@ -113,7 +113,7 @@ const ReferralsTab = ({ user }) => {
       </div>
 
       <div className="bg-white p-8 rounded-3xl border-2 border-slate-100 shadow-sm mb-6">
-        <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Твоја врска за препорака</p>
+        <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Твоја врска за препорака</p>
         <div className="flex flex-col md:flex-row gap-3">
           <input
             readOnly
@@ -123,7 +123,7 @@ const ReferralsTab = ({ user }) => {
           />
           <button
             onClick={copy}
-            className={`flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-black text-sm transition-all ${
+            className={`flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold text-sm transition-all ${
               copied
                 ? 'bg-emerald-600 text-white'
                 : 'bg-indigo-600 text-white hover:bg-indigo-700 active:scale-95'
@@ -135,7 +135,7 @@ const ReferralsTab = ({ user }) => {
       </div>
 
       <div className="bg-white p-8 rounded-3xl border-2 border-slate-100 shadow-sm">
-        <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+        <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
           <Share2 className="w-3.5 h-3.5" /> Сподели директно
         </p>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -145,7 +145,7 @@ const ReferralsTab = ({ user }) => {
               href={s.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 px-4 py-3 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 rounded-2xl font-black text-sm transition-all border-2 border-transparent hover:border-indigo-200"
+              className="flex items-center justify-center gap-2 px-4 py-3 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 rounded-2xl font-bold text-sm transition-all border-2 border-transparent hover:border-indigo-200"
             >
               {s.label === 'Email' && <Mail className="w-4 h-4" />}
               {s.label}

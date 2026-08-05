@@ -58,7 +58,7 @@ const InteractiveDemoBlock = () => {
               <div className="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-100">
                 {activeDemo === 'wordcloud' ? <Cloud size={20} /> : activeDemo === 'poll' ? <PieChart size={20} /> : <Trophy size={20} />}
               </div>
-              <span className="font-black text-slate-400 uppercase tracking-widest text-xs">{demoTitle}</span>
+              <span className="font-semibold text-slate-400 uppercase tracking-widest text-xs">{demoTitle}</span>
             </div>
             <div className="flex gap-1">
               {[1, 2, 3].map(i => <div key={i} className="w-2 h-2 rounded-full bg-slate-200" />)}
@@ -74,7 +74,7 @@ const InteractiveDemoBlock = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveDemo(tab.id)}
-                className={`px-4 py-2 rounded-full text-sm font-black transition-all ${activeDemo === tab.id ? 'bg-slate-900 text-white shadow-lg' : 'bg-white text-slate-500 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600'}`}
+                className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${activeDemo === tab.id ? 'bg-slate-900 text-white shadow-lg' : 'bg-white text-slate-500 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600'}`}
               >
                 {tab.label}
               </button>
@@ -100,7 +100,7 @@ const InteractiveDemoBlock = () => {
               </div>
 
               <div className="mt-auto bg-white/80 backdrop-blur-xl p-4 rounded-3xl border border-slate-200/50 shadow-xl">
-                <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3 px-2">Пробај: Внеси збор и притисни Enter</p>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3 px-2">Пробај: Внеси збор и притисни Enter</p>
                 <input
                   type="text"
                   placeholder="Вашиот збор..."
@@ -116,12 +116,12 @@ const InteractiveDemoBlock = () => {
           {activeDemo === 'poll' && (
             <div className="flex-1 flex flex-col justify-center gap-5 py-8">
               <div className="bg-white rounded-[2rem] border border-slate-200 p-6 shadow-sm">
-                <p className="text-sm font-black text-slate-400 uppercase tracking-widest mb-3">Прашање</p>
+                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3">Прашање</p>
                 <h3 className="text-2xl font-black text-slate-900 mb-6">Дали би користеле интерактивни анкети на следната презентација?</h3>
                 <div className="space-y-4">
                   {demoPollData.map((item) => (
                     <div key={item.label}>
-                      <div className="flex items-center justify-between mb-2 text-sm font-black text-slate-700">
+                      <div className="flex items-center justify-between mb-2 text-sm font-bold text-slate-700">
                         <span>{item.label}</span>
                         <span>{item.value}%</span>
                       </div>
@@ -141,13 +141,13 @@ const InteractiveDemoBlock = () => {
           {activeDemo === 'quiz' && (
             <div className="flex-1 flex flex-col justify-center py-8">
               <div className="bg-white rounded-[2rem] border border-slate-200 p-6 shadow-sm max-w-xl mx-auto w-full">
-                <p className="text-sm font-black text-slate-400 uppercase tracking-widest mb-3">Квиз прашање</p>
+                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3">Квиз прашање</p>
                 <h3 className="text-2xl font-black text-slate-900 mb-6">Кој програмски јазик најчесто се користи во AI/ML проекти?</h3>
                 <div className="space-y-3">
                   {demoQuizOptions.map((option) => (
                     <div
                       key={option.label}
-                      className={`rounded-2xl border px-5 py-4 font-black text-sm ${option.correct ? 'border-emerald-300 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-slate-50 text-slate-600'}`}
+                      className={`rounded-2xl border px-5 py-4 font-bold text-sm ${option.correct ? 'border-emerald-300 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-slate-50 text-slate-600'}`}
                     >
                       {option.label}
                     </div>

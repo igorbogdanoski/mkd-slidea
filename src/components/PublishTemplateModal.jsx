@@ -56,7 +56,7 @@ const PublishTemplateModal = ({ isOpen, onClose, onPublish, polls = [] }) => {
         <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Име на шаблон</label>
+              <label className="block text-xs font-semibold uppercase tracking-widest text-slate-400 mb-2">Име на шаблон</label>
               <input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -67,7 +67,7 @@ const PublishTemplateModal = ({ isOpen, onClose, onPublish, polls = [] }) => {
               />
             </div>
             <div>
-              <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Категорија</label>
+              <label className="block text-xs font-semibold uppercase tracking-widest text-slate-400 mb-2">Категорија</label>
               <input
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
@@ -78,7 +78,7 @@ const PublishTemplateModal = ({ isOpen, onClose, onPublish, polls = [] }) => {
           </div>
 
           <div>
-            <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Опис (опционално)</label>
+            <label className="block text-xs font-semibold uppercase tracking-widest text-slate-400 mb-2">Опис (опционално)</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}

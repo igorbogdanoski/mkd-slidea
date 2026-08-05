@@ -126,7 +126,7 @@ export const DonutView = ({ options, totalVotes }) => {
           );
         })}
         <div className="pt-4 border-t border-slate-700">
-          <p className="text-slate-500 font-black text-sm uppercase tracking-widest">
+          <p className="text-slate-500 font-bold text-sm uppercase tracking-widest">
             Вкупно: {totalVotes} гласови
           </p>
         </div>
@@ -164,7 +164,7 @@ export const PodiumView = ({ options, totalVotes }) => {
                 <div className="text-5xl mb-2">{medals[pos]}</div>
                 <p className="text-white font-black text-lg leading-tight text-center line-clamp-2">{opt.text}</p>
                 <p className={`font-black text-3xl mt-1 ${PALETTE[origIdx % PALETTE.length].text}`}>{pct}%</p>
-                <p className="text-slate-500 text-sm font-black">{opt.votes} гл.</p>
+                <p className="text-slate-500 text-sm font-bold">{opt.votes} гл.</p>
               </div>
               <div className={`w-full ${podiumHeights[pos]} ${podiumColors[pos]} rounded-t-2xl flex items-start justify-center pt-4`}>
                 <span className="text-white font-black text-4xl opacity-40">{origIdx + 1}</span>
@@ -222,7 +222,7 @@ export const NumbersView = ({ options, totalVotes }) => {
         );
       })}
       {totalVotes > 0 && (
-        <p aria-live="polite" aria-atomic="true" className="text-right text-slate-600 font-black text-sm uppercase tracking-widest pr-4">
+        <p aria-live="polite" aria-atomic="true" className="text-right text-slate-600 font-bold text-sm uppercase tracking-widest pr-4">
           Вкупно гласови: {totalVotes}
         </p>
       )}

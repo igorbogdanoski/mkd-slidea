@@ -37,7 +37,7 @@ const PollResult = ({ poll }) => {
                 <Star key={s} size={20} className={s <= Math.round(avg) ? 'fill-amber-400 text-amber-400' : 'text-slate-200'} />
               ))}
             </div>
-            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{totalVotes} гласови</p>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">{totalVotes} гласови</p>
           </div>
         </div>
       );
@@ -47,7 +47,7 @@ const PollResult = ({ poll }) => {
       return (
         <div className="flex flex-wrap gap-2 py-2">
           {sorted.filter(o => o.votes > 0).map((o, i) => (
-            <span key={i} className="px-3 py-1 rounded-full text-xs font-black text-white"
+            <span key={i} className="px-3 py-1 rounded-full text-xs font-semibold text-white"
               style={{ background: PALETTE[i % PALETTE.length], fontSize: Math.max(10, 10 + (o.votes || 0) * 3) }}>
               {o.text} {o.votes > 1 && `(${o.votes})`}
             </span>
@@ -95,7 +95,7 @@ const PollResult = ({ poll }) => {
             </PieChart>
           </ResponsiveContainer>
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-xs font-black text-slate-500">{totalVotes}<br />гл.</span>
+            <span className="text-xs font-semibold text-slate-500">{totalVotes}<br />гл.</span>
           </div>
         </div>
       </div>
@@ -199,7 +199,7 @@ const EventResultsModal = ({ event, onClose }) => {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => exportCSV(event, polls)}
-                className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-black text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 active:scale-95"
+                className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 active:scale-95"
               >
                 <Download size={16} /> Извези CSV
               </button>

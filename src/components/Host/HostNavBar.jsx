@@ -25,7 +25,7 @@ const HostNavBar = ({
   return (
     <div className="flex items-center justify-between bg-slate-900 text-white rounded-2xl px-6 py-3 gap-4 flex-wrap">
       <button onClick={goPrev} disabled={activePollIndex === 0}
-        className="flex items-center gap-2 font-black text-sm disabled:opacity-30 hover:text-indigo-400 transition-colors disabled:cursor-not-allowed"
+        className="flex items-center gap-2 font-bold text-sm disabled:opacity-30 hover:text-indigo-400 transition-colors disabled:cursor-not-allowed"
       >
         <ChevronLeft className="w-5 h-5" /> Претходна
       </button>
@@ -37,7 +37,7 @@ const HostNavBar = ({
             <span className={`font-black text-2xl tabular-nums ${timerRemaining <= 10 ? 'text-red-400 animate-pulse' : 'text-white'}`}>
               {String(Math.floor(timerRemaining / 60)).padStart(2,'0')}:{String(timerRemaining % 60).padStart(2,'0')}
             </span>
-            <button onClick={stopTimer} className="flex items-center gap-1 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-black text-xs transition-all">
+            <button onClick={stopTimer} className="flex items-center gap-1 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold text-xs transition-all">
               <Square className="w-3 h-3" /> Стоп
             </button>
           </>
@@ -46,7 +46,7 @@ const HostNavBar = ({
             <Timer className="w-4 h-4 text-slate-400" />
             {[15, 30, 60, 90].map(s => (
               <button key={s} onClick={() => startTimer(s)}
-                className="px-3 py-1.5 bg-slate-700 hover:bg-indigo-600 text-slate-300 hover:text-white rounded-xl font-black text-xs transition-all"
+                className="px-3 py-1.5 bg-slate-700 hover:bg-indigo-600 text-slate-300 hover:text-white rounded-xl font-semibold text-xs transition-all"
               >
                 {s}s
               </button>
@@ -74,7 +74,7 @@ const HostNavBar = ({
         />
         <button
           onClick={handleToggleLock}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-black text-xs transition-all ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-semibold text-xs transition-all ${
             event.is_locked
               ? 'bg-red-500 text-white'
               : 'bg-slate-700 hover:bg-red-500/20 text-slate-300 hover:text-red-400'
@@ -88,13 +88,13 @@ const HostNavBar = ({
         </button>
         <button
           onClick={onEndSession}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-black text-xs bg-slate-700 hover:bg-emerald-600 text-slate-300 hover:text-white transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-semibold text-xs bg-slate-700 hover:bg-emerald-600 text-slate-300 hover:text-white transition-all"
           title="Заврши сесија — заклучи и отвори статистики"
         >
           <Check className="w-3.5 h-3.5" /> Заврши
         </button>
         <button onClick={goNext} disabled={activePollIndex === polls.length - 1}
-          className="flex items-center gap-2 font-black text-sm disabled:opacity-30 hover:text-indigo-400 transition-colors disabled:cursor-not-allowed"
+          className="flex items-center gap-2 font-bold text-sm disabled:opacity-30 hover:text-indigo-400 transition-colors disabled:cursor-not-allowed"
         >
           Следна <ChevronRight className="w-5 h-5" />
         </button>

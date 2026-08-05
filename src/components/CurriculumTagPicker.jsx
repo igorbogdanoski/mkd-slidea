@@ -38,7 +38,7 @@ const CurriculumTagPicker = ({ questionText = '', value = [], onChange }) => {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <label className="block text-xs font-black text-slate-500 uppercase tracking-widest px-1 flex items-center gap-1.5">
+        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest px-1 flex items-center gap-1.5">
           <BookOpen className="w-3.5 h-3.5" /> Курикулум (по избор)
         </label>
         <div className="flex items-center gap-1.5">

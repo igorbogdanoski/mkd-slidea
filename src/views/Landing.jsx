@@ -92,7 +92,7 @@ const Landing = ({ code, setCode, setView }) => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 font-black text-xs uppercase tracking-widest shadow-sm"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 font-semibold text-xs uppercase tracking-widest shadow-sm"
             >
               <Sparkles size={14} /> Новата ера на презентации
             </motion.div>
@@ -104,8 +104,14 @@ const Landing = ({ code, setCode, setView }) => {
               transition={{ delay: 0.05 }}
               className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-slate-900 leading-[0.95]"
             >
-              Слајдови кои <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600 italic">слушаат.</span><br />
+              {/* The h1 is the heaviest on-page SEO signal there is, and it
+                  used to spend all of it on "Слајдови кои слушаат. Идеи кои
+                  водат." — a good line that never says what the product is.
+                  A first-time visitor learned the category only from the
+                  paragraph below, and Google learned it from nowhere. The
+                  voice is kept; the category is now in the sentence. */}
+              Интерактивни презентации <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600 italic">кои слушаат.</span><br />
               Идеи кои <span className="text-indigo-600">водат.</span>
             </motion.h1>
 
@@ -147,20 +153,20 @@ const Landing = ({ code, setCode, setView }) => {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }}>
               <button
                 onClick={() => setIsCoHostOpen(true)}
-                className="flex items-center gap-2 text-slate-400 hover:text-indigo-600 font-black text-xs uppercase tracking-widest transition-colors"
+                className="flex items-center gap-2 text-slate-400 hover:text-indigo-600 font-semibold text-xs uppercase tracking-widest transition-colors"
               >
                 <UserPlus className="w-4 h-4" /> Сте Ко-домаќин? Влезте тука →
               </button>
             </motion.div>
 
             <div className="flex flex-wrap gap-3">
-              <button onClick={() => scrollToSection('education')} className="px-4 py-2 rounded-full bg-slate-100 text-slate-700 font-black text-sm hover:bg-indigo-50 hover:text-indigo-600 transition-colors">
+              <button onClick={() => scrollToSection('education')} className="px-4 py-2 rounded-full bg-slate-100 text-slate-700 font-bold text-sm hover:bg-indigo-50 hover:text-indigo-600 transition-colors">
                 За образование
               </button>
-              <button onClick={() => scrollToSection('solutions')} className="px-4 py-2 rounded-full bg-slate-100 text-slate-700 font-black text-sm hover:bg-indigo-50 hover:text-indigo-600 transition-colors">
+              <button onClick={() => scrollToSection('solutions')} className="px-4 py-2 rounded-full bg-slate-100 text-slate-700 font-bold text-sm hover:bg-indigo-50 hover:text-indigo-600 transition-colors">
                 За тимови и бизнис
               </button>
-              <button onClick={() => scrollToSection('faq')} className="px-4 py-2 rounded-full bg-slate-100 text-slate-700 font-black text-sm hover:bg-indigo-50 hover:text-indigo-600 transition-colors">
+              <button onClick={() => scrollToSection('faq')} className="px-4 py-2 rounded-full bg-slate-100 text-slate-700 font-bold text-sm hover:bg-indigo-50 hover:text-indigo-600 transition-colors">
                 ЧПП
               </button>
             </div>

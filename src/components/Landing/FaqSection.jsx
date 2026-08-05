@@ -10,7 +10,7 @@ const FaqSection = ({ faqItems }) => {
     <section id="faq" className="bg-white py-28 border-t border-slate-100">
       <div className="max-w-5xl mx-auto px-6">
         <div className="text-center space-y-4 mb-14">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 text-slate-700 font-black text-xs uppercase tracking-widest">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 text-slate-700 font-semibold text-xs uppercase tracking-widest">
             <Sparkles size={14} /> Чести прашања
           </div>
           <h2 className="text-4xl md:text-5xl font-black text-slate-900">Сѐ што им треба на новите корисници за да одлучат побрзо</h2>

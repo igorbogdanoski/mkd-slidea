@@ -254,14 +254,14 @@ const OnboardingTour = ({ onDone }) => {
                 {step > 0 && (
                   <button
                     onClick={prev}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-slate-100 text-slate-600 rounded-xl font-black text-xs hover:bg-slate-200 transition-all active:scale-95"
+                    className="flex items-center gap-1.5 px-4 py-2 bg-slate-100 text-slate-600 rounded-xl font-semibold text-xs hover:bg-slate-200 transition-all active:scale-95"
                   >
                     <ArrowLeft size={12} /> Назад
                   </button>
                 )}
                 <button
                   onClick={next}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white rounded-xl font-black text-xs hover:bg-indigo-700 transition-all active:scale-95"
+                  className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white rounded-xl font-semibold text-xs hover:bg-indigo-700 transition-all active:scale-95"
                 >
                   {step === STEPS.length - 1 ? 'Готово!' : <><span>Следно</span> <ArrowRight size={12} /></>}
                 </button>

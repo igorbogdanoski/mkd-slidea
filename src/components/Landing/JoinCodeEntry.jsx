@@ -37,7 +37,7 @@ const JoinCodeEntry = ({ code, setCode, setView }) => {
       transition={{ delay: 0.2 }}
       className="bg-gradient-to-br from-indigo-600 to-violet-600 p-5 rounded-[2rem] shadow-2xl shadow-indigo-200"
     >
-      <p className="text-white/70 font-black text-xs uppercase tracking-widest mb-3 pl-1">
+      <p className="text-white/70 font-semibold text-xs uppercase tracking-widest mb-3 pl-1">
         Имаш код за настан? Приклучи се веднаш →
       </p>
       <div className="flex gap-3">
@@ -64,14 +64,14 @@ const JoinCodeEntry = ({ code, setCode, setView }) => {
               <X className="w-5 h-5 text-red-300" />
             )}
             {codeStatus === 'locked' && (
-              <span className="text-amber-300 text-xs font-black">ПАУЗИРАН</span>
+              <span className="text-amber-300 text-xs font-semibold">ПАУЗИРАН</span>
             )}
           </div>
         </div>
         <button
           onClick={() => setView('join')}
           disabled={code.length < 3}
-          className={`px-7 py-4 rounded-xl font-black text-sm uppercase tracking-widest transition-all active:scale-95 ${
+          className={`px-7 py-4 rounded-xl font-bold text-sm uppercase tracking-widest transition-all active:scale-95 ${
             codeStatus === 'valid'
               ? 'bg-emerald-400 text-emerald-900 shadow-lg shadow-emerald-500/30 scale-105'
               : 'bg-white text-indigo-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed'
@@ -81,13 +81,13 @@ const JoinCodeEntry = ({ code, setCode, setView }) => {
         </button>
       </div>
       {codeStatus === 'valid' && (
-        <p className="text-emerald-300 font-black text-xs mt-2 pl-1">✓ Сесијата е активна — притисни Влези или Enter</p>
+        <p className="text-emerald-300 font-semibold text-xs mt-2 pl-1">✓ Сесијата е активна — притисни Влези или Enter</p>
       )}
       {codeStatus === 'invalid' && code.length >= 5 && (
-        <p className="text-red-300 font-black text-xs mt-2 pl-1">Кодот не постои. Провери го со презентерот.</p>
+        <p className="text-red-300 font-semibold text-xs mt-2 pl-1">Кодот не постои. Провери го со презентерот.</p>
       )}
       {codeStatus === 'locked' && (
-        <p className="text-amber-300 font-black text-xs mt-2 pl-1">Сесијата е паузирана. Почекај инструкции.</p>
+        <p className="text-amber-300 font-semibold text-xs mt-2 pl-1">Сесијата е паузирана. Почекај инструкции.</p>
       )}
     </motion.div>
   );

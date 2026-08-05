@@ -47,17 +47,13 @@ test.describe('Mobile — Landing Page', () => {
     await page.goto(BASE);
     await page.waitForTimeout(1000);
 
-    // Either hamburger icon or nav links should be visible
-    const hamburger = page.locator(
-      'button[aria-label*="menu"], button[aria-label*="Menu"], .hamburger, [data-testid="mobile-menu"], button:has(svg)'
-    ).first();
-
-    const navLinks = page.locator('nav a, header a').first();
-
-    const hasBurger = await hamburger.isVisible({ timeout: 3000 }).catch(() => false);
-    const hasNav    = await navLinks.isVisible({ timeout: 3000 }).catch(() => false);
-
-    expect(hasBurger || hasNav).toBe(true);
+    // The menu control is labelled in the active locale ("Мени"), and the nav
+    // is built from buttons, not anchors — the old selector list looked only
+    // for English labels and `nav a`, so it matched nothing and the test
+    // asserted false === true.
+    const burger = page.getByRole('button', { name: /Мени|Menu/i });
+    await expect(burger).toBeVisible();
+    await expect(burger).toHaveAttribute('aria-controls', 'mobile-menu');
   });
 
   test('M-03: Hamburger menu opens and shows links', async ({ page }) => {
@@ -125,13 +121,20 @@ test.describe('Mobile — Join Page', () => {
     await page.goto(`${BASE}/join`);
     await page.waitForTimeout(1000);
 
+    // .tap() needs a touch-enabled context; this project is Desktop Chrome
+    // with a resized viewport, so the call threw and the assertions below were
+    // never reached. click() exercises the same focus path here.
     const input = page.locator('input').first();
-    await input.tap();
+    await input.click();
     await page.waitForTimeout(500);
 
-    // Page should not crash when input receives focus
-    await expect(page.locator('body')).toBeVisible();
+    await expect(input).toBeFocused();
     await expect(page.locator('body')).not.toContainText('TypeError');
+    // Focusing the field must not introduce a horizontal scroll.
+    const overflows = await page.evaluate(
+      () => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1
+    );
+    expect(overflows).toBe(false);
   });
 });
 

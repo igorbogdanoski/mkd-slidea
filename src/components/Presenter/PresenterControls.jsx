@@ -25,7 +25,7 @@ const PresenterControls = ({ event, onToggleLock, lockPending, handleToggleLock,
         <button
           onClick={handleToggleLock}
           disabled={lockPending}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-black text-xs transition-all border ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-xs transition-all border ${
             event?.is_locked
               ? 'bg-emerald-600 hover:bg-emerald-700 border-emerald-500 text-white'
               : 'bg-slate-800 hover:bg-red-500/20 border-slate-700/50 text-slate-400 hover:text-red-400 hover:border-red-500/40'
@@ -50,7 +50,7 @@ const PresenterControls = ({ event, onToggleLock, lockPending, handleToggleLock,
                 setTimerPickerOpen((v) => !v);
               }
             }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl font-black text-xs transition-all border ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-xs transition-all border ${
               timerRemaining && timerRemaining > 0
                 ? 'bg-amber-500/20 border-amber-500/40 text-amber-400 hover:bg-red-500/20 hover:border-red-500/40 hover:text-red-400'
                 : 'bg-slate-800 hover:bg-indigo-600/20 border-slate-700/50 text-slate-400 hover:text-indigo-400 hover:border-indigo-500/40'
@@ -81,7 +81,7 @@ const PresenterControls = ({ event, onToggleLock, lockPending, handleToggleLock,
                   <button
                     key={sec}
                     onClick={() => handleStartTimer(sec)}
-                    className="px-4 py-2 text-slate-300 font-black text-sm hover:bg-indigo-600 hover:text-white rounded-xl transition-all text-left"
+                    className="px-4 py-2 text-slate-300 font-bold text-sm hover:bg-indigo-600 hover:text-white rounded-xl transition-all text-left"
                   >
                     {label}
                   </button>

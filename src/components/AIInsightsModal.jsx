@@ -121,15 +121,15 @@ const AIInsightsModal = ({ isOpen, onClose, event, polls }) => {
                 <div className="bg-slate-50 border border-slate-100 rounded-3xl p-8">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div className="bg-white border border-slate-100 rounded-2xl p-4">
-                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Активности за анализа</p>
+                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Активности за анализа</p>
                       <p className="text-3xl font-black text-slate-900 mt-1">{payload.polls.length}</p>
                     </div>
                     <div className="bg-white border border-slate-100 rounded-2xl p-4">
-                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Квиз прашања</p>
+                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Квиз прашања</p>
                       <p className="text-3xl font-black text-slate-900 mt-1">{payload.polls.filter((poll) => poll.isQuiz).length}</p>
                     </div>
                     <div className="bg-white border border-slate-100 rounded-2xl p-4">
-                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Вкупно одговори</p>
+                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Вкупно одговори</p>
                       <p className="text-3xl font-black text-slate-900 mt-1">{payload.polls.reduce((sum, poll) => sum + (poll.totalVotes || 0), 0)}</p>
                     </div>
                   </div>
@@ -153,7 +153,7 @@ const AIInsightsModal = ({ isOpen, onClose, event, polls }) => {
               {insights && (
                 <>
                   <div className="bg-white border border-slate-100 rounded-3xl p-6">
-                    <p className="text-xs font-black text-indigo-600 uppercase tracking-widest mb-2">Резиме</p>
+                    <p className="text-xs font-semibold text-indigo-600 uppercase tracking-widest mb-2">Резиме</p>
                     <p className="text-slate-700 font-bold leading-relaxed">{insights.overview || 'Нема достапно резиме.'}</p>
                   </div>
 
@@ -161,7 +161,7 @@ const AIInsightsModal = ({ isOpen, onClose, event, polls }) => {
                     <div className="bg-amber-50 border border-amber-100 rounded-3xl p-6">
                       <div className="flex items-center gap-2 mb-4">
                         <Lightbulb className="w-5 h-5 text-amber-600" />
-                        <p className="text-xs font-black text-amber-700 uppercase tracking-widest">Слаби точки</p>
+                        <p className="text-xs font-semibold text-amber-700 uppercase tracking-widest">Слаби точки</p>
                       </div>
                       <div className="space-y-3">
                         {(insights.weakPoints || []).length === 0 && (
@@ -171,7 +171,7 @@ const AIInsightsModal = ({ isOpen, onClose, event, polls }) => {
                           <div key={index} className="bg-white/80 border border-amber-100 rounded-2xl p-4">
                             <p className="font-black text-slate-900">{item.topic}</p>
                             <p className="text-sm font-bold text-slate-600 mt-1">{item.signal}</p>
-                            <p className="text-sm font-black text-amber-700 mt-2">→ {item.recommendation}</p>
+                            <p className="text-sm font-bold text-amber-700 mt-2">→ {item.recommendation}</p>
                           </div>
                         ))}
                       </div>
@@ -180,7 +180,7 @@ const AIInsightsModal = ({ isOpen, onClose, event, polls }) => {
                     <div className="bg-emerald-50 border border-emerald-100 rounded-3xl p-6">
                       <div className="flex items-center gap-2 mb-4">
                         <ListChecks className="w-5 h-5 text-emerald-600" />
-                        <p className="text-xs font-black text-emerald-700 uppercase tracking-widest">План за следен час</p>
+                        <p className="text-xs font-semibold text-emerald-700 uppercase tracking-widest">План за следен час</p>
                       </div>
                       <ol className="space-y-2">
                         {(insights.nextLessonPlan || []).map((step, index) => (
@@ -196,13 +196,13 @@ const AIInsightsModal = ({ isOpen, onClose, event, polls }) => {
                     <div className="bg-rose-50 border border-rose-100 rounded-3xl p-6">
                       <div className="flex items-center gap-2 mb-4">
                         <AlertTriangle className="w-5 h-5 text-rose-600" />
-                        <p className="text-xs font-black text-rose-700 uppercase tracking-widest">Заеднички недоразбирања</p>
+                        <p className="text-xs font-semibold text-rose-700 uppercase tracking-widest">Заеднички недоразбирања</p>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {insights.misconceptions.map((m, index) => (
                           <div key={index} className="bg-white/80 border border-rose-100 rounded-2xl p-4">
                             <div className="flex items-start justify-between gap-3 mb-2">
-                              <p className="font-black text-slate-900 text-sm flex-1">{m.question}</p>
+                              <p className="font-bold text-slate-900 text-sm flex-1">{m.question}</p>
                               {m.share > 0 && (
                                 <span className="px-2 py-1 bg-rose-100 text-rose-700 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
                                   {m.share}%
@@ -220,7 +220,7 @@ const AIInsightsModal = ({ isOpen, onClose, event, polls }) => {
                             {m.intervention && (
                               <div className="mt-3 p-3 bg-rose-100/60 rounded-xl">
                                 <p className="text-[10px] font-black text-rose-700 uppercase tracking-widest mb-1">Интервенција</p>
-                                <p className="text-xs font-black text-slate-800 leading-relaxed">{m.intervention}</p>
+                                <p className="text-xs font-semibold text-slate-800 leading-relaxed">{m.intervention}</p>
                               </div>
                             )}
                           </div>
@@ -230,7 +230,7 @@ const AIInsightsModal = ({ isOpen, onClose, event, polls }) => {
                   )}
 
                   <div className="bg-indigo-50 border border-indigo-100 rounded-3xl p-6">
-                    <p className="text-xs font-black text-indigo-700 uppercase tracking-widest mb-3">Брзи акции за утре</p>
+                    <p className="text-xs font-semibold text-indigo-700 uppercase tracking-widest mb-3">Брзи акции за утре</p>
                     <ul className="space-y-2">
                       {(insights.quickActions || []).map((item, index) => (
                         <li key={index} className="bg-white/80 border border-indigo-100 rounded-2xl p-3 font-bold text-slate-700 text-sm">

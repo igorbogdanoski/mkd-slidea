@@ -113,7 +113,7 @@ const PresentationsTab = ({ allEvents, eventsLoading, setSelectedEvent, setView 
                   {cover && <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/10" />}
                   <button
                     onClick={(e) => { e.stopPropagation(); setPickerTarget(ev); }}
-                    className="absolute top-3 left-3 z-20 opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 hover:bg-black/70 backdrop-blur-sm text-white rounded-xl px-3 py-1.5 flex items-center gap-1.5 font-black text-xs"
+                    className="absolute top-3 left-3 z-20 opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 hover:bg-black/70 backdrop-blur-sm text-white rounded-xl px-3 py-1.5 flex items-center gap-1.5 font-semibold text-xs"
                     title="Смени слика на насловот"
                   >
                     <Camera size={13} /> Смени слика
@@ -121,7 +121,7 @@ const PresentationsTab = ({ allEvents, eventsLoading, setSelectedEvent, setView 
                   <div className="relative z-10 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
                     <span className="text-3xl text-white">📊</span>
                   </div>
-                  <div className="absolute bottom-6 right-6 z-10 bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl border border-white/30 text-white font-black text-xs">
+                  <div className="absolute bottom-6 right-6 z-10 bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl border border-white/30 text-white font-semibold text-xs">
                     #{ev.code}
                   </div>
                 </div>
@@ -129,9 +129,9 @@ const PresentationsTab = ({ allEvents, eventsLoading, setSelectedEvent, setView 
                   <h3 className="font-black text-xl text-slate-900 mb-3 group-hover:text-indigo-600 transition-colors line-clamp-1">
                     {ev.title || 'Без наслов'}
                   </h3>
-                  <p className="text-slate-400 text-xs font-black uppercase tracking-widest mb-3">{formatDate(ev.created_at)}</p>
+                  <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest mb-3">{formatDate(ev.created_at)}</p>
                   {sched && (
-                    <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black mb-4 ${
+                    <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold mb-4 ${
                       sched.hot
                         ? 'bg-amber-50 text-amber-600 border border-amber-200 animate-pulse'
                         : 'bg-indigo-50 text-indigo-600 border border-indigo-100'
@@ -143,13 +143,13 @@ const PresentationsTab = ({ allEvents, eventsLoading, setSelectedEvent, setView 
                   <div className="flex gap-3 mb-3">
                     <button
                       onClick={() => setSelectedEvent(ev)}
-                      className="flex-1 py-3 bg-indigo-50 text-indigo-600 rounded-xl font-black text-xs hover:bg-indigo-600 hover:text-white transition-all active:scale-95"
+                      className="flex-1 py-3 bg-indigo-50 text-indigo-600 rounded-xl font-semibold text-xs hover:bg-indigo-600 hover:text-white transition-all active:scale-95"
                     >
                       📊 Резултати
                     </button>
                     <button
                       onClick={() => { localStorage.setItem('active_event_code', ev.code); setView('host'); }}
-                      className="flex-1 py-3 bg-slate-50 text-slate-600 rounded-xl font-black text-xs hover:bg-slate-900 hover:text-white transition-all active:scale-95"
+                      className="flex-1 py-3 bg-slate-50 text-slate-600 rounded-xl font-semibold text-xs hover:bg-slate-900 hover:text-white transition-all active:scale-95"
                     >
                       ▶ Отвори
                     </button>
@@ -157,7 +157,7 @@ const PresentationsTab = ({ allEvents, eventsLoading, setSelectedEvent, setView 
                   <motion.button
                     onClick={() => share(ev)}
                     whileTap={{ scale: 0.95 }}
-                    className="w-full py-2.5 rounded-xl font-black text-xs transition-all active:scale-95 flex items-center justify-center gap-2
+                    className="w-full py-2.5 rounded-xl font-semibold text-xs transition-all active:scale-95 flex items-center justify-center gap-2
                       bg-gradient-to-r from-indigo-50 to-violet-50 text-indigo-600
                       hover:from-indigo-600 hover:to-violet-600 hover:text-white border border-indigo-100 hover:border-transparent"
                   >

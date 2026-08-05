@@ -214,7 +214,7 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
             <div className="overflow-y-auto flex-1 px-7 py-5">
             <div className="space-y-5">
               <div>
-                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Прашање</label>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2 px-1">Прашање</label>
                 <textarea
                   ref={questionRef}
                   rows={2}
@@ -236,7 +236,7 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
                   />
                 </div>
                 <div className="mt-4">
-                  <label className="block text-xs font-black text-slate-400 uppercase tracking-widest px-1 mb-2">
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest px-1 mb-2">
                     Слика (необ.)
                   </label>
                   {coverUrl ? (
@@ -255,14 +255,14 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
                     <button
                       type="button"
                       onClick={() => setPickerOpen(true)}
-                      className="w-full flex items-center justify-center gap-2 py-3 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl text-xs font-black text-slate-400 hover:text-indigo-600 hover:border-indigo-200 transition-all"
+                      className="w-full flex items-center justify-center gap-2 py-3 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl text-xs font-semibold text-slate-400 hover:text-indigo-600 hover:border-indigo-200 transition-all"
                     >
                       <ImageIcon className="w-4 h-4" /> Додај слика
                     </button>
                   )}
                 </div>
                 <div className="mt-4">
-                  <label className="block text-xs font-black text-slate-400 uppercase tracking-widest px-1 mb-2">
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest px-1 mb-2">
                     Белешки за презентер (само за хост)
                   </label>
                   <textarea
@@ -278,11 +278,11 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
 
               {isSurvey && (
                 <div className="space-y-4">
-                  <label className="block text-xs font-black text-slate-400 uppercase tracking-widest px-1">Прашања во формуларот</label>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest px-1">Прашања во формуларот</label>
                   {surveyQuestions.map((sq, qIdx) => (
                     <div key={sq.id} className="bg-slate-50 rounded-2xl p-4 space-y-3 border border-slate-100">
                       <div className="flex items-center gap-2">
-                        <span className="w-7 h-7 bg-green-100 text-green-700 rounded-lg font-black text-sm flex items-center justify-center flex-shrink-0">{qIdx + 1}</span>
+                        <span className="w-7 h-7 bg-green-100 text-green-700 rounded-lg font-bold text-sm flex items-center justify-center flex-shrink-0">{qIdx + 1}</span>
                         <input
                           type="text"
                           placeholder="Текст на прашањето..."
@@ -301,7 +301,7 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
                       <div className="flex gap-2 flex-wrap">
                         {SURVEY_Q_TYPES.map(t => (
                           <button key={t.value} onClick={() => updateSurveyQ(sq.id, { type: t.value })}
-                            className={`px-3 py-1.5 rounded-xl font-black text-xs transition-all ${sq.type === t.value ? 'bg-green-600 text-white' : 'bg-white border border-slate-200 text-slate-500 hover:border-green-400'}`}>
+                            className={`px-3 py-1.5 rounded-xl font-semibold text-xs transition-all ${sq.type === t.value ? 'bg-green-600 text-white' : 'bg-white border border-slate-200 text-slate-500 hover:border-green-400'}`}>
                             {t.label}
                           </button>
                         ))}
@@ -362,13 +362,13 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-1 px-1">Ознака за 1 (необ.)</label>
+                      <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1 px-1">Ознака за 1 (необ.)</label>
                       <input type="text" placeholder="пр. Воопшто не" value={scaleMin}
                         onChange={e => setScaleMin(e.target.value)} maxLength={40}
                         className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 font-bold text-sm focus:border-teal-500 focus:bg-white outline-none transition-all" />
                     </div>
                     <div>
-                      <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-1 px-1">Ознака за 10 (необ.)</label>
+                      <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1 px-1">Ознака за 10 (необ.)</label>
                       <input type="text" placeholder="пр. Апсолутно да" value={scaleMax}
                         onChange={e => setScaleMax(e.target.value)} maxLength={40}
                         className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 font-bold text-sm focus:border-teal-500 focus:bg-white outline-none transition-all" />
@@ -380,13 +380,13 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
               {hasOptions && (
                 <div>
                   <div className="flex items-center justify-between mb-2 px-1">
-                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Опции</label>
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Опции</label>
                     <span className="text-xs font-bold text-slate-300">{options.length}/8</span>
                   </div>
                   <div className="space-y-2">
                     {options.map((opt, i) => (
                       <div key={i} className="flex gap-2 items-center">
-                        <span className="w-6 h-6 rounded-lg bg-slate-100 text-slate-400 text-xs font-black flex items-center justify-center shrink-0">{i + 1}</span>
+                        <span className="w-6 h-6 rounded-lg bg-slate-100 text-slate-400 text-xs font-semibold flex items-center justify-center shrink-0">{i + 1}</span>
                         <input
                           type="text"
                           ref={(el) => { if (el) optionRefs.current[i] = el; else delete optionRefs.current[i]; }}

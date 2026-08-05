@@ -253,7 +253,7 @@ const Checkout = ({ user }) => {
                       }`}
                     >
                       <Icon className={`w-6 h-6 mb-2 ${active ? 'text-indigo-600' : 'text-slate-500'}`} />
-                      <p className="font-black text-sm text-slate-900">{m.label}</p>
+                      <p className="font-bold text-sm text-slate-900">{m.label}</p>
                       <p className="text-xs text-slate-500 mt-1 leading-snug">{m.description}</p>
                     </button>
                   );
@@ -281,7 +281,7 @@ const Checkout = ({ user }) => {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-5 rounded-2xl bg-indigo-600 text-white font-black uppercase tracking-widest text-sm shadow-xl hover:bg-indigo-700 disabled:opacity-60 transition-all active:scale-95 inline-flex items-center justify-center gap-2"
+              className="w-full py-5 rounded-2xl bg-indigo-600 text-white font-bold uppercase tracking-widest text-sm shadow-xl hover:bg-indigo-700 disabled:opacity-60 transition-all active:scale-95 inline-flex items-center justify-center gap-2"
             >
               {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <ShieldCheck className="w-5 h-5" />}
               {submitting ? 'Се креира нарачка...' : `Креирај нарачка (${formatAmount(plan.amount, plan.currency)})`}
@@ -295,7 +295,7 @@ const Checkout = ({ user }) => {
           {/* RIGHT: summary + bank details preview */}
           <aside className="lg:col-span-2 space-y-6">
             <div className="bg-gradient-to-br from-indigo-600 to-violet-600 text-white rounded-3xl p-8 shadow-xl">
-              <p className="text-xs font-black uppercase tracking-widest opacity-80 mb-2">Нарачка</p>
+              <p className="text-xs font-semibold uppercase tracking-widest opacity-80 mb-2">Нарачка</p>
               <p className="font-mono font-black text-2xl mb-6">{orderId}</p>
 
               <div className="space-y-3 text-sm">
@@ -311,7 +311,7 @@ const Checkout = ({ user }) => {
             </div>
 
             <div className="bg-white rounded-3xl p-6 shadow-lg">
-              <h3 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-4">Преглед на метод</h3>
+              <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400 mb-4">Преглед на метод</h3>
               <PaymentInstructions
                 method={method}
                 orderId={orderId}
@@ -337,7 +337,7 @@ const Checkout = ({ user }) => {
 
 const Field = ({ label, required, children }) => (
   <label className="block">
-    <span className="text-xs font-black uppercase tracking-widest text-slate-500 mb-1.5 block">
+    <span className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-1.5 block">
       {label} {required && <span className="text-rose-500">*</span>}
     </span>
     {children}

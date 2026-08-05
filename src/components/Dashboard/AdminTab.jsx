@@ -149,7 +149,7 @@ const AdminTab = ({ currentUser }) => {
     <div className="p-12 max-w-7xl mx-auto">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between mb-10">
         <div>
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 text-indigo-600 text-xs font-black uppercase tracking-widest mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 text-indigo-600 text-xs font-semibold uppercase tracking-widest mb-4">
             <Shield size={14} /> Admin only
           </div>
           <h2 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">Админ панел</h2>
@@ -205,7 +205,7 @@ const AdminTab = ({ currentUser }) => {
           { label: 'Платени планови', value: profiles.filter((profile) => !['free', 'basic', null, undefined].includes(profile.plan)).length },
         ].map((stat) => (
           <div key={stat.label} className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
-            <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">{stat.label}</p>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2">{stat.label}</p>
             <p className="text-3xl font-black text-slate-900">{stat.value}</p>
           </div>
         ))}
@@ -265,7 +265,7 @@ const AdminTab = ({ currentUser }) => {
                 <button
                   onClick={() => saveProfile(profile)}
                   disabled={savingId === profile.id}
-                  className="px-4 py-3 bg-slate-900 text-white rounded-xl font-black text-sm hover:bg-slate-800 transition-all inline-flex items-center justify-center gap-2 disabled:opacity-60"
+                  className="px-4 py-3 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all inline-flex items-center justify-center gap-2 disabled:opacity-60"
                 >
                   <Save size={14} /> {savingId === profile.id ? '...' : 'Зачувај'}
                 </button>
@@ -297,7 +297,7 @@ const AdminTab = ({ currentUser }) => {
           <button
             onClick={loadErrorLog}
             disabled={errorLogLoading}
-            className="px-4 py-2 bg-white border border-slate-100 rounded-xl font-black text-slate-700 text-sm hover:border-slate-200 hover:bg-slate-50 transition-all shadow-sm inline-flex items-center gap-2 disabled:opacity-60"
+            className="px-4 py-2 bg-white border border-slate-100 rounded-xl font-bold text-slate-700 text-sm hover:border-slate-200 hover:bg-slate-50 transition-all shadow-sm inline-flex items-center gap-2 disabled:opacity-60"
           >
             <RefreshCw size={14} className={errorLogLoading ? 'animate-spin' : ''} /> Освежи
           </button>
@@ -338,7 +338,7 @@ const AdminTab = ({ currentUser }) => {
           <button
             onClick={loadSupportMessages}
             disabled={supportLoading}
-            className="px-4 py-2 bg-white border border-slate-100 rounded-xl font-black text-slate-700 text-sm hover:border-slate-200 hover:bg-slate-50 transition-all shadow-sm inline-flex items-center gap-2 disabled:opacity-60"
+            className="px-4 py-2 bg-white border border-slate-100 rounded-xl font-bold text-slate-700 text-sm hover:border-slate-200 hover:bg-slate-50 transition-all shadow-sm inline-flex items-center gap-2 disabled:opacity-60"
           >
             <RefreshCw size={14} className={supportLoading ? 'animate-spin' : ''} /> Освежи
           </button>

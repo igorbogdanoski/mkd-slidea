@@ -137,7 +137,7 @@ export default function Demo() {
         </p>
         <button
           onClick={() => navigate('/host')}
-          className="ml-4 px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-900 rounded-xl font-black text-xs transition-colors"
+          className="ml-4 px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-900 rounded-xl font-semibold text-xs transition-colors"
         >
           Креирај вистински настан →
         </button>
@@ -173,7 +173,7 @@ export default function Demo() {
           className="bg-slate-800/40 backdrop-blur border border-slate-700/50 rounded-[2rem] p-10 mb-6"
         >
           <div className="flex items-center gap-3 mb-6">
-            <div className="px-4 py-1.5 bg-indigo-500/20 text-indigo-300 rounded-full text-xs font-black uppercase tracking-wider">
+            <div className="px-4 py-1.5 bg-indigo-500/20 text-indigo-300 rounded-full text-xs font-semibold uppercase tracking-wider">
               {current.is_quiz ? 'Квиз' : current.type === 'wordcloud' ? 'Облак од зборови' : current.type === 'rating' ? 'Оцена' : 'Анкета'}
             </div>
             <span className="text-slate-400 text-sm">{currentIdx + 1} / {polls.length}</span>

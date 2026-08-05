@@ -11,7 +11,7 @@ const PollResultsRenderer = ({ currentPoll, visibleOptions, totalVotes, surveyRe
     const total = surveyResponses.length;
     return (
       <div className="space-y-6 py-2">
-        <p className="text-slate-500 font-black text-sm uppercase tracking-widest text-right">
+        <p className="text-slate-500 font-bold text-sm uppercase tracking-widest text-right">
           {total} {total === 1 ? 'одговор' : 'одговори'}
         </p>
         {qs.map((sq) => {
@@ -57,7 +57,7 @@ const PollResultsRenderer = ({ currentPoll, visibleOptions, totalVotes, surveyRe
                 const pct = total > 0 ? Math.round((count / total) * 100) : 0;
                 return (
                   <div key={oi} className="space-y-1 mb-2">
-                    <div className="flex justify-between text-sm font-black text-slate-300">
+                    <div className="flex justify-between text-sm font-bold text-slate-300">
                       <span>{opt}</span><span>{count} ({pct}%)</span>
                     </div>
                     <div className="h-2.5 bg-slate-700 rounded-full overflow-hidden">
@@ -85,7 +85,7 @@ const PollResultsRenderer = ({ currentPoll, visibleOptions, totalVotes, surveyRe
       <div className="space-y-8 py-4">
         <div className="flex items-center justify-center gap-12 py-8 bg-slate-800/20 rounded-[3rem] border border-slate-700/50">
           <div className="text-center">
-            <p className="text-slate-500 font-black text-sm uppercase tracking-widest mb-2">Просек</p>
+            <p className="text-slate-500 font-bold text-sm uppercase tracking-widest mb-2">Просек</p>
             <h3 className="text-[9rem] font-black leading-none text-teal-400">{avg}</h3>
             <p aria-live="polite" aria-atomic="true" className="text-slate-400 font-bold text-xl mt-2">{totalVotes} гласови</p>
           </div>
@@ -96,7 +96,7 @@ const PollResultsRenderer = ({ currentPoll, visibleOptions, totalVotes, surveyRe
             const hue = Math.round(i * 12);
             return (
               <div key={i} className="flex items-center gap-4">
-                <span className="w-8 text-center font-black text-slate-400 text-sm">{opt.text}</span>
+                <span className="w-8 text-center font-bold text-slate-400 text-sm">{opt.text}</span>
                 <div className="flex-1 h-6 bg-slate-800/40 rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
@@ -106,13 +106,13 @@ const PollResultsRenderer = ({ currentPoll, visibleOptions, totalVotes, surveyRe
                     style={{ backgroundColor: `hsl(${hue},70%,55%)` }}
                   />
                 </div>
-                <span className="w-12 text-right font-black text-slate-400 text-sm">{opt.votes || 0}</span>
+                <span className="w-12 text-right font-bold text-slate-400 text-sm">{opt.votes || 0}</span>
               </div>
             );
           })}
         </div>
         {(minLabel || maxLabel) && (
-          <div className="flex justify-between text-xs font-black text-slate-500 uppercase tracking-widest px-12">
+          <div className="flex justify-between text-xs font-semibold text-slate-500 uppercase tracking-widest px-12">
             <span>1 — {minLabel}</span>
             <span>10 — {maxLabel}</span>
           </div>
@@ -172,7 +172,7 @@ const PollResultsRenderer = ({ currentPoll, visibleOptions, totalVotes, surveyRe
                 </div>
                 <div className="text-right flex-shrink-0">
                   <p className="text-4xl font-black text-white">{opt.votes}</p>
-                  <p className="text-xs font-black text-slate-500 uppercase tracking-widest">{pct}%</p>
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">{pct}%</p>
                 </div>
               </motion.div>
             );

@@ -63,7 +63,7 @@ const RemoteController = ({ polls, activePollIndex, setActivePoll, eventCode, ev
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-2 bg-indigo-500/10 px-3 py-1.5 rounded-full border border-indigo-500/20">
             <Users className="w-4 h-4 text-indigo-400" />
-            <span className="text-sm font-black text-indigo-400">{activeParticipants}</span>
+            <span className="text-sm font-bold text-indigo-400">{activeParticipants}</span>
           </div>
           {onClose && (
             <button

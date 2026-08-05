@@ -52,7 +52,7 @@ const DictateButton = ({ onTranscript, className = '' }) => {
           !supported ? 'Прелистувачот не поддржува препознавање на говор' :
           enabled ? 'Запри диктирање' : `Диктирај на ${current.name}`
         }
-        className={`relative flex items-center gap-2 px-3 py-2 rounded-xl font-black text-xs border-2 transition-all ${
+        className={`relative flex items-center gap-2 px-3 py-2 rounded-xl font-semibold text-xs border-2 transition-all ${
           !supported ? 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed' :
           enabled ? 'bg-rose-500 border-rose-400 text-white hover:bg-rose-600' :
           'bg-white border-slate-200 text-slate-600 hover:border-indigo-400 hover:text-indigo-600'
@@ -71,7 +71,7 @@ const DictateButton = ({ onTranscript, className = '' }) => {
           onClick={() => setShowLangs((v) => !v)}
           aria-haspopup="listbox"
           aria-expanded={showLangs}
-          className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl bg-white border-2 border-slate-200 text-slate-600 font-black text-xs hover:border-indigo-400 hover:text-indigo-600 transition-all"
+          className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl bg-white border-2 border-slate-200 text-slate-600 font-semibold text-xs hover:border-indigo-400 hover:text-indigo-600 transition-all"
         >
           <Globe2 className="w-3.5 h-3.5" />
           {current.label}
@@ -88,7 +88,7 @@ const DictateButton = ({ onTranscript, className = '' }) => {
                   role="option"
                   aria-selected={l.code === lang}
                   onClick={() => { setLang(l.code); setShowLangs(false); }}
-                  className={`w-full text-left px-3 py-2 text-xs font-black transition-all ${
+                  className={`w-full text-left px-3 py-2 text-xs font-semibold transition-all ${
                     l.code === lang ? 'bg-indigo-50 text-indigo-600' : 'text-slate-600 hover:bg-slate-50'
                   }`}
                 >

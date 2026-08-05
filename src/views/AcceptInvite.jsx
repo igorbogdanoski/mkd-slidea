@@ -57,7 +57,7 @@ const AcceptInvite = () => {
             <p className="text-sm font-bold text-slate-400 mb-6">Сега имаш пристап преку „Организации" во контролната табла.</p>
             <button
               onClick={() => navigate('/dashboard')}
-              className="w-full py-3 bg-indigo-600 text-white rounded-2xl font-black text-sm hover:bg-indigo-700 active:scale-95 transition-all"
+              className="w-full py-3 bg-indigo-600 text-white rounded-2xl font-bold text-sm hover:bg-indigo-700 active:scale-95 transition-all"
             >
               Оди во контролна табла
             </button>
@@ -71,7 +71,7 @@ const AcceptInvite = () => {
             <p className="text-sm font-bold text-slate-400 mb-6">{error}</p>
             <button
               onClick={() => navigate('/dashboard')}
-              className="w-full py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black text-sm hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-95 transition-all"
+              className="w-full py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-bold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-95 transition-all"
             >
               Оди во контролна табла
             </button>

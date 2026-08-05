@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, BookOpen, ArrowRight, Sparkles, Users, ArrowLeft, CheckCircle2, Star, ArrowUpDown } from 'lucide-react';
+import { Search, BookOpen, ArrowRight, Sparkles, Users, ArrowLeft, CheckCircle2, ArrowUpDown } from 'lucide-react';
 import { STARTER_TEMPLATES, TEMPLATE_SUBJECTS } from '../lib/starterTemplates';
 import { safeJsonLd } from '../lib/jsonLd';
 import { supabase } from '../lib/supabase';
@@ -13,8 +13,6 @@ const slugify = (s) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '') || 'tpl';
 
-const starRating = (pollCount) => Math.min(5, Math.max(3, Math.ceil(pollCount / 2)));
-
 const normalizeStarter = (t) => ({
   slug: t.id,
   title: t.title,
@@ -25,7 +23,6 @@ const normalizeStarter = (t) => ({
   polls: t.polls || [],
   source: 'starter',
   verified: true,
-  stars: starRating((t.polls || []).length),
   views: 0,
 });
 
@@ -74,13 +71,13 @@ const useAllTemplates = () => {
   return { all, community, loading };
 };
 
-const StarRating = ({ count }) => (
-  <div className="flex items-center gap-0.5" aria-label={`${count} од 5 ѕвезди`}>
-    {[1, 2, 3, 4, 5].map((s) => (
-      <Star key={s} className={`w-3 h-3 ${s <= count ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`} />
-    ))}
-  </div>
-);
+// The star row is gone. It was never a rating: `stars` came from
+// min(5, max(3, ceil(pollCount / 2))), so virtually every template showed
+// exactly three gold stars — which a visitor reads as "other teachers rated
+// this 3 out of 5", a claim nobody ever made. It was also a second rendering
+// of the activity count already printed at the foot of the same card. Show
+// the real number once; add real stars when there are real ratings behind
+// them.
 
 const TemplateCard = ({ tpl }) => (
   <Link
@@ -108,15 +105,10 @@ const TemplateCard = ({ tpl }) => (
     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
       {tpl.subject}{tpl.grade ? ` · ${tpl.grade}` : ''}
     </p>
-    {tpl.stars && (
-      <div className="mb-2">
-        <StarRating count={tpl.stars} />
-      </div>
-    )}
     <p className="text-sm text-slate-500 leading-relaxed line-clamp-3 mb-4 flex-1">
       {tpl.description || 'Готова интерактивна активност.'}
     </p>
-    <div className="flex items-center justify-between text-xs font-black text-slate-400">
+    <div className="flex items-center justify-between text-xs font-semibold text-slate-400">
       <span>{tpl.polls.length} активности</span>
       <span className="flex items-center gap-1 text-indigo-600 group-hover:gap-2 transition-all">
         Прегледај <ArrowRight className="w-3.5 h-3.5" />
@@ -171,7 +163,6 @@ const PublicTemplatesIndex = () => {
     });
     if (sortBy === 'polls') return [...base].sort((a, b) => b.polls.length - a.polls.length);
     if (sortBy === 'alpha') return [...base].sort((a, b) => a.title.localeCompare(b.title, 'mk'));
-    if (sortBy === 'stars') return [...base].sort((a, b) => (b.stars || 0) - (a.stars || 0));
     // default: verified first, then community
     return [...base].sort((a, b) => (b.verified ? 1 : 0) - (a.verified ? 1 : 0));
   }, [all, query, subject, sortBy]);
@@ -183,7 +174,7 @@ const PublicTemplatesIndex = () => {
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-10"
       >
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-full text-xs font-black uppercase tracking-widest mb-4">
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-full text-xs font-semibold uppercase tracking-widest mb-4">
           <Sparkles className="w-3.5 h-3.5" />
           {all.length} бесплатни шаблони
         </div>
@@ -224,7 +215,9 @@ const PublicTemplatesIndex = () => {
           className="px-5 py-4 bg-white border-2 border-slate-100 rounded-2xl font-black text-slate-700 focus:border-indigo-500 outline-none transition-all"
         >
           <option value="default">✅ Верифицирани прво</option>
-          <option value="stars">⭐ По оценка</option>
+          {/* "⭐ По оценка" removed: it sorted by the same fabricated star
+              value, so it was the activity-count sort below under a label
+              that implied user ratings existed. */}
           <option value="polls">📊 По бр. активности</option>
           <option value="alpha">🔤 Азбучен</option>
         </select>
@@ -341,7 +334,7 @@ const PublicTemplateDetail = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-10">
-      <Link to="/templates" className="inline-flex items-center gap-2 text-sm font-black text-slate-400 hover:text-indigo-600 transition-colors mb-6">
+      <Link to="/templates" className="inline-flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-indigo-600 transition-colors mb-6">
         <ArrowLeft className="w-4 h-4" /> Сите шаблони
       </Link>
 
@@ -349,7 +342,7 @@ const PublicTemplateDetail = () => {
         <div className="flex items-start gap-4 mb-6">
           <span className="text-5xl">{tpl.icon || '📋'}</span>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1">
               {tpl.subject}{tpl.grade ? ` · ${tpl.grade}` : ''}
             </p>
             <h1 className="text-3xl md:text-4xl font-black text-slate-900 leading-tight">{tpl.title}</h1>
@@ -366,13 +359,13 @@ const PublicTemplateDetail = () => {
         )}
 
         <div className="mb-8">
-          <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4">
+          <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">
             {tpl.polls.length} активности
           </h2>
           <ol className="space-y-3">
             {tpl.polls.map((p, i) => (
               <li key={i} className="flex items-start gap-3 p-4 bg-slate-50 rounded-2xl">
-                <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-indigo-600 text-white text-xs font-black flex items-center justify-center mt-0.5">
+                <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-indigo-600 text-white text-xs font-semibold flex items-center justify-center mt-0.5">
                   {i + 1}
                 </span>
                 <div className="flex-1 min-w-0">
@@ -383,7 +376,7 @@ const PublicTemplateDetail = () => {
                   {Array.isArray(p.options) && p.options.length > 0 && (
                     <ul className="mt-2 space-y-1">
                       {p.options.slice(0, 6).map((o, oi) => (
-                        <li key={oi} className={`text-sm flex items-center gap-2 ${o.is_correct ? 'text-emerald-700 font-black' : 'text-slate-500 font-medium'}`}>
+                        <li key={oi} className={`text-sm flex items-center gap-2 ${o.is_correct ? 'text-emerald-700 font-bold' : 'text-slate-500 font-medium'}`}>
                           {o.is_correct && <CheckCircle2 className="w-3.5 h-3.5" />} {o.text}
                         </li>
                       ))}

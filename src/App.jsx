@@ -331,7 +331,7 @@ const AppContent = () => {
 
               {/* Производ */}
               <div className="space-y-3">
-                <h4 className="text-white font-black text-sm uppercase tracking-widest mb-4">Производ</h4>
+                <h4 className="text-white font-bold text-sm uppercase tracking-widest mb-4">Производ</h4>
                 {[
                   // Was view:'host' — a protected route, so an anonymous
                   // visitor clicking "Функционалности" in the footer was
@@ -354,7 +354,7 @@ const AppContent = () => {
 
               {/* Решенија */}
               <div className="space-y-3">
-                <h4 className="text-white font-black text-sm uppercase tracking-widest mb-4">Решенија</h4>
+                <h4 className="text-white font-bold text-sm uppercase tracking-widest mb-4">Решенија</h4>
                 {/* These were bare <div className="cursor-pointer"> with no
                     onClick and no href: they looked like links, showed a hand
                     cursor, did nothing, and were invisible to keyboard and
@@ -374,7 +374,7 @@ const AppContent = () => {
 
               {/* Поддршка */}
               <div className="space-y-3">
-                <h4 className="text-white font-black text-sm uppercase tracking-widest mb-4">Поддршка</h4>
+                <h4 className="text-white font-bold text-sm uppercase tracking-widest mb-4">Поддршка</h4>
                 {[
                   { label: 'Брз старт', path: '/' },
                   { label: 'Блог', path: '/blog' },

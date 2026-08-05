@@ -7,7 +7,9 @@ test.describe('MKD Slidea Landing Page', () => {
 
   test('should have the correct title and welcome message', async ({ page }) => {
     await expect(page).toHaveTitle(/MKD Slidea/i);
-    await expect(page.locator('h1')).toContainText(/Слајдови кои/, { timeout: 15000 });
+    // The h1 must name the category, not only carry the tagline: it is the
+    // heaviest on-page SEO signal and the first thing a new visitor reads.
+    await expect(page.locator('h1')).toContainText(/Интерактивни презентации/, { timeout: 15000 });
     await expect(page.locator('h1')).toContainText(/Идеи кои водат/);
   });
 

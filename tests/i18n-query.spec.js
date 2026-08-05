@@ -11,6 +11,8 @@ test.describe('?lang= locale selection', () => {
   });
 
   test('?lang=en renders the English navigation', async ({ page }) => {
+    // The full desktop header only mounts above the `nav` breakpoint (1360px).
+    await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/?lang=en', { waitUntil: 'domcontentloaded' });
     const nav = page.locator('nav').first();
     await expect(nav.getByRole('button', { name: 'Pricing' })).toBeVisible({ timeout: 15000 });

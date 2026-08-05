@@ -174,7 +174,7 @@ export default function Schools() {
               <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
                 className={`rounded-3xl p-8 border-2 ${plan.highlight ? 'border-indigo-500 shadow-xl shadow-indigo-100' : 'border-slate-100'}`}>
                 {plan.highlight && (
-                  <div className="inline-block bg-indigo-600 text-white text-xs font-black px-3 py-1 rounded-full mb-4 uppercase tracking-wide">
+                  <div className="inline-block bg-indigo-600 text-white text-xs font-semibold px-3 py-1 rounded-full mb-4 uppercase tracking-wide">
                     Препорачано
                   </div>
                 )}

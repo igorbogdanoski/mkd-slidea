@@ -16,7 +16,7 @@ const Section = ({ icon: Icon, title, count, color = 'indigo', children }) => (
         <Icon className="w-5 h-5" />
       </div>
       <h3 className="font-black text-slate-900 text-lg">{title}</h3>
-      <span className="ml-auto text-xs font-black text-slate-300 uppercase tracking-widest">
+      <span className="ml-auto text-xs font-semibold text-slate-300 uppercase tracking-widest">
         {count} резултати
       </span>
     </div>
@@ -112,7 +112,7 @@ const SemanticSearchTab = ({ user }) => {
           <button
             type="submit"
             disabled={loading || query.trim().length < 2}
-            className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm hover:bg-indigo-700 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-bold text-sm hover:bg-indigo-700 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Пребарува...' : 'Пребарај'}
           </button>
@@ -179,7 +179,7 @@ const SemanticSearchTab = ({ user }) => {
                 {result.templates.map((t) => (
                   <li key={t.id} className="flex items-start gap-3 p-3 rounded-2xl hover:bg-slate-50 transition-colors">
                     <div className="flex-1 min-w-0">
-                      <div className="font-black text-sm text-slate-900 truncate">{t.title}</div>
+                      <div className="font-bold text-sm text-slate-900 truncate">{t.title}</div>
                       <div className="text-xs font-bold text-slate-400 truncate">
                         {[t.subject, t.grade].filter(Boolean).join(' · ')}
                         {t.uses_count ? ` · ${t.uses_count} употреби` : ''}

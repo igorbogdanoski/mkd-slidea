@@ -99,7 +99,7 @@ const PollCard = ({ poll, index }) => {
           <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
             {sorted.filter(o => o.text?.trim()).slice(0, 12).map((o, i) => (
               <div key={i} className="flex items-start gap-3 bg-slate-50 rounded-2xl px-4 py-3">
-                <span className="text-slate-300 font-black text-xs tabular-nums pt-0.5 shrink-0">{i + 1}.</span>
+                <span className="text-slate-300 font-semibold text-xs tabular-nums pt-0.5 shrink-0">{i + 1}.</span>
                 <p className="text-sm font-bold text-slate-700 leading-relaxed">{o.text}</p>
               </div>
             ))}
@@ -126,7 +126,7 @@ const PollCard = ({ poll, index }) => {
             )}
             {sorted.map((o, i) => (
               <div key={i} className="flex items-center gap-3">
-                <span className="text-xs font-black text-slate-400 w-16 shrink-0 truncate">{o.text}</span>
+                <span className="text-xs font-semibold text-slate-400 w-16 shrink-0 truncate">{o.text}</span>
                 <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
@@ -136,7 +136,7 @@ const PollCard = ({ poll, index }) => {
                     style={{ background: PALETTE[i % PALETTE.length] }}
                   />
                 </div>
-                <span className="text-xs font-black text-slate-500 w-8 text-right tabular-nums shrink-0">
+                <span className="text-xs font-semibold text-slate-500 w-8 text-right tabular-nums shrink-0">
                   {totalVotes > 0 ? Math.round((o.votes||0)/totalVotes*100) : 0}%
                 </span>
               </div>
@@ -164,7 +164,7 @@ const PollCard = ({ poll, index }) => {
           <div className="space-y-2.5">
             {sorted.map((o, i) => (
               <div key={i} className="flex items-center gap-3">
-                <span className="text-xs font-black text-slate-500 w-28 shrink-0 truncate">{o.text}</span>
+                <span className="text-xs font-semibold text-slate-500 w-28 shrink-0 truncate">{o.text}</span>
                 <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
@@ -174,7 +174,7 @@ const PollCard = ({ poll, index }) => {
                     style={{ background: PALETTE[i % PALETTE.length] }}
                   />
                 </div>
-                <span className="text-xs font-black text-slate-500 w-10 text-right tabular-nums shrink-0">
+                <span className="text-xs font-semibold text-slate-500 w-10 text-right tabular-nums shrink-0">
                   {o.pct || 0}%
                 </span>
               </div>
@@ -210,7 +210,7 @@ const ShareButton = ({ url, title }) => {
       onClick={handleShare}
       whileHover={{ scale: 1.04 }}
       whileTap={{ scale: 0.95 }}
-      className="inline-flex items-center gap-2.5 px-6 py-3 rounded-2xl font-black text-sm
+      className="inline-flex items-center gap-2.5 px-6 py-3 rounded-2xl font-bold text-sm
         bg-white/20 backdrop-blur-md border border-white/30 text-white
         hover:bg-white/30 transition-all shadow-lg"
     >
@@ -342,7 +342,7 @@ const PublicResults = () => {
             className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md border border-white/20 px-4 py-2 rounded-2xl mb-8"
           >
             <Hash size={14} className="text-white/70" />
-            <span className="text-white font-black text-sm tracking-widest">{event.code}</span>
+            <span className="text-white font-bold text-sm tracking-widest">{event.code}</span>
           </motion.div>
 
           <motion.h1
@@ -409,13 +409,13 @@ const PublicResults = () => {
               <BarChart2 size={18} className="text-white" />
             </div>
             <div>
-              <p className="font-black text-slate-900 text-sm">Создадено со MKD Slidea</p>
+              <p className="font-bold text-slate-900 text-sm">Создадено со MKD Slidea</p>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Интерактивни часови за македонски наставници</p>
             </div>
           </div>
           <Link
             to="/"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-black text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
           >
             Пробај бесплатно <ExternalLink size={14} />
           </Link>

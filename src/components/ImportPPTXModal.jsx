@@ -325,7 +325,7 @@ const ImportPPTXModal = ({ isOpen, onClose, onImport, user }) => {
                       <Upload size={48} className="text-slate-300 mx-auto mb-4" />
                       <p className="font-black text-slate-700 text-lg mb-2">Повлечи .pptx · .pdf · .txt · .md овде</p>
                       <p className="font-bold text-slate-400 text-sm mb-6">или кликни за да изберeш</p>
-                      <span className="px-6 py-3 bg-indigo-600 text-white rounded-2xl font-black text-sm hover:bg-indigo-700 transition-all">
+                      <span className="px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold text-sm hover:bg-indigo-700 transition-all">
                         Избери датотека
                       </span>
                     </>
@@ -348,7 +348,7 @@ const ImportPPTXModal = ({ isOpen, onClose, onImport, user }) => {
                     </p>
                     <button
                       onClick={() => setSelected(selected.length === slides.length ? [] : slides.map(s => s.index))}
-                      className="text-xs font-black text-indigo-600 hover:underline uppercase tracking-widest"
+                      className="text-xs font-semibold text-indigo-600 hover:underline uppercase tracking-widest"
                     >
                       {selected.length === slides.length ? 'Одбери ги сите' : 'Избери ги сите'}
                     </button>
@@ -385,7 +385,7 @@ const ImportPPTXModal = ({ isOpen, onClose, onImport, user }) => {
 
                   {/* Poll type */}
                   <div>
-                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Тип на активност за увоз</p>
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Тип на активност за увоз</p>
                     <div className="grid grid-cols-2 gap-3">
                       {TYPE_OPTIONS.map(opt => {
                         const isAI = opt.value === 'ai';
@@ -402,7 +402,7 @@ const ImportPPTXModal = ({ isOpen, onClose, onImport, user }) => {
                           >
                             <div className="flex items-center gap-2 mb-1">
                               {isAI && <Sparkles size={14} className={selected ? 'text-violet-600' : 'text-slate-400'} />}
-                              <p className={`font-black text-sm ${
+                              <p className={`font-bold text-sm ${
                                 selected
                                   ? (isAI ? 'text-violet-600' : 'text-indigo-600')
                                   : 'text-slate-700'
@@ -422,7 +422,7 @@ const ImportPPTXModal = ({ isOpen, onClose, onImport, user }) => {
 
                   <button
                     onClick={() => { reset(); }}
-                    className="text-xs font-black text-slate-300 hover:text-slate-500 uppercase tracking-widest transition-colors"
+                    className="text-xs font-semibold text-slate-300 hover:text-slate-500 uppercase tracking-widest transition-colors"
                   >
                     ← Избери друга датотека
                   </button>

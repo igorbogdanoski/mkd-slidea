@@ -23,7 +23,7 @@ const PresenterOverlays = ({ showNotes, setShowNotes, currentPoll, timerRemainin
             <button
               type="button"
               onClick={() => setShowNotes(false)}
-              className="text-amber-600 hover:text-amber-800 text-xs font-black uppercase tracking-widest"
+              className="text-amber-600 hover:text-amber-800 text-xs font-semibold uppercase tracking-widest"
             >
               N · скриј
             </button>
@@ -69,14 +69,14 @@ const PresenterOverlays = ({ showNotes, setShowNotes, currentPoll, timerRemainin
           initial={{ y: -60, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -60, opacity: 0 }}
-          className="fixed top-0 left-0 right-0 z-[70] flex items-center justify-center gap-4 py-3 bg-red-600 text-white font-black text-sm uppercase tracking-widest"
+          className="fixed top-0 left-0 right-0 z-[70] flex items-center justify-center gap-4 py-3 bg-red-600 text-white font-bold text-sm uppercase tracking-widest"
         >
           <Pause className="w-4 h-4" />
           Гласањето е паузирано — учесниците не можат да гласаат
           {onToggleLock && (
             <button
               onClick={handleToggleLock}
-              className="ml-4 px-4 py-1 bg-white text-red-600 rounded-xl text-xs font-black hover:bg-red-50 transition-all"
+              className="ml-4 px-4 py-1 bg-white text-red-600 rounded-xl text-xs font-semibold hover:bg-red-50 transition-all"
             >
               <Play className="w-3 h-3 inline mr-1" /> Продолжи
             </button>

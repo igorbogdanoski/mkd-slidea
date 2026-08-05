@@ -100,7 +100,7 @@ const MathSymbolPicker = ({ onInsert, compact = false }) => {
                 key={symbol}
                 type="button"
                 onClick={() => insert(symbol)}
-                className="min-w-[36px] px-2.5 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-black text-sm hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all"
+                className="min-w-[36px] px-2.5 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-sm hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all"
                 aria-label={`Вметни симбол ${symbol}`}
               >
                 {symbol}
@@ -119,7 +119,7 @@ const MathSymbolPicker = ({ onInsert, compact = false }) => {
                   type="button"
                   onClick={() => insert(t.value)}
                   title={t.hint}
-                  className="px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-700 font-black text-xs hover:bg-indigo-100 transition-all"
+                  className="px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-700 font-semibold text-xs hover:bg-indigo-100 transition-all"
                 >
                   {t.label}
                 </button>

@@ -78,7 +78,7 @@ const CoHostModal = ({ isOpen, onClose }) => {
                 className={`w-full border-2 rounded-2xl px-5 py-4 font-black text-slate-900 text-lg tracking-widest outline-none transition-all ${coHostError ? 'border-red-400 bg-red-50' : 'border-slate-100 focus:border-indigo-500'}`}
               />
               {coHostError && (
-                <p className="text-red-500 font-black text-sm">{coHostError}</p>
+                <p className="text-red-500 font-bold text-sm">{coHostError}</p>
               )}
               <button
                 type="submit"

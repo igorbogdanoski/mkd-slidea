@@ -29,7 +29,7 @@ const TemplatesTab = ({ allTemplates, templatesLoading, applyTemplate }) => {
           <button
             key={c}
             onClick={() => setCategory(c)}
-            className={`px-4 py-2 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${
+            className={`px-4 py-2 rounded-xl font-semibold text-xs uppercase tracking-widest transition-all ${
               category === c ? 'bg-indigo-600 text-white' : 'bg-white border border-slate-200 text-slate-500 hover:border-indigo-200 hover:text-indigo-600'
             }`}
           >
@@ -89,13 +89,13 @@ const TemplatesTab = ({ allTemplates, templatesLoading, applyTemplate }) => {
               <div className="flex gap-2">
                 <button
                   onClick={() => applyTemplate(temp)}
-                  className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-black text-xs hover:bg-indigo-700 transition-all active:scale-95"
+                  className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-semibold text-xs hover:bg-indigo-700 transition-all active:scale-95"
                 >
                   Користи
                 </button>
                 <button
                   onClick={() => setPreviewTemplate(temp)}
-                  className="flex-1 py-3 bg-slate-50 text-slate-400 rounded-xl font-black text-xs hover:bg-slate-100 hover:text-slate-600 transition-all"
+                  className="flex-1 py-3 bg-slate-50 text-slate-400 rounded-xl font-semibold text-xs hover:bg-slate-100 hover:text-slate-600 transition-all"
                 >
                   Преглед
                 </button>
@@ -148,7 +148,7 @@ const TemplatesTab = ({ allTemplates, templatesLoading, applyTemplate }) => {
             <div className="p-8 pt-0">
               <button
                 onClick={() => { applyTemplate(previewTemplate); setPreviewTemplate(null); }}
-                className="w-full py-3 bg-indigo-600 text-white rounded-xl font-black text-xs hover:bg-indigo-700 transition-all active:scale-95"
+                className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold text-xs hover:bg-indigo-700 transition-all active:scale-95"
               >
                 Користи го шаблонов
               </button>

@@ -129,7 +129,7 @@ const EventSettingsModal = ({
                   await supabase.from('events').update({ starts_at: null, reminded: false }).eq('id', event.id);
                   setEvent(prev => ({ ...prev, starts_at: null, reminded: false }));
                 }}
-                className="mt-2 text-xs font-black text-red-400 hover:text-red-600 transition-colors"
+                className="mt-2 text-xs font-semibold text-red-400 hover:text-red-600 transition-colors"
               >
                 ✕ Отстрани распоред
               </button>
@@ -192,7 +192,7 @@ const EventSettingsModal = ({
                     await supabase.from('events').update({ cohost_code: null }).eq('id', event.id);
                     setEvent(prev => ({ ...prev, cohost_code: null }));
                   }}
-                  className="text-xs font-black text-red-400 hover:text-red-600 transition-colors uppercase tracking-widest"
+                  className="text-xs font-semibold text-red-400 hover:text-red-600 transition-colors uppercase tracking-widest"
                 >
                   Откажи ко-домаќин пристап
                 </button>
@@ -204,7 +204,7 @@ const EventSettingsModal = ({
                   await supabase.from('events').update({ cohost_code: code }).eq('id', event.id);
                   setEvent(prev => ({ ...prev, cohost_code: code }));
                 }}
-                className="w-full py-3 bg-white border-2 border-dashed border-slate-200 text-slate-500 rounded-xl font-black text-sm hover:border-indigo-400 hover:text-indigo-600 transition-all flex items-center justify-center gap-2"
+                className="w-full py-3 bg-white border-2 border-dashed border-slate-200 text-slate-500 rounded-xl font-bold text-sm hover:border-indigo-400 hover:text-indigo-600 transition-all flex items-center justify-center gap-2"
               >
                 <UserPlus className="w-4 h-4" /> Генерирај ко-домаќин код
               </button>
@@ -312,7 +312,7 @@ const EventSettingsModal = ({
                 />
               ))}
               <label className="w-9 h-9 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer hover:border-slate-400 transition-all overflow-hidden relative" title="Прилагодена боја">
-                <span className="text-slate-400 text-xs font-black">+</span>
+                <span className="text-slate-400 text-xs font-semibold">+</span>
                 <input
                   type="color"
                   className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
@@ -353,7 +353,7 @@ const EventSettingsModal = ({
                       await supabase.from('events').update({ brand_font: next }).eq('id', event.id);
                       setEvent(prev => ({ ...prev, brand_font: next }));
                     }}
-                    className={`px-3 py-2 rounded-xl border-2 text-sm font-black transition-all text-left ${isSelected ? 'border-indigo-600 bg-white text-indigo-700 shadow-sm' : 'border-slate-200 bg-white text-slate-500 hover:border-indigo-300'}`}
+                    className={`px-3 py-2 rounded-xl border-2 text-sm font-bold transition-all text-left ${isSelected ? 'border-indigo-600 bg-white text-indigo-700 shadow-sm' : 'border-slate-200 bg-white text-slate-500 hover:border-indigo-300'}`}
                     style={f.id ? { fontFamily: f.id } : undefined}
                   >
                     {f.label}
@@ -376,7 +376,7 @@ const EventSettingsModal = ({
                   <a
                     href={`https://classroom.google.com/share?url=${encodeURIComponent(joinUrl)}&title=${title}`}
                     target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-slate-100 rounded-xl text-sm font-black text-slate-600 hover:border-blue-300 hover:text-blue-600 transition-all"
+                    className="flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-slate-100 rounded-xl text-sm font-bold text-slate-600 hover:border-blue-300 hover:text-blue-600 transition-all"
                   >
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="#4285F4"/><path d="M17 8H7a1 1 0 00-1 1v6a1 1 0 001 1h10a1 1 0 001-1V9a1 1 0 00-1-1zm-5 5.5L7.5 11h9L12 13.5z" fill="white"/></svg>
                     Google Classroom
@@ -384,7 +384,7 @@ const EventSettingsModal = ({
                   <a
                     href={`https://teams.microsoft.com/share?href=${encodeURIComponent(joinUrl)}&msgText=${msg}`}
                     target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-slate-100 rounded-xl text-sm font-black text-slate-600 hover:border-purple-300 hover:text-purple-600 transition-all"
+                    className="flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-slate-100 rounded-xl text-sm font-bold text-slate-600 hover:border-purple-300 hover:text-purple-600 transition-all"
                   >
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="#6264A7"><path d="M20 3H4C2.9 3 2 3.9 2 5v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm6 12H6v-1c0-2 4-3.1 6-3.1s6 1.1 6 3.1v1z"/></svg>
                     Microsoft Teams
@@ -393,7 +393,7 @@ const EventSettingsModal = ({
                     href={`https://zoom.us/teaching`}
                     target="_blank" rel="noopener noreferrer"
                     onClick={e => { e.preventDefault(); navigator.clipboard.writeText(joinUrl).catch(()=>{}); alert('Линкот е копиран — налепи го во Zoom Chat!'); }}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-slate-100 rounded-xl text-sm font-black text-slate-600 hover:border-sky-300 hover:text-sky-600 transition-all cursor-pointer"
+                    className="flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-slate-100 rounded-xl text-sm font-bold text-slate-600 hover:border-sky-300 hover:text-sky-600 transition-all cursor-pointer"
                   >
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="#2D8CFF"><rect width="24" height="24" rx="4" fill="#2D8CFF"/><path d="M5 8.5A1.5 1.5 0 016.5 7h7A1.5 1.5 0 0115 8.5V14a1.5 1.5 0 01-1.5 1.5h-7A1.5 1.5 0 015 14V8.5zm10 1.5l3.5-2v7L15 13.5V10z" fill="white"/></svg>
                     Zoom (копирај линк)
@@ -435,7 +435,7 @@ const EventSettingsModal = ({
                     <button
                       key={key}
                       onClick={() => setEmbedTab(key)}
-                      className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${
+                      className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-widest transition-all ${
                         embedTab === key
                           ? 'bg-indigo-600 text-white shadow-sm'
                           : 'text-slate-400 hover:text-indigo-600'
@@ -455,7 +455,7 @@ const EventSettingsModal = ({
                 <div className="mt-2 flex items-center justify-between gap-2">
                   <button
                     onClick={copy}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl font-black text-xs transition-all ${
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-xs transition-all ${
                       embedCopied
                         ? 'bg-emerald-600 text-white border-2 border-emerald-600'
                         : 'bg-white border-2 border-slate-100 text-slate-500 hover:border-indigo-300 hover:text-indigo-600'
@@ -498,7 +498,7 @@ const EventSettingsModal = ({
                 <div className="w-14 h-14 rounded-xl bg-slate-200 flex items-center justify-center text-slate-400 font-black text-xl">?</div>
               )}
               <label className={`flex-1 flex flex-col items-center justify-center gap-2 py-4 border-2 border-dashed rounded-xl cursor-pointer transition-all ${isPro(user) ? 'border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/30' : 'border-slate-200'}`}>
-                <span className="text-sm font-black text-slate-400">{event.logo_url ? 'Замени лого' : 'Прикачи лого'}</span>
+                <span className="text-sm font-bold text-slate-400">{event.logo_url ? 'Замени лого' : 'Прикачи лого'}</span>
                 <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">PNG, JPG, SVG · max 2MB</span>
                 <input
                   type="file"
@@ -588,13 +588,13 @@ const EventSettingsModal = ({
           {/* Danger zone */}
           {polls.length > 0 && (
             <div className="mt-5 p-5 bg-red-50 border border-red-100 rounded-2xl">
-              <p className="font-black text-red-700 text-sm mb-3 uppercase tracking-widest">Danger zone</p>
+              <p className="font-bold text-red-700 text-sm mb-3 uppercase tracking-widest">Danger zone</p>
               <button
                 onClick={async () => {
                   await resetAllResults();
                   onClose();
                 }}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-white border-2 border-red-200 text-red-500 rounded-xl font-black text-sm hover:bg-red-500 hover:text-white hover:border-red-500 transition-all"
+                className="w-full flex items-center justify-center gap-2 py-3 bg-white border-2 border-red-200 text-red-500 rounded-xl font-bold text-sm hover:bg-red-500 hover:text-white hover:border-red-500 transition-all"
               >
                 <RotateCcw className="w-4 h-4" /> Ресетирај ги сите резултати
               </button>

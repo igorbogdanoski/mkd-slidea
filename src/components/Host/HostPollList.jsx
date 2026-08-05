@@ -31,7 +31,7 @@ const HostPollList = ({
         <div className="bg-violet-50 border-2 border-violet-200 rounded-[2rem] p-6 mb-2">
           <div className="flex items-center gap-2 mb-4">
             <ShieldCheck className="w-5 h-5 text-violet-600" />
-            <span className="font-black text-violet-700 uppercase tracking-widest text-xs">Чекаат одобрување ({pendingOptions.length})</span>
+            <span className="font-semibold text-violet-700 uppercase tracking-widest text-xs">Чекаат одобрување ({pendingOptions.length})</span>
           </div>
           <div className="space-y-2">
             {pendingOptions.map(opt => (
@@ -42,7 +42,7 @@ const HostPollList = ({
                     onClick={async () => {
                       await supabase.from('options').update({ is_approved: true }).eq('id', opt.id);
                     }}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-black text-xs transition-all"
+                    className="flex items-center gap-1 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-semibold text-xs transition-all"
                   >
                     <Check size={14} /> Одобри
                   </button>
@@ -50,7 +50,7 @@ const HostPollList = ({
                     onClick={async () => {
                       await supabase.from('options').delete().eq('id', opt.id);
                     }}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 rounded-xl font-black text-xs transition-all"
+                    className="flex items-center gap-1 px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 rounded-xl font-semibold text-xs transition-all"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -66,7 +66,7 @@ const HostPollList = ({
         <div className="bg-sky-50 border-2 border-sky-200 rounded-[2rem] p-6 mb-2">
           <div className="flex items-center gap-2 mb-4">
             <MessageSquare className="w-5 h-5 text-sky-600" />
-            <span className="font-black text-sky-700 uppercase tracking-widest text-xs">Прашања — чекаат одобрување ({pendingQuestions.length})</span>
+            <span className="font-semibold text-sky-700 uppercase tracking-widest text-xs">Прашања — чекаат одобрување ({pendingQuestions.length})</span>
           </div>
           <div className="space-y-2">
             {pendingQuestions.map(q => (
@@ -80,7 +80,7 @@ const HostPollList = ({
                     onClick={async () => {
                       await supabase.from('questions').update({ is_approved: true }).eq('id', q.id);
                     }}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-black text-xs transition-all"
+                    className="flex items-center gap-1 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-semibold text-xs transition-all"
                   >
                     <Check size={14} /> Одобри
                   </button>
@@ -88,7 +88,7 @@ const HostPollList = ({
                     onClick={async () => {
                       await supabase.from('questions').delete().eq('id', q.id);
                     }}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 rounded-xl font-black text-xs transition-all"
+                    className="flex items-center gap-1 px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 rounded-xl font-semibold text-xs transition-all"
                   >
                     <Trash2 size={14} />
                   </button>

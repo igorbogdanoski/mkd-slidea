@@ -24,7 +24,7 @@ const PlanTab = ({ user, setView, setActiveTab }) => {
       <div className="bg-white rounded-[3rem] border-2 border-slate-100 p-12 relative overflow-hidden mb-12 shadow-sm">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
           <div>
-            <span className="bg-indigo-50 text-indigo-600 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest mb-4 inline-block">Активен План</span>
+            <span className="bg-indigo-50 text-indigo-600 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest mb-4 inline-block">Активен План</span>
             <h3 className="text-4xl font-black text-slate-900 mb-2">{currentPlan.name}</h3>
             <p className="text-slate-400 font-bold">
               {isPro ? 'Неограничен пристап до сите функции.' : 'Вашиот план е секогаш бесплатен за наставници.'}
@@ -45,7 +45,7 @@ const PlanTab = ({ user, setView, setActiveTab }) => {
           { label: 'Настани',  value: currentPlan.events },
         ].map((stat, i) => (
           <div key={i} className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-            <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">{stat.label}</p>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">{stat.label}</p>
             <div className="flex items-baseline gap-2 mb-6">
               <span className="text-3xl font-black text-slate-900">{stat.value}</span>
               {stat.value !== '∞' && <span className="text-slate-300 font-bold">/ {stat.value}</span>}

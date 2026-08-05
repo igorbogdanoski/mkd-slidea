@@ -31,7 +31,7 @@ function CodeBlock({ code, lang = '' }) {
 function Step({ n, title, children }) {
   return (
     <div className="flex gap-4">
-      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-black text-sm">{n}</div>
+      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-sm">{n}</div>
       <div className="flex-1 pb-8">
         <h4 className="font-black text-slate-900 mb-3">{title}</h4>
         {children}
@@ -86,7 +86,7 @@ export default function Integrations() {
           <button
             key={it.id}
             onClick={() => setActive(it.id)}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl font-black text-sm transition-all border-2 ${active === it.id ? 'border-current text-white' : 'border-slate-100 text-slate-500 hover:border-slate-200'}`}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl font-bold text-sm transition-all border-2 ${active === it.id ? 'border-current text-white' : 'border-slate-100 text-slate-500 hover:border-slate-200'}`}
             style={active === it.id ? { background: it.color, borderColor: it.color } : {}}
           >
             {it.icon} {it.label}
@@ -116,7 +116,7 @@ export default function Integrations() {
           </div>
 
           <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100">
-            <p className="font-black text-slate-700 mb-2 text-sm">Или рачно — конструирај share URL:</p>
+            <p className="font-bold text-slate-700 mb-2 text-sm">Или рачно — конструирај share URL:</p>
             <CodeBlock code={`https://classroom.google.com/share?url=https://slidea.mismath.net/event/КОД&title=Интерактивен+час`} />
           </div>
 
@@ -163,7 +163,7 @@ export default function Integrations() {
           </div>
 
           <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100">
-            <p className="font-black text-slate-700 mb-2 text-sm">Teams share URL формат:</p>
+            <p className="font-bold text-slate-700 mb-2 text-sm">Teams share URL формат:</p>
             <CodeBlock code={`https://teams.microsoft.com/share?href=https://slidea.mismath.net/event/КОД&msgText=Приклучи+се+на+мојот+интерактивен+час!`} />
           </div>
         </motion.div>

@@ -35,19 +35,25 @@ test.describe('Public templates page', () => {
     expect(options.length).toBeGreaterThanOrEqual(3);
   });
 
-  test('TS-05 — sorting by stars changes the order', async ({ page }) => {
+  // Was "sorting by stars changes the order". It used
+  // selectOption({ label: /regex/ }), which Playwright does not support —
+  // label must be a string — so it threw before asserting anything and had
+  // never passed. The star sort is also gone: it ranked by a fabricated
+  // rating derived from the activity count, which the honest sort below
+  // already does.
+  test('TS-05 — sorting by activity count reorders the grid', async ({ page }) => {
     await page.waitForTimeout(1000);
-    const sortSelect = page.locator('select').first();
-    // Get card titles before sorting
-    const before = await page.locator('h3, h2, [class*="font-black"]').allTextContents();
+    const titles = () => page.locator('a[href^="/templates/"] h3').allTextContents();
 
-    await sortSelect.selectOption({ label: /ѕвезди|stars|оценка/i });
-    await page.waitForTimeout(500);
+    const before = await titles();
+    expect(before.length).toBeGreaterThan(1);
 
-    const after = await page.locator('h3, h2, [class*="font-black"]').allTextContents();
-    // The page should not crash and cards should still be present
-    expect(after.length).toBeGreaterThanOrEqual(1);
-    expect(before.length).toBeGreaterThanOrEqual(1);
+    await page.getByLabel('Сортирај').selectOption('polls');
+    await page.waitForTimeout(400);
+
+    const after = await titles();
+    expect(after.length).toBe(before.length);
+    expect(after).not.toEqual(before);
   });
 
   test('TS-06 — search/filter box narrows results', async ({ page }) => {
@@ -65,27 +71,41 @@ test.describe('Public templates page', () => {
     expect(bodyText).not.toContain('does not exist');
   });
 
-  test('TS-07 — template cards have star ratings (1–5 stars)', async ({ page }) => {
+  // Was "template cards have star ratings (1–5 stars)". Those stars came from
+  // min(5, max(3, ceil(pollCount / 2))) — not a rating anybody gave, and a
+  // duplicate of the activity count on the same card. The test enforced the
+  // fabrication; it now enforces its absence and the real number's presence.
+  test('TS-07 — cards show a real activity count and no invented rating', async ({ page }) => {
     await page.waitForTimeout(1000);
-    // StarRating renders SVG stars — look for aria-label pattern
-    const starRating = page.locator('[aria-label*="ѕвезди"]').first();
-    await expect(starRating).toBeVisible();
+    const firstCard = page.locator('a[href^="/templates/"]').first();
+    await expect(firstCard).toContainText(/\d+ активности/);
+    await expect(page.locator('[aria-label*="ѕвезди"]')).toHaveCount(0);
   });
 
-  test('TS-08 — alphabetical sort renders without crash', async ({ page }) => {
-    const sortSelect = page.locator('select').first();
-    await sortSelect.selectOption({ label: /азбучен|alpha/i });
+  test('TS-08 — alphabetical sort orders titles', async ({ page }) => {
+    await page.waitForTimeout(1000);
+    await page.getByLabel('Сортирај').selectOption('alpha');
     await page.waitForTimeout(400);
-    await expect(page.locator('body')).not.toContainText('does not exist');
+
+    // Sort the comparison inside the page: Node and Chromium ship different
+    // ICU collations for 'mk' (they disagree on where Latin titles fall
+    // relative to Cyrillic), so comparing across the boundary fails on a
+    // correctly sorted list.
+    const inOrder = await page.evaluate(() => {
+      const titles = [...document.querySelectorAll('a[href^="/templates/"] h3')].map((h) => h.textContent.trim());
+      const sorted = [...titles].sort((a, b) => a.localeCompare(b, 'mk'));
+      return { titles, sorted };
+    });
+    expect(inOrder.titles).toEqual(inOrder.sorted);
   });
 
-  test('TS-09 — verified templates sort renders verified badge first', async ({ page }) => {
-    const sortSelect = page.locator('select').first();
-    await sortSelect.selectOption({ label: /Верифицирани прво|verified/i });
+  test('TS-09 — verified-first sort puts a БРО template at the top', async ({ page }) => {
+    await page.waitForTimeout(1000);
+    await page.getByLabel('Сортирај').selectOption('default');
     await page.waitForTimeout(400);
-    // After verified-first sort, first card should have БРО badge
-    const firstCardBadge = page.locator('text=/БРО|Verified/i').first();
-    await expect(firstCardBadge).toBeVisible();
+
+    const firstCard = page.locator('a[href^="/templates/"]').first();
+    await expect(firstCard).toContainText('БРО');
   });
 
   test('TS-10 — page title and meta description set', async ({ page }) => {

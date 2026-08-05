@@ -79,7 +79,7 @@ export default function TemplateGalleryModal({ isOpen, onClose, onApply }) {
                 <button
                   key={s}
                   onClick={() => setSubject(s)}
-                  className={`px-4 py-2 rounded-xl font-black text-sm whitespace-nowrap transition-all ${
+                  className={`px-4 py-2 rounded-xl font-bold text-sm whitespace-nowrap transition-all ${
                     subject === s
                       ? 'bg-indigo-600 text-white'
                       : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
@@ -108,7 +108,7 @@ export default function TemplateGalleryModal({ isOpen, onClose, onApply }) {
                   >
                     <div className={`bg-gradient-to-br ${t.color} p-6 text-white`}>
                       <div className="text-4xl mb-3">{t.icon}</div>
-                      <div className="text-xs font-black uppercase tracking-wider opacity-80 mb-1">
+                      <div className="text-xs font-semibold uppercase tracking-wider opacity-80 mb-1">
                         {t.subject} · {t.grade}
                       </div>
                       <h3 className="text-lg font-black leading-tight">{t.title}</h3>
@@ -118,10 +118,10 @@ export default function TemplateGalleryModal({ isOpen, onClose, onApply }) {
                         {t.description}
                       </p>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-black text-slate-400">
+                        <span className="text-xs font-semibold text-slate-400">
                           {t.polls.length} активности
                         </span>
-                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-xl font-black text-xs group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-xl font-semibold text-xs group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                           <Plus className="w-3.5 h-3.5" />
                           Користи
                         </div>
@@ -141,7 +141,7 @@ export default function TemplateGalleryModal({ isOpen, onClose, onApply }) {
             </p>
             <button
               onClick={onClose}
-              className="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-black text-sm transition-colors"
+              className="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-sm transition-colors"
             >
               Затвори
             </button>

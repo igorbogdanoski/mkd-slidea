@@ -337,7 +337,7 @@ const EventWrapper = ({ type, username, setUsername }) => {
               </button>
             </div>
             {pwdError && (
-              <p className="text-red-500 font-black text-sm">Погрешна лозинка. Обидете се повторно.</p>
+              <p className="text-red-500 font-bold text-sm">Погрешна лозинка. Обидете се повторно.</p>
             )}
             <button
               type="submit"

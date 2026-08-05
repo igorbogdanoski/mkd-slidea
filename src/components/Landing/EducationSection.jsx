@@ -9,7 +9,7 @@ const EducationSection = () => (
   <section id="education" className="py-32 bg-gradient-to-b from-indigo-50 to-white">
     <div className="max-w-7xl mx-auto px-6">
       <div className="text-center space-y-4 mb-16">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-100 text-indigo-700 font-black text-xs uppercase tracking-widest">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-100 text-indigo-700 font-semibold text-xs uppercase tracking-widest">
           <GraduationCap size={14} /> За образование
         </div>
         <h2 className="text-5xl font-black text-slate-900 leading-tight">
@@ -93,7 +93,7 @@ const EducationSection = () => (
 
       {/* Activity type showcase — Show don't tell */}
       <div className="mt-8">
-        <p className="text-center text-slate-400 font-black text-xs uppercase tracking-widest mb-8">Типови активности — изберете го вистинскиот формат</p>
+        <p className="text-center text-slate-400 font-semibold text-xs uppercase tracking-widest mb-8">Типови активности — изберете го вистинскиот формат</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             {
@@ -135,7 +135,7 @@ const EducationSection = () => (
               preview: (
                 <div className="space-y-1.5 w-full">
                   {[['Python','✓',true],['Java','✗',false],['C++','✗',false]].map(([l,m,c])=>(
-                    <div key={l} className={`flex items-center justify-between rounded-lg px-3 py-1.5 text-xs font-black ${c ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                    <div key={l} className={`flex items-center justify-between rounded-lg px-3 py-1.5 text-xs font-semibold ${c ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
                       <span>{l}</span><span>{m}</span>
                     </div>
                   ))}
@@ -170,7 +170,7 @@ const EducationSection = () => (
             >
               <div className={`bg-gradient-to-r ${act.color} px-5 py-4 flex items-center gap-2`}>
                 <div className="bg-white/20 w-7 h-7 rounded-lg flex items-center justify-center">{act.icon}</div>
-                <span className="font-black text-white text-sm">{act.type}</span>
+                <span className="font-bold text-white text-sm">{act.type}</span>
               </div>
               <div className="p-5">
                 <div className="mb-4">{act.preview}</div>

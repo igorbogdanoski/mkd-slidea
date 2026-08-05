@@ -67,7 +67,7 @@ const ApiKeysTab = ({ user }) => {
       className="p-12 max-w-5xl mx-auto"
     >
       <div className="mb-8">
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-full text-xs font-black uppercase tracking-widest mb-3">
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-full text-xs font-semibold uppercase tracking-widest mb-3">
           <KeyRound className="w-3.5 h-3.5" /> Open API
         </div>
         <h2 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">API клучеви</h2>
@@ -78,7 +78,7 @@ const ApiKeysTab = ({ user }) => {
 
       {/* Quick docs */}
       <div className="bg-slate-900 text-white p-6 rounded-3xl mb-8 font-mono text-sm overflow-x-auto">
-        <p className="text-xs font-black text-emerald-300 uppercase tracking-widest mb-3 flex items-center gap-2">
+        <p className="text-xs font-semibold text-emerald-300 uppercase tracking-widest mb-3 flex items-center gap-2">
           <BookOpen className="w-3.5 h-3.5" /> Брз почеток
         </p>
         <pre className="whitespace-pre-wrap break-all leading-relaxed">{`# Сите свои настани
@@ -92,7 +92,7 @@ curl -H "Authorization: Bearer YOUR_KEY" \\
 
       {/* New key form */}
       <form onSubmit={handleCreate} className="bg-white p-6 rounded-3xl border-2 border-slate-100 shadow-sm mb-6">
-        <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Нов клуч</p>
+        <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Нов клуч</p>
         <div className="flex flex-col md:flex-row gap-3">
           <input
             type="text"
@@ -105,7 +105,7 @@ curl -H "Authorization: Bearer YOUR_KEY" \\
           <button
             type="submit"
             disabled={creating || !name.trim()}
-            className="flex items-center justify-center gap-2 px-6 py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm hover:bg-indigo-700 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center justify-center gap-2 px-6 py-4 bg-indigo-600 text-white rounded-2xl font-bold text-sm hover:bg-indigo-700 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="w-4 h-4" /> {creating ? 'Се создава...' : 'Создај клуч'}
           </button>
@@ -120,7 +120,7 @@ curl -H "Authorization: Bearer YOUR_KEY" \\
       {/* Plaintext modal-banner */}
       {justCreated && (
         <div className="bg-amber-50 border-2 border-amber-200 p-6 rounded-3xl mb-6">
-          <p className="text-xs font-black text-amber-700 uppercase tracking-widest mb-2 flex items-center gap-2">
+          <p className="text-xs font-semibold text-amber-700 uppercase tracking-widest mb-2 flex items-center gap-2">
             <AlertTriangle className="w-3.5 h-3.5" /> Зачувај го клучот сега — нема да биде прикажан повторно!
           </p>
           <div className="flex flex-col md:flex-row gap-2">
@@ -129,7 +129,7 @@ curl -H "Authorization: Bearer YOUR_KEY" \\
             </code>
             <button
               onClick={copyPlaintext}
-              className={`flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-black text-sm transition-all ${
+              className={`flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all ${
                 copied ? 'bg-emerald-600 text-white' : 'bg-amber-600 text-white hover:bg-amber-700 active:scale-95'
               }`}
             >
@@ -138,7 +138,7 @@ curl -H "Authorization: Bearer YOUR_KEY" \\
           </div>
           <button
             onClick={() => setJustCreated(null)}
-            className="mt-3 text-xs font-black text-amber-700 underline hover:no-underline"
+            className="mt-3 text-xs font-semibold text-amber-700 underline hover:no-underline"
           >
             Затвори (го зачував)
           </button>
@@ -181,7 +181,7 @@ curl -H "Authorization: Bearer YOUR_KEY" \\
                 {!k.revoked_at && (
                   <button
                     onClick={() => handleRevoke(k.id)}
-                    className="flex items-center justify-center gap-1 px-3 py-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white font-black text-xs transition-all"
+                    className="flex items-center justify-center gap-1 px-3 py-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white font-semibold text-xs transition-all"
                   >
                     <Trash2 className="w-3.5 h-3.5" /> Отповикај
                   </button>

@@ -104,7 +104,7 @@ export default function FirstSuccessWizard({ user, onClose, onLaunch }) {
                     <button
                       key={s}
                       onClick={() => setSubject(s)}
-                      className={`px-4 py-4 rounded-2xl font-black text-sm transition-all border-2 ${
+                      className={`px-4 py-4 rounded-2xl font-bold text-sm transition-all border-2 ${
                         subject === s
                           ? 'border-indigo-600 bg-indigo-50 text-indigo-600'
                           : 'border-slate-100 text-slate-500 hover:border-indigo-200'
@@ -145,7 +145,7 @@ export default function FirstSuccessWizard({ user, onClose, onLaunch }) {
                         <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${t.color} flex items-center justify-center text-2xl mb-3`}>
                           {t.icon}
                         </div>
-                        <h4 className="font-black text-slate-900 text-sm mb-1 line-clamp-1">{t.title}</h4>
+                        <h4 className="font-bold text-slate-900 text-sm mb-1 line-clamp-1">{t.title}</h4>
                         <p className="text-xs text-slate-400 font-bold mb-2 line-clamp-2">{t.description}</p>
                         <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">
                           {t.polls.length} активности · {t.grade}
@@ -166,12 +166,12 @@ export default function FirstSuccessWizard({ user, onClose, onLaunch }) {
                 <p className="text-slate-500 font-bold mb-6">{selectedTemplate.description}</p>
                 <div className="inline-flex items-center gap-4 px-6 py-4 bg-slate-50 rounded-2xl border border-slate-100">
                   <div className="text-left">
-                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Активности</p>
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Активности</p>
                     <p className="font-black text-slate-900">{selectedTemplate.polls.length}</p>
                   </div>
                   <div className="w-px h-10 bg-slate-200" />
                   <div className="text-left">
-                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Ниво</p>
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Ниво</p>
                     <p className="font-black text-slate-900">{selectedTemplate.grade}</p>
                   </div>
                 </div>
@@ -187,7 +187,7 @@ export default function FirstSuccessWizard({ user, onClose, onLaunch }) {
           <div className="px-8 py-5 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
             <button
               onClick={dismiss}
-              className="text-slate-400 font-black text-sm hover:text-slate-600 transition-colors"
+              className="text-slate-400 font-bold text-sm hover:text-slate-600 transition-colors"
             >
               Прескокни
             </button>
@@ -195,7 +195,7 @@ export default function FirstSuccessWizard({ user, onClose, onLaunch }) {
               {step > 0 && (
                 <button
                   onClick={() => setStep((s) => s - 1)}
-                  className="px-5 py-3 rounded-2xl bg-white border border-slate-200 text-slate-600 font-black text-sm hover:border-slate-400 transition-all flex items-center gap-2"
+                  className="px-5 py-3 rounded-2xl bg-white border border-slate-200 text-slate-600 font-bold text-sm hover:border-slate-400 transition-all flex items-center gap-2"
                 >
                   <ArrowLeft size={16} /> Назад
                 </button>
@@ -204,14 +204,14 @@ export default function FirstSuccessWizard({ user, onClose, onLaunch }) {
                 <button
                   onClick={() => setStep((s) => s + 1)}
                   disabled={!canNext}
-                  className="px-6 py-3 rounded-2xl bg-indigo-600 text-white font-black text-sm hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+                  className="px-6 py-3 rounded-2xl bg-indigo-600 text-white font-bold text-sm hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-2"
                 >
                   Следно <ArrowRight size={16} />
                 </button>
               ) : (
                 <button
                   onClick={launch}
-                  className="px-6 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-black text-sm hover:from-indigo-700 hover:to-violet-700 transition-all flex items-center gap-2 shadow-lg shadow-indigo-200"
+                  className="px-6 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold text-sm hover:from-indigo-700 hover:to-violet-700 transition-all flex items-center gap-2 shadow-lg shadow-indigo-200"
                 >
                   Пушти го часот <Rocket size={16} />
                 </button>

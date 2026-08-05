@@ -98,7 +98,9 @@ const Pricing = ({ setView }) => {
         "Реакции во живо"
       ],
       button: "Започни бесплатно",
-      color: "bg-slate-50 text-slate-900",
+      // Was bg-slate-50 with no border, so the free plan alone read as a
+      // background panel rather than a card in a row of cards.
+      color: "bg-white text-slate-900 border-2 border-slate-100",
       btnColor: "bg-slate-900 text-white",
       tag: "ОСНОВЕН"
     },
@@ -211,7 +213,7 @@ const Pricing = ({ setView }) => {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 font-black text-xs uppercase tracking-widest px-5 py-2.5 rounded-full mb-6 border border-emerald-200"
+          className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 font-semibold text-xs uppercase tracking-widest px-5 py-2.5 rounded-full mb-6 border border-emerald-200"
         >
           <Gift size={14} />
           Бесплатен план засекогаш — 200 учесници, без кредитна картичка
@@ -230,25 +232,28 @@ const Pricing = ({ setView }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className={`p-10 rounded-[3rem] flex flex-col relative transition-all hover:scale-[1.02] ${plan.color}`}
+            className={`p-8 rounded-[2rem] flex flex-col transition-all hover:scale-[1.02] ${plan.color}`}
           >
+            {/* The tag used to be absolutely positioned at top-right, which at
+                five columns on a 1440px screen sat directly on top of the plan
+                name. It is part of the flow now, so it can never collide. */}
             {plan.tag && (
-              <div className={`absolute top-8 right-8 text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-widest ${plan.popular ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
+              <span className={`self-start mb-4 text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest ${plan.popular ? 'bg-indigo-600 text-white' : plan.name === 'Годишен' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-200 text-slate-600'}`}>
                 {plan.tag}
-              </div>
+              </span>
             )}
             <h3 className="text-2xl font-black mb-1">{plan.name}</h3>
-            <p className="font-bold text-xs mb-8 uppercase tracking-widest text-slate-400">{plan.target}</p>
+            <p className={`font-semibold text-xs mb-8 uppercase tracking-widest ${plan.name === 'Годишен' ? 'text-slate-400' : 'text-slate-500'}`}>{plan.target}</p>
 
             <div className="flex items-baseline gap-1 mb-10">
               <span className={`text-5xl font-black ${plan.name === 'Годишен' ? 'text-emerald-400' : 'text-slate-900'}`}>€{plan.price}</span>
-              <span className="text-lg font-bold opacity-40">{plan.period}</span>
+              <span className={`text-lg font-semibold ${plan.name === 'Годишен' ? 'text-slate-400' : 'text-slate-500'}`}>{plan.period}</span>
             </div>
 
-            <ul className="space-y-5 mb-12 flex-1">
+            <ul className="space-y-4 mb-10 flex-1">
               {plan.features.map((feat, j) => (
-                <li key={j} className="flex items-start gap-3 text-sm font-bold leading-tight">
-                  <ShieldCheck className={`${plan.name === 'Годишен' ? 'text-emerald-400' : 'text-indigo-500'} shrink-0`} size={18} />
+                <li key={j} className="flex items-start gap-3 text-sm font-medium leading-snug">
+                  <ShieldCheck aria-hidden="true" className={`${plan.name === 'Годишен' ? 'text-emerald-400' : 'text-indigo-500'} shrink-0 mt-0.5`} size={18} />
                   <span className={plan.name === 'Годишен' ? 'text-slate-300' : 'text-slate-600'}>{feat}</span>
                 </li>
               ))}
@@ -256,7 +261,7 @@ const Pricing = ({ setView }) => {
 
             <button
               onClick={() => goToCheckout(plan)}
-              className={`w-full py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl transition-all active:scale-95 ${plan.btnColor}`}
+              className={`w-full py-5 rounded-2xl font-semibold uppercase tracking-widest text-xs shadow-xl transition-all active:scale-95 ${plan.btnColor}`}
             >
               {plan.button}
             </button>
@@ -281,7 +286,7 @@ const Pricing = ({ setView }) => {
               <Icon className="text-indigo-600" size={18} />
             </div>
             <div>
-              <p className="font-black text-slate-900 text-sm">{title}</p>
+              <p className="font-bold text-slate-900 text-sm">{title}</p>
               <p className="text-xs text-slate-400 font-medium mt-0.5 leading-snug">{sub}</p>
             </div>
           </div>
@@ -296,7 +301,7 @@ const Pricing = ({ setView }) => {
         className="max-w-3xl mx-auto mt-20"
       >
         <div className="text-center mb-8">
-          <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">Зошто MKD Slidea?</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3">Зошто MKD Slidea?</p>
           <h2 className="text-3xl md:text-4xl font-black text-slate-900">MKD Slidea наспроти Mentimeter</h2>
           <p className="text-slate-500 font-medium mt-3">Иста функционалност. 15× пониска цена. На македонски.</p>
         </div>
@@ -304,9 +309,9 @@ const Pricing = ({ setView }) => {
         <div className="bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-xl shadow-slate-100/50">
           {/* Table header */}
           <div className="grid grid-cols-[1fr_auto_auto] bg-slate-50 border-b border-slate-100">
-            <div className="px-8 py-5 text-xs font-black uppercase tracking-widest text-slate-400">Функција</div>
-            <div className="px-8 py-5 text-xs font-black uppercase tracking-widest text-indigo-600 text-center min-w-[120px]">MKD Slidea</div>
-            <div className="px-8 py-5 text-xs font-black uppercase tracking-widest text-slate-400 text-center min-w-[120px]">Mentimeter</div>
+            <div className="px-8 py-5 text-xs font-semibold uppercase tracking-widest text-slate-400">Функција</div>
+            <div className="px-8 py-5 text-xs font-semibold uppercase tracking-widest text-indigo-600 text-center min-w-[120px]">MKD Slidea</div>
+            <div className="px-8 py-5 text-xs font-semibold uppercase tracking-widest text-slate-400 text-center min-w-[120px]">Mentimeter</div>
           </div>
 
           {comparison.map((row, i) => (
@@ -315,7 +320,7 @@ const Pricing = ({ setView }) => {
               className={`grid grid-cols-[1fr_auto_auto] items-center border-b border-slate-50 last:border-0 ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}
             >
               <div className="px-8 py-4 text-sm font-bold text-slate-700">{row.feature}</div>
-              <div className={`px-8 py-4 text-sm font-black text-center min-w-[120px] ${row.mkdWins ? 'text-emerald-600' : 'text-slate-500'}`}>
+              <div className={`px-8 py-4 text-sm font-bold text-center min-w-[120px] ${row.mkdWins ? 'text-emerald-600' : 'text-slate-500'}`}>
                 {row.mkdWins ? (
                   <span className="inline-flex items-center gap-1.5">
                     <CheckCircle2 size={15} className="text-emerald-500" />
@@ -353,7 +358,7 @@ const Pricing = ({ setView }) => {
         aria-labelledby={`${faqId}-heading`}
       >
         <div className="text-center mb-8">
-          <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">Прашања</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3">Прашања</p>
           <h2 id={`${faqId}-heading`} className="text-3xl md:text-4xl font-black text-slate-900">
             Често поставувани прашања
           </h2>

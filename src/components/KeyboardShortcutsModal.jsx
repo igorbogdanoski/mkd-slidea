@@ -58,7 +58,7 @@ export default function KeyboardShortcutsModal({ isOpen, onClose }) {
                     {s.keys.map((k) => (
                       <kbd
                         key={k}
-                        className="px-2.5 py-1 bg-slate-100 border border-slate-200 rounded-lg font-black text-xs text-slate-700 min-w-[2rem] text-center"
+                        className="px-2.5 py-1 bg-slate-100 border border-slate-200 rounded-lg font-semibold text-xs text-slate-700 min-w-[2rem] text-center"
                       >
                         {k}
                       </kbd>

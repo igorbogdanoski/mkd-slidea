@@ -185,7 +185,7 @@ export default function EventScoreboard() {
                   <Medal className="w-7 h-7 text-slate-700" />
                 </div>
                 <div className="bg-white/10 rounded-2xl p-4 border border-white/10 h-28 flex flex-col justify-center">
-                  <p className="text-white font-black text-sm truncate">{top3[1].username}</p>
+                  <p className="text-white font-bold text-sm truncate">{top3[1].username}</p>
                   <p className="text-slate-300 font-black text-2xl">{top3[1].correct}</p>
                   <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest">{pct(top3[1].correct, quizQs)}%</p>
                 </div>
@@ -221,7 +221,7 @@ export default function EventScoreboard() {
                   <Medal className="w-7 h-7 text-amber-100" />
                 </div>
                 <div className="bg-white/10 rounded-2xl p-4 border border-white/10 h-24 flex flex-col justify-center">
-                  <p className="text-white font-black text-sm truncate">{top3[2].username}</p>
+                  <p className="text-white font-bold text-sm truncate">{top3[2].username}</p>
                   <p className="text-slate-300 font-black text-2xl">{top3[2].correct}</p>
                   <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest">{pct(top3[2].correct, quizQs)}%</p>
                 </div>
@@ -246,7 +246,7 @@ export default function EventScoreboard() {
                     transition={{ delay: i * 0.04 }}
                     className="flex items-center gap-4 bg-white/5 rounded-2xl px-5 py-4 border border-white/10"
                   >
-                    <span className="w-8 text-center font-black text-slate-500 text-sm">{rank}</span>
+                    <span className="w-8 text-center font-bold text-slate-500 text-sm">{rank}</span>
                     <span className="flex-1 font-bold text-white truncate">{row.username}</span>
                     <div className="flex items-center gap-3">
                       <div className="w-20 h-1.5 bg-white/10 rounded-full overflow-hidden">

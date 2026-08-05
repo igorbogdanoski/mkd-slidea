@@ -113,7 +113,7 @@ const OrdersTab = ({ currentUser }) => {
     <div className="p-12 max-w-7xl mx-auto">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between mb-10">
         <div>
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-50 text-amber-700 text-xs font-black uppercase tracking-widest mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-50 text-amber-700 text-xs font-semibold uppercase tracking-widest mb-4">
             <FileText size={14} /> Manual Billing
           </div>
           <h2 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">Нарачки за активација</h2>
@@ -187,7 +187,7 @@ const OrdersTab = ({ currentUser }) => {
                   <div className="flex flex-col lg:flex-row lg:items-center gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <span className="font-mono font-black text-indigo-600 text-sm">{o.order_id}</span>
+                        <span className="font-mono font-bold text-indigo-600 text-sm">{o.order_id}</span>
                         <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${badge.bg} ${badge.text}`}>
                           {badge.label}
                         </span>
@@ -217,7 +217,7 @@ const OrdersTab = ({ currentUser }) => {
                         <div className="flex gap-2">
                           <a
                             href={`mailto:${o.email}?subject=MKD%20Slidea%20-%20${o.order_id}`}
-                            className="px-3 py-2 rounded-xl bg-slate-100 text-slate-700 font-black text-xs inline-flex items-center gap-1.5 hover:bg-slate-200"
+                            className="px-3 py-2 rounded-xl bg-slate-100 text-slate-700 font-semibold text-xs inline-flex items-center gap-1.5 hover:bg-slate-200"
                             title="Контактирај"
                           >
                             <Mail size={14} />
@@ -225,14 +225,14 @@ const OrdersTab = ({ currentUser }) => {
                           <button
                             onClick={() => setRejectFor(o)}
                             disabled={actingId === o.id}
-                            className="px-3 py-2 rounded-xl bg-rose-50 text-rose-700 font-black text-xs inline-flex items-center gap-1.5 hover:bg-rose-100 disabled:opacity-60"
+                            className="px-3 py-2 rounded-xl bg-rose-50 text-rose-700 font-semibold text-xs inline-flex items-center gap-1.5 hover:bg-rose-100 disabled:opacity-60"
                           >
                             <XCircle size={14} /> Одбиј
                           </button>
                           <button
                             onClick={() => confirm(o)}
                             disabled={actingId === o.id}
-                            className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-black text-xs inline-flex items-center gap-1.5 hover:bg-emerald-700 disabled:opacity-60"
+                            className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-semibold text-xs inline-flex items-center gap-1.5 hover:bg-emerald-700 disabled:opacity-60"
                           >
                             <ShieldCheck size={14} /> {actingId === o.id ? '...' : 'Потврди'}
                           </button>

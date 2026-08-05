@@ -50,7 +50,7 @@ const SolutionsSection = ({ solutions, setView }) => {
               <span className="block text-sm text-slate-500 font-medium leading-relaxed mb-6">
                 {sol.desc}
               </span>
-              <span className="flex items-center gap-1 text-indigo-600 font-black text-xs uppercase tracking-widest group-hover:translate-x-1 transition-transform">
+              <span className="flex items-center gap-1 text-indigo-600 font-semibold text-xs uppercase tracking-widest group-hover:translate-x-1 transition-transform">
                 Дознај повеќе <ChevronRight size={14} aria-hidden="true" />
               </span>
             </MotionButton>

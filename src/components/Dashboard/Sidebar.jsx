@@ -70,7 +70,7 @@ const OnboardingChecklist = ({ user, setActiveTab }) => {
               <div key={i} className={`w-5 h-1.5 rounded-full transition-all ${i < done ? 'bg-indigo-600' : 'bg-indigo-200'}`} />
             ))}
           </div>
-          <span className="text-xs font-black text-indigo-700 uppercase tracking-widest">
+          <span className="text-xs font-semibold text-indigo-700 uppercase tracking-widest">
             {allDone ? '🎉 Подготвен!' : `${done}/4 чекори`}
           </span>
         </div>
@@ -151,7 +151,7 @@ const UsageMeter = ({ user, setActiveTab }) => {
         <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
           Настани
         </span>
-        <span className={`text-xs font-black tabular-nums ${textColor}`}>
+        <span className={`text-xs font-semibold tabular-nums ${textColor}`}>
           {eventCount}/{limit}
         </span>
       </div>
@@ -239,7 +239,7 @@ const Sidebar = ({ activeTab, setActiveTab, user, onLogout }) => {
             key={item.id}
             onClick={() => setActiveTab(item.id)}
             data-tour={`sidebar-${item.id}`}
-            className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-black text-sm transition-all relative ${
+            className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-bold text-sm transition-all relative ${
               activeTab === item.id
                 ? 'bg-indigo-50 dark:bg-indigo-950 text-indigo-600 shadow-sm'
                 : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
@@ -266,7 +266,7 @@ const Sidebar = ({ activeTab, setActiveTab, user, onLogout }) => {
             <div className="relative z-10">
               <h4 className="font-black mb-1">Upgrade to PRO</h4>
               <p className="text-[10px] font-bold text-indigo-100 mb-4 opacity-80 uppercase tracking-widest">Неограничени учесници</p>
-              <button onClick={() => setActiveTab('plan')} className="w-full py-2.5 bg-white text-indigo-600 rounded-xl font-black text-xs hover:bg-indigo-50 transition-colors">
+              <button onClick={() => setActiveTab('plan')} className="w-full py-2.5 bg-white text-indigo-600 rounded-xl font-semibold text-xs hover:bg-indigo-50 transition-colors">
                 Види планови →
               </button>
             </div>
@@ -276,7 +276,7 @@ const Sidebar = ({ activeTab, setActiveTab, user, onLogout }) => {
         
         <button 
           onClick={onLogout}
-          className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-black text-sm text-red-400 hover:bg-red-50 transition-all mb-4"
+          className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-bold text-sm text-red-400 hover:bg-red-50 transition-all mb-4"
         >
           <LogOut size={20} />
           Одјави се
