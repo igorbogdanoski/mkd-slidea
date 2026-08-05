@@ -24,6 +24,16 @@ ALTER TABLE public.community_templates
   ADD COLUMN IF NOT EXISTS is_published BOOLEAN NOT NULL DEFAULT TRUE,
   ADD COLUMN IF NOT EXISTS updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW();
 
+-- БРО outcome codes (МА.6.2.3) — the same vocabulary polls.curriculum_tags
+-- uses, so a template imported from another tool is findable by the code the
+-- state already publishes rather than by an id one of these apps invented.
+-- See docs/IMPORT_FORMAT.md.
+ALTER TABLE public.community_templates
+  ADD COLUMN IF NOT EXISTS curriculum_tags TEXT[] DEFAULT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_community_templates_curriculum
+  ON public.community_templates USING gin (curriculum_tags);
+
 -- Backfill slug from id for any legacy rows missing one.
 UPDATE public.community_templates
    SET slug = LOWER(REGEXP_REPLACE(COALESCE(slug, id::text), '[^a-z0-9-]+', '-', 'g'))
