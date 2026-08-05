@@ -82,3 +82,42 @@ Tenant limits currently configured: `max_concurrent_users=1000`,
 `max_events_per_second=1000`, `max_joins_per_second=500`,
 `max_channels_per_client=100`. Postgres `max_connections=200`. None of these
 were the binding constraint in any run above.
+
+## Re-measured after fixing realtime (06.08.2026)
+
+`postgres_changes` had never worked on this server: the `supabase_realtime`
+publication was empty, so `polls`, `options` and `events` published nothing and
+the app ran entirely on its 3-second REST fallback. That is what the earlier
+table actually measured — polling, not push.
+
+With 416 participants re-polling every three seconds the database sees roughly
+139 queries a second continuously, which is why `supabase-db` sat at 72% CPU
+during the burst while the realtime container idled at 1%. The bottleneck was
+never the voting.
+
+Tables added to the publication, realtime restarted, and `votes` deliberately
+left out — nothing subscribes to it, so publishing it was WAL decoding for no
+benefit.
+
+| Scenario | Before (polling) | After (realtime) |
+|---|---|---|
+| 16 × 26 = 416, realistic 20s spread | 100%, p50 8ms | **100%, p50 6ms** |
+| 24 × 26 = 624, realistic 20s spread | 100%, p50 7ms | **100%, p50 8ms** |
+| 16 × 26 = 416, synthetic 0ms burst | 100%, p50 4.7–6.2s | 85–100% (varies), **p50 1.5–3.1s** |
+| DB CPU during burst | 72% | 25% peak, mostly under 6% |
+| Realtime CPU during burst | 1% | 19–25% |
+
+**Read this honestly.** The realistic case — the one that happens in a school —
+is unchanged at 100% and slightly faster, and the database is no longer the
+constraint. The synthetic burst, where every student in sixteen rooms taps in
+the same millisecond, got two to four times faster but lost its perfect
+success rate: five runs came in at 85.6, 92.3, 92.3, 100 and 100 percent.
+
+That variance is not new. The original single-event test recorded "85–94%,
+varies" at 500 participants, so the extreme is where this stack has always
+wobbled. What changed is that latency under the extreme fell from six seconds
+to under three, and the load moved off the database, which is the constraint
+that would bite first as schools are added.
+
+Nothing above 650 has been measured from this setup — the harness saturates the
+VPS's two cores before the server does. See trap 2 above.
