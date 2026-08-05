@@ -198,7 +198,12 @@ const UsageMeter = ({ user, setActiveTab }) => {
 // ── Sidebar ────────────────────────────────────────────────────────────────
 
 const Sidebar = ({ activeTab, setActiveTab, user, onLogout }) => {
+  // 'basic' is not a plan value this app ever writes — the canonical free value
+  // is 'free' — so anything keyed off it silently never fires. The upgrade card
+  // below uses the shared isPro() instead, which also honours pro_until expiry
+  // and referral-earned Pro windows.
   const userPlan = user?.plan || 'basic';
+  const userIsPro = isPro(user);
 
   const menuItems = [
     { id: 'home', label: 'Почетна', icon: <Home size={20} /> },
@@ -256,7 +261,7 @@ const Sidebar = ({ activeTab, setActiveTab, user, onLogout }) => {
       <UsageMeter user={user} setActiveTab={setActiveTab} />
 
       <div className="p-4 mt-auto">
-        {userPlan === 'basic' && (
+        {!userIsPro && (
           <div className="bg-gradient-to-br from-indigo-600 to-violet-700 p-6 rounded-3xl text-white shadow-xl shadow-indigo-100 mb-4 overflow-hidden relative group cursor-pointer">
             <div className="relative z-10">
               <h4 className="font-black mb-1">Upgrade to PRO</h4>

@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Users, Lock, RotateCcw, Smartphone } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Users, Lock, RotateCcw, Smartphone, X } from 'lucide-react';
 import { useEventStore } from '../../lib/store';
 
-const RemoteController = ({ polls, activePollIndex, setActivePoll, eventCode, event, onToggleLock, onReset }) => {
+const RemoteController = ({ polls, activePollIndex, setActivePoll, eventCode, event, onToggleLock, onReset, onClose }) => {
   const { activeParticipants } = useEventStore();
   const currentPoll = polls[activePollIndex];
   const isLocked = !!event?.is_locked;
@@ -34,6 +34,17 @@ const RemoteController = ({ polls, activePollIndex, setActivePoll, eventCode, ev
     }
   };
 
+  // This overlay covers the whole screen — including the "Далечинска" toggle in
+  // HostHeader that opened it — so without an explicit way out the host is
+  // trapped in remote mode mid-presentation. Escape is the second exit, for a
+  // host driving this from a laptop rather than a phone.
+  useEffect(() => {
+    if (!onClose) return;
+    const onKey = (e) => { if (e.key === 'Escape') { e.preventDefault(); onClose(); } };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
   if (!currentPoll) return null;
 
   return (
@@ -49,9 +60,20 @@ const RemoteController = ({ polls, activePollIndex, setActivePoll, eventCode, ev
             <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">#{eventCode}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 bg-indigo-500/10 px-3 py-1.5 rounded-full border border-indigo-500/20">
-          <Users className="w-4 h-4 text-indigo-400" />
-          <span className="text-sm font-black text-indigo-400">{activeParticipants}</span>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 bg-indigo-500/10 px-3 py-1.5 rounded-full border border-indigo-500/20">
+            <Users className="w-4 h-4 text-indigo-400" />
+            <span className="text-sm font-black text-indigo-400">{activeParticipants}</span>
+          </div>
+          {onClose && (
+            <button
+              onClick={onClose}
+              aria-label="Излези од далечинска контрола"
+              className="p-2.5 rounded-full bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 hover:text-white transition-colors active:scale-95"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
         </div>
       </div>
 

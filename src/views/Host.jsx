@@ -145,15 +145,11 @@ const Host = ({ setView, user }) => {
     else if (action === 'import') setIsImportOpen(true);
   }, [loading, event?.id]);
 
-  useEffect(() => {
-    const handleKey = (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-      if (e.key === 'ArrowRight') { e.preventDefault(); session.goNext(); }
-      if (e.key === 'ArrowLeft') { e.preventDefault(); session.goPrev(); }
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [activePollIndex, polls]);
+  // NOTE: ArrowLeft/ArrowRight are handled once, by useKeyboardShortcuts above.
+  // A second window-level keydown listener used to live here, so every arrow
+  // press advanced two slides mid-presentation. useKeyboardShortcuts is the
+  // stricter of the two (it also skips contenteditable targets), so the
+  // duplicate was removed rather than the hook binding.
 
   const handleInteractionSelect = (type) => {
     setSelectedType(type);
@@ -270,6 +266,7 @@ const Host = ({ setView, user }) => {
           setActivePoll={session.setActivePoll}
           eventCode={event.code}
           event={event}
+          onClose={() => setIsRemoteMode(false)}
           onToggleLock={async () => {
             const next = await session.toggleLock();
             announce(next ? 'Гласањето е заклучено.' : 'Гласањето е отклучено.', { assertive: true });
