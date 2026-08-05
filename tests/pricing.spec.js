@@ -13,8 +13,17 @@ test.describe('Pricing page', () => {
     await expect(page).toHaveTitle(/цени|pricing/i);
   });
 
-  test('PR-02 — 14-day free trial hero badge is visible', async ({ page }) => {
-    await expect(page.locator('text=/14.дена|14-day/i').first()).toBeVisible();
+  // Was: "PR-02 — 14-day free trial hero badge is visible". The badge was
+  // there, the trial was not — every Pro CTA promising "Пробај 14 дена
+  // бесплатно" led to a manual bank-transfer form that granted nothing. The
+  // test enforced the false promise rather than catching it. Inverted: the
+  // page must not advertise a trial until one actually exists, and the free
+  // plan (which is real, and more generous than the trial ever was) carries
+  // the message instead.
+  test('PR-02 — no free-trial promise, and the free plan is advertised', async ({ page }) => {
+    const body = await page.locator('body').innerText();
+    expect(body).not.toMatch(/пробен период|дена бесплатно|free trial/i);
+    expect(body).toMatch(/без кредитна картичка/i);
   });
 
   test('PR-03 — pricing cards are rendered (at least 2)', async ({ page }) => {
@@ -48,8 +57,12 @@ test.describe('Pricing page', () => {
   });
 
   test('PR-07 — each paid plan card has a CTA button', async ({ page }) => {
-    const ctaButtons = page.locator('a[href*="checkout"], a[href*="upgrade"], button:has-text(/Пробај|Започни|Купи|Start|Buy/i)');
-    const count = await ctaButtons.count();
+    // A regex cannot appear inside a comma-joined CSS selector — Playwright
+    // threw "Unexpected token /" on every run, so this test never actually
+    // checked anything. Split into two locators instead.
+    const linkCtas = page.locator('a[href*="checkout"], a[href*="upgrade"]');
+    const buttonCtas = page.getByRole('button', { name: /Избери план|Започни|Купи|Start|Buy/i });
+    const count = (await linkCtas.count()) + (await buttonCtas.count());
     expect(count).toBeGreaterThanOrEqual(1);
   });
 

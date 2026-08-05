@@ -10,7 +10,7 @@ const Pricing = ({ setView }) => {
 
   useSEO({
     title: 'Цени | MKD Slidea — Бесплатен и Pro план за наставници и фирми',
-    description: 'Бесплатен план со 200 учесници, Pro план од €20/година. 14 дена бесплатен пробен период. Македонска интерактивна платформа за настава, обуки и состаноци.',
+    description: 'Бесплатен план засекогаш — 200 учесници, без кредитна картичка. Pro план од €20/година. Македонска интерактивна платформа за настава, обуки и состаноци.',
     keywords: 'цени, mentimeter алтернатива, slidea план, бесплатен квиз, pro план',
     path: '/pricing',
     jsonLd: {
@@ -30,9 +30,9 @@ const Pricing = ({ setView }) => {
         {
           '@type': 'FAQPage',
           'mainEntity': [
-            { '@type': 'Question', 'name': 'Дали треба кредитна картичка за 14-дневниот пробен период?', 'acceptedAnswer': { '@type': 'Answer', 'text': 'Не, не е потребна кредитна картичка. Можете да го пробате Pro планот 14 дена целосно бесплатно.' } },
+            { '@type': 'Question', 'name': 'Дали треба кредитна картичка за да започнам?', 'acceptedAnswer': { '@type': 'Answer', 'text': 'Не. Бесплатниот план важи засекогаш и не бара кредитна картичка — вклучува до 200 учесници, 5 настани и 10 анкети по настан.' } },
             { '@type': 'Question', 'name': 'Може ли да откажам претплата?', 'acceptedAnswer': { '@type': 'Answer', 'text': 'Да, можете да откажете во секое време. Нема обврски или скриени такси.' } },
-            { '@type': 'Question', 'name': 'Каква е гаранцијата?', 'acceptedAnswer': { '@type': 'Answer', 'text': 'Нудиме 30-дневна гаранција за поврат на пари. Ако не сте задоволни, ќе ви вратиме целосен рефунд без прашања.' } },
+            { '@type': 'Question', 'name': 'Каква е гаранцијата?', 'acceptedAnswer': { '@type': 'Answer', 'text': 'Доколку планот не е искористен, имате право на поврат на средствата во рок од 14 дена од уплатата.' } },
             { '@type': 'Question', 'name': 'Колку учесници може да гласаат во реалното?', 'acceptedAnswer': { '@type': 'Answer', 'text': 'Бесплатниот план поддржува до 200 учесници. Про планот поддржува до неограничен број учесници во зависност од планот.' } },
             { '@type': 'Question', 'name': 'Дали MKD Slidea поддржува македонски јазик?', 'acceptedAnswer': { '@type': 'Answer', 'text': 'Да, MKD Slidea е целосно на македонски јазик и е наменета специјално за македонскиот образовен систем.' } },
           ],
@@ -80,11 +80,10 @@ const Pricing = ({ setView }) => {
         "AI Генерирање (ограничено)",
         "Приоритетна поддршка"
       ],
-      button: "Пробај 14 дена бесплатно",
+      button: "Избери план",
       color: "bg-white text-slate-900 border-2 border-slate-100",
       btnColor: "bg-indigo-600 text-white",
       tag: "FLEX",
-      trial: true
     },
     {
       code: 'quarterly',
@@ -99,11 +98,10 @@ const Pricing = ({ setView }) => {
         "Напредна аналитика",
         "Тимска соработка"
       ],
-      button: "Пробај 14 дена бесплатно",
+      button: "Избери план",
       color: "bg-white text-slate-900 border-2 border-slate-100",
       btnColor: "bg-indigo-600 text-white",
       tag: "SAVER",
-      trial: true
     },
     {
       code: 'semester',
@@ -118,12 +116,11 @@ const Pricing = ({ setView }) => {
         "Сопствени бои",
         "До 5 тимски членови"
       ],
-      button: "Пробај 14 дена бесплатно",
+      button: "Избери план",
       color: "bg-white text-slate-900 border-2 border-indigo-100 shadow-xl shadow-indigo-50",
       btnColor: "bg-indigo-600 text-white",
       tag: "ПОПУЛАРНО",
       popular: true,
-      trial: true
     },
     {
       code: 'yearly',
@@ -138,11 +135,10 @@ const Pricing = ({ setView }) => {
         "Експорт на податоци",
         "Интеграции: PowerPoint, Google и e-дневник"
       ],
-      button: "Пробај 14 дена бесплатно",
+      button: "Избери план",
       color: "bg-slate-900 text-white",
       btnColor: "bg-emerald-500 text-white",
       tag: "НАЈДОБРА ПОНУДА",
-      trial: true
     }
   ];
 
@@ -157,7 +153,7 @@ const Pricing = ({ setView }) => {
     { feature: "Извоз на податоци",      mkd: "✓ Pro",    menti: "✓ Pro",        mkdWins: false },
     { feature: "Локална поддршка (МК)",  mkd: "✓",        menti: "✗",            mkdWins: true },
     { feature: "Податоци во ЕУ",         mkd: "✓ Supabase EU", menti: "✗ US",    mkdWins: true },
-    { feature: "30-ден гаранција",       mkd: "✓",        menti: "✗",            mkdWins: true },
+    { feature: "Поврат во 14 дена",      mkd: "✓",        menti: "✗",            mkdWins: true },
   ];
 
   const goToCheckout = (plan) => {
@@ -183,11 +179,11 @@ const Pricing = ({ setView }) => {
           className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 font-black text-xs uppercase tracking-widest px-5 py-2.5 rounded-full mb-6 border border-emerald-200"
         >
           <Gift size={14} />
-          14 дена бесплатен пробен период — без кредитна картичка
+          Бесплатен план засекогаш — 200 учесници, без кредитна картичка
         </motion.div>
         <h1 className="text-5xl md:text-6xl font-black text-slate-900 mb-6">Едноставни цени за секого</h1>
         <p className="text-xl text-slate-500 max-w-2xl mx-auto font-medium leading-relaxed">
-          Изберете го планот што најдобро одговара на вашите потреби. Сите Pro планови доаѓаат со 14 дена бесплатен период и 30-дневна гаранција.
+          Започнете бесплатно, без временско ограничување и без картичка. Надградете на Pro само кога ќе ви затребаат AI генерирање, напредна аналитика или брендирање.
         </p>
       </div>
 
@@ -213,12 +209,6 @@ const Pricing = ({ setView }) => {
               <span className={`text-5xl font-black ${plan.name === 'Годишен' ? 'text-emerald-400' : 'text-slate-900'}`}>€{plan.price}</span>
               <span className="text-lg font-bold opacity-40">{plan.period}</span>
             </div>
-
-            {plan.trial && (
-              <div className={`mb-6 text-[11px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl text-center ${plan.name === 'Годишен' ? 'bg-emerald-900/50 text-emerald-300' : 'bg-indigo-50 text-indigo-600'}`}>
-                14 дена бесплатно
-              </div>
-            )}
 
             <ul className="space-y-5 mb-12 flex-1">
               {plan.features.map((feat, j) => (
@@ -247,8 +237,8 @@ const Pricing = ({ setView }) => {
         className="max-w-3xl mx-auto mt-14 grid grid-cols-1 sm:grid-cols-3 gap-4"
       >
         {[
-          { icon: RotateCcw, title: "30-дневна гаранција", sub: "Не сте задоволни? Целосен рефунд без прашања." },
-          { icon: Gift, title: "14 дена бесплатно", sub: "Пробај го секој Pro план без кредитна картичка." },
+          { icon: RotateCcw, title: "Поврат во 14 дена", sub: "Ако планот не е искористен, средствата се враќаат." },
+          { icon: Gift, title: "Бесплатно засекогаш", sub: "Основниот план нема рок и не бара картичка." },
           { icon: Zap, title: "Откажи кога сакаш", sub: "Без договор. Откажувањето е со еден клик." },
         ].map(({ icon: Icon, title, sub }, i) => (
           <div key={i} className="flex items-start gap-4 bg-white rounded-3xl px-6 py-5 border border-slate-100 shadow-sm">
