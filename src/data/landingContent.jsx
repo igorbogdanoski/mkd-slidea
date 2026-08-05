@@ -75,9 +75,12 @@ export const demoQuizOptions = [
   { label: 'PHP', correct: false },
 ];
 
+// `path`/`anchor` give each card a destination that answers what it promises.
+// All four used to lead to /pricing under a "Дознај повеќе" label — the one
+// page that says nothing about the solution just clicked.
 export const solutions = [
-  { title: 'Бизнис состаноци', desc: 'Собери мислења од целиот тим во реално време.', icon: <Presentation className="w-6 h-6" />, color: 'bg-indigo-50 text-indigo-600' },
-  { title: 'Предавања', desc: 'Провери го знаењето и задржи ја вниманието.', icon: <GraduationCap className="w-6 h-6" />, color: 'bg-emerald-50 text-emerald-600' },
-  { title: 'Обуки', desc: 'Интерактивни сесии со мерливи резултати.', icon: <Users className="w-6 h-6" />, color: 'bg-amber-50 text-amber-600' },
-  { title: 'Вебинари', desc: 'Ангажирај ја онлајн публиката исто како во сала.', icon: <MonitorPlay className="w-6 h-6" />, color: 'bg-rose-50 text-rose-600' },
+  { title: 'Бизнис состаноци', desc: 'Собери мислења од целиот тим во реално време.', icon: <Presentation className="w-6 h-6" />, color: 'bg-indigo-50 text-indigo-600', path: '/demo' },
+  { title: 'Предавања', desc: 'Провери го знаењето и задржи ја вниманието.', icon: <GraduationCap className="w-6 h-6" />, color: 'bg-emerald-50 text-emerald-600', anchor: '#education' },
+  { title: 'Обуки', desc: 'Интерактивни сесии со мерливи резултати.', icon: <Users className="w-6 h-6" />, color: 'bg-amber-50 text-amber-600', path: '/templates' },
+  { title: 'Вебинари', desc: 'Ангажирај ја онлајн публиката исто како во сала.', icon: <MonitorPlay className="w-6 h-6" />, color: 'bg-rose-50 text-rose-600', anchor: '#how-it-works' },
 ];

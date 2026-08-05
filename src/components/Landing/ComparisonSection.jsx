@@ -16,25 +16,26 @@ const ComparisonSection = () => (
       {/* Table */}
       <div className="overflow-x-auto rounded-[2rem] border border-slate-200 shadow-sm">
         <table className="w-full text-sm">
+          <caption className="sr-only">Споредба на функционалности меѓу MKD Slidea, Mentimeter и Kahoot, врз основа на нивните јавно достапни бесплатни планови.</caption>
           <thead>
             <tr className="border-b border-slate-200">
-              <th className="text-left p-5 font-black text-slate-500 text-xs uppercase tracking-widest w-[38%]">Функционалност</th>
-              <th className="p-5 text-center w-[20%]">
+              <th scope="col" className="text-left p-5 font-black text-slate-500 text-xs uppercase tracking-widest w-[38%]">Функционалност</th>
+              <th scope="col" className="p-5 text-center w-[20%]">
                 <div className="flex flex-col items-center gap-1">
                   <div className="w-8 h-8 bg-indigo-600 rounded-xl flex items-center justify-center"><Zap size={14} className="text-white" /></div>
                   <span className="font-black text-indigo-600 text-sm">MKD Slidea</span>
                 </div>
               </th>
-              <th className="p-5 text-center w-[20%]">
+              <th scope="col" className="p-5 text-center w-[20%]">
                 <div className="flex flex-col items-center gap-1">
                   <div className="w-8 h-8 bg-slate-200 rounded-xl flex items-center justify-center text-slate-500 font-black text-xs">M</div>
-                  <span className="font-black text-slate-400 text-sm">Mentimeter</span>
+                  <span className="font-black text-slate-500 text-sm">Mentimeter</span>
                 </div>
               </th>
-              <th className="p-5 text-center w-[20%]">
+              <th scope="col" className="p-5 text-center w-[20%]">
                 <div className="flex flex-col items-center gap-1">
                   <div className="w-8 h-8 bg-slate-200 rounded-xl flex items-center justify-center text-slate-500 font-black text-xs">K</div>
-                  <span className="font-black text-slate-400 text-sm">Kahoot</span>
+                  <span className="font-black text-slate-500 text-sm">Kahoot</span>
                 </div>
               </th>
             </tr>
@@ -53,11 +54,15 @@ const ComparisonSection = () => (
               { feature: 'CSV / PDF извоз на резултати', mkd: true, menti: 'partial', kahoot: 'partial' },
               { feature: 'Поддршка на македонски јазик', mkd: true, menti: false, kahoot: false, highlight: true },
             ].map((row, i) => {
+              // The ✓/✗ icons carried no text alternative, so a screen reader
+              // read eleven rows of feature names followed by silence — the
+              // comparison, which is the entire point of the table, was
+              // conveyed by icon shape alone.
               const Cell = ({ val }) => val === true
-                ? <CheckCircle2 size={20} className="text-emerald-500 mx-auto" />
+                ? <><CheckCircle2 size={20} aria-hidden="true" className="text-emerald-600 mx-auto" /><span className="sr-only">Да</span></>
                 : val === 'partial'
-                ? <span className="text-amber-500 font-black text-xs mx-auto block text-center">Делумно</span>
-                : <XCircle size={20} className="text-slate-300 mx-auto" />;
+                ? <span className="text-amber-600 font-black text-xs mx-auto block text-center">Делумно</span>
+                : <><XCircle size={20} aria-hidden="true" className="text-slate-400 mx-auto" /><span className="sr-only">Не</span></>;
               return (
                 <motion.tr
                   key={i}
@@ -67,10 +72,10 @@ const ComparisonSection = () => (
                   transition={{ delay: i * 0.04 }}
                   className={`border-b border-slate-100 last:border-0 ${row.highlight ? 'bg-indigo-50/60' : i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}`}
                 >
-                  <td className="p-4 pl-5 font-bold text-slate-700 text-[13px]">
+                  <th scope="row" className="p-4 pl-5 font-bold text-slate-700 text-[13px] text-left">
                     {row.highlight && <span className="inline-block w-1.5 h-1.5 bg-indigo-500 rounded-full mr-2 mb-0.5" />}
                     {row.feature}
-                  </td>
+                  </th>
                   <td className="p-4 text-center"><Cell val={row.mkd} /></td>
                   <td className="p-4 text-center"><Cell val={row.menti} /></td>
                   <td className="p-4 text-center"><Cell val={row.kahoot} /></td>
@@ -81,7 +86,7 @@ const ComparisonSection = () => (
         </table>
       </div>
 
-      <p className="text-center text-slate-400 text-xs font-bold mt-5">* Споредбата е базирана на јавно достапните бесплатни планови (јуни 2026)</p>
+      <p className="text-center text-slate-500 text-xs font-bold mt-5">* Споредбата е базирана на јавно достапните бесплатни планови (јуни 2026)</p>
     </div>
   </section>
 );
