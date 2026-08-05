@@ -17,6 +17,13 @@ export default defineConfig({
           if (id.includes('jszip')) return 'vendor-import';
           if (id.includes('@supabase')) return 'vendor-supabase';
           if (id.includes('canvas-confetti') || id.includes('qrcode')) return 'vendor-fx';
+          // KaTeX must stay out of `vendor`, which every visitor downloads
+          // eagerly. It is imported dynamically by MathText and only when a
+          // question actually contains $…$ — a language teacher's poll should
+          // not pull a maths typesetter onto a school phone. Naming it here
+          // keeps it a separate chunk that the dynamic import can fetch on
+          // demand; folding it into vendor would silently undo that.
+          if (id.includes('katex')) return 'vendor-math';
           return 'vendor';
         },
       },

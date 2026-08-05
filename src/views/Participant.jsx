@@ -8,6 +8,8 @@ import MathSymbolPicker from '../components/MathSymbolPicker';
 import { applyInsertion } from '../lib/insertAtCursor';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import { accessibleScaleColor } from '../lib/contrast';
+import MathText from '../components/MathText';
+import { toSpokenText } from '../lib/mathText';
 import { useLiveAnnouncer } from '../hooks/useLiveAnnouncer';
 
 const haptic = (pattern = [30]) => {
@@ -362,7 +364,7 @@ const Participant = ({
             </div>
             
             <h2 id="poll-question" className="text-2xl font-black text-slate-900 mb-8 leading-tight whitespace-pre-line">
-              {currentPoll.question}
+              <MathText>{currentPoll.question}</MathText>
             </h2>
 
             {/* Vote error */}
@@ -424,7 +426,7 @@ const Participant = ({
                               ? <XCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
                               : <div className="w-5 h-5 flex-shrink-0" />
                             }
-                            {option.text}
+                            <MathText>{option.text}</MathText>
                           </motion.div>
                         );
                       })}
@@ -622,7 +624,7 @@ const Participant = ({
                           >
                             <GripVertical className="w-5 h-5 text-slate-400" />
                             <span className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-sm">{rank + 1}</span>
-                            <span className="font-bold text-slate-700 flex-1">{opt.text}</span>
+                            <MathText className="font-bold text-slate-700 flex-1">{opt.text}</MathText>
                             <div className="flex items-center gap-1">
                               <button
                                 type="button"
@@ -697,12 +699,12 @@ const Participant = ({
                     {currentPoll.options.map((option, i) => (
                       <button
                         key={i}
-                        aria-label={option.text}
+                        aria-label={toSpokenText(option.text)}
                         onClick={() => { haptic([30]); handleVote(i); }}
                         className="w-full group relative overflow-hidden p-6 rounded-3xl border-2 border-slate-100 hover:border-indigo-600 hover:bg-indigo-50 active:scale-[0.98] transition-all text-left"
                       >
                         <div className="relative z-10 flex justify-between items-center font-bold">
-                          <span className="text-slate-700">{option.text}</span>
+                          <MathText className="text-slate-700">{option.text}</MathText>
                         </div>
                       </button>
                     ))}

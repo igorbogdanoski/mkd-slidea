@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import MathText from '../components/MathText';
 import confetti from 'canvas-confetti';
 import AnimatedBackground from '../components/AnimatedBackground';
 import SentimentHeatmap from '../components/SentimentHeatmap';
@@ -209,7 +210,7 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
             initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }}
             className="text-6xl font-black leading-tight max-w-4xl whitespace-pre-line"
           >
-            {currentPoll.question}
+            <MathText>{currentPoll.question}</MathText>
           </motion.h2>
 
           <CurriculumBenchmarkBadge poll={currentPoll} />

@@ -1,4 +1,5 @@
 import React from 'react';
+import MathText from '../MathText';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star } from 'lucide-react';
 import WordCloud from '../WordCloud';
@@ -18,7 +19,7 @@ const PollResultsRenderer = ({ currentPoll, visibleOptions, totalVotes, surveyRe
           const vals = surveyResponses.map(r => (r.answers || []).find(a => a.qId === sq.id)?.value).filter(v => v !== undefined);
           return (
             <div key={sq.id} className="bg-slate-800/30 rounded-[2rem] p-6 border border-slate-700/40">
-              <p className="font-black text-white mb-4 text-lg leading-tight">{sq.text}</p>
+              <MathText as="p" className="font-black text-white mb-4 text-lg leading-tight">{sq.text}</MathText>
               {sq.type === 'scale' && vals.length > 0 && (() => {
                 const avg = (vals.reduce((s, v) => s + Number(v), 0) / vals.length).toFixed(1);
                 const dist = Array.from({ length: 10 }, (_, i) => vals.filter(v => Number(v) === i + 1).length);
@@ -163,7 +164,7 @@ const PollResultsRenderer = ({ currentPoll, visibleOptions, totalVotes, surveyRe
                   {isTop ? medals[i] : i + 1}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-3xl font-black text-white mb-3 truncate">{opt.text}</h4>
+                  <MathText as="h4" className="text-3xl font-black text-white mb-3 truncate">{opt.text}</MathText>
                   <div className="h-3 bg-slate-700/60 rounded-full overflow-hidden">
                     <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }}
                       transition={{ duration: 1.2, ease: 'circOut', delay: i * 0.08 + 0.2 }}
@@ -198,7 +199,7 @@ const PollResultsRenderer = ({ currentPoll, visibleOptions, totalVotes, surveyRe
             className={`${colors[i % colors.length]} p-8 rounded-xl shadow-xl border-t-4 border-black/5 min-h-[200px] flex items-center justify-center relative`}
           >
             <div className="absolute top-4 left-4 w-4 h-4 bg-black/10 rounded-full" />
-            <p className="text-slate-800 text-2xl font-black leading-tight text-center font-mono">{opt.text}</p>
+            <MathText as="p" className="text-slate-800 text-2xl font-black leading-tight text-center">{opt.text}</MathText>
           </motion.div>
         ))}
       </div>

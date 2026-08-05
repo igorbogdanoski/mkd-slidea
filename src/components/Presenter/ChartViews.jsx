@@ -1,4 +1,5 @@
 import React from 'react';
+import MathText from '../MathText';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BarChart2, PieChart, Award, Hash as HashIcon } from 'lucide-react';
 import { PieChart as RechartsPie, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
@@ -53,7 +54,7 @@ export const BarsView = ({ options, totalVotes }) => {
             >
               <div className="flex justify-between items-end mb-3 px-2">
                 <span className={`text-3xl font-black ${isLeading ? 'text-white' : 'text-slate-300'}`}>
-                  {isLeading && '👑 '}{option.text}
+                  {isLeading && '👑 '}<MathText>{option.text}</MathText>
                 </span>
                 <span className={`text-4xl font-black ${p.text}`}>{pct}%</span>
               </div>

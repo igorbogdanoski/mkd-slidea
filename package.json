@@ -25,6 +25,7 @@
     "d3-cloud": "^1.2.9",
     "framer-motion": "^11.11.0",
     "jszip": "^3.10.1",
+    "katex": "^0.18.1",
     "lucide-react": "^0.446.0",
     "pdfjs-dist": "^4.6.82",
     "qrcode.react": "^4.2.0",
