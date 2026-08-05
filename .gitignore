@@ -49,6 +49,9 @@ test-results/
 !public/**/*.jpg
 !src/**/*.png
 !src/**/*.jpg
+# Shipped assets, not screenshots: the OG fallback card the serverless
+# renderer falls back to when satori fails.
+!api/_lib/*.png
 
 # Claude memory & session files
 .claude/
