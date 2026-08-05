@@ -11,6 +11,10 @@ import { LOCALES } from '../lib/locales';
 
 const SITE = 'https://slidea.mismath.net';
 
+// The site-wide share card, matching index.html. A page that sets its own
+// og:image must restore this on unmount — see the cleanup below.
+const DEFAULT_IMAGE = `${SITE}/api/og-png`;
+
 function ensureMeta(selector, attrName, attrValue) {
   if (typeof document === 'undefined') return null;
   let el = document.head.querySelector(selector);
@@ -99,6 +103,14 @@ export function useSEO({
     return () => {
       if (title) document.title = prevTitle;
       if (scriptEl && scriptEl.parentNode) scriptEl.parentNode.removeChild(scriptEl);
+      // og:image was set but never unset, so navigating from a blog post to
+      // /terms left the post's card attached to the wrong page — and since
+      // share buttons and crawlers read the live DOM, the wrong preview is
+      // what actually got shared. Restore the default.
+      if (image) {
+        ensureMeta('meta[property="og:image"]', 'content', DEFAULT_IMAGE);
+        ensureMeta('meta[name="twitter:image"]', 'content', DEFAULT_IMAGE);
+      }
     };
   }, [title, description, path, keywords, image, jsonLd ? JSON.stringify(jsonLd) : '', noindex]);
 }

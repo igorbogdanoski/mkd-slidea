@@ -1,6 +1,6 @@
 import React, { useState, lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, MotionConfig } from 'framer-motion';
 import Nav from './components/Nav';
 import Join from './views/Join';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -305,26 +305,23 @@ const AppContent = () => {
                   <span className="font-black text-white text-lg">MKD Slidea</span>
                 </div>
                 <p className="text-sm leading-relaxed">Интерактивни презентации, анкети и квизови во живо. Направено во Македонија 🇲🇰</p>
-                {/* Social */}
-                <div className="flex gap-3 pt-2">
-                  {[
-                    { label: 'LinkedIn', href: 'https://linkedin.com', icon: 'in' },
-                    { label: 'Facebook', href: 'https://facebook.com', icon: 'f' },
-                    { label: 'Instagram', href: 'https://instagram.com', icon: '✦' },
-                  ].map((s) => (
-                    <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer"
-                      className="w-9 h-9 bg-slate-800 hover:bg-indigo-600 rounded-xl flex items-center justify-center text-xs font-black text-slate-300 hover:text-white transition-all"
-                      aria-label={s.label}
-                    >{s.icon}</a>
-                  ))}
-                </div>
+                {/* Social icons removed: they linked to linkedin.com, facebook.com
+                    and instagram.com — the sites' homepages, not any profile of
+                    ours. Three official-looking badges implying a social presence
+                    that does not exist, each one throwing away the click of the
+                    visitor most interested in following us. Restore them, one at
+                    a time, as real profile URLs exist. */}
               </div>
 
               {/* Производ */}
               <div className="space-y-3">
                 <h4 className="text-white font-black text-sm uppercase tracking-widest mb-4">Производ</h4>
                 {[
-                  { label: 'Функционалности', view: 'host' },
+                  // Was view:'host' — a protected route, so an anonymous
+                  // visitor clicking "Функционалности" in the footer was
+                  // bounced to a login modal with no explanation. Point it at
+                  // the public features section instead.
+                  { label: 'Функционалности', path: '/#features' },
                   { label: 'Шаблони', path: '/templates' },
                   { label: 'Ценовник', view: 'pricing' },
                   { label: 'Скорборд', path: '/scoreboard' },
@@ -342,8 +339,20 @@ const AppContent = () => {
               {/* Решенија */}
               <div className="space-y-3">
                 <h4 className="text-white font-black text-sm uppercase tracking-widest mb-4">Решенија</h4>
-                {['За образование', 'За бизнис и HR', 'За вебинари', 'За обуки'].map((l) => (
-                  <div key={l} className="text-sm hover:text-white transition-colors cursor-pointer">{l}</div>
+                {/* These were bare <div className="cursor-pointer"> with no
+                    onClick and no href: they looked like links, showed a hand
+                    cursor, did nothing, and were invisible to keyboard and
+                    screen-reader users. Real anchors now, pointing at the
+                    sections that already exist. */}
+                {[
+                  { label: 'За образование', path: '/#education' },
+                  { label: 'За училишта', path: '/schools' },
+                  { label: 'За бизнис и обуки', path: '/#solutions' },
+                  { label: 'Интеграции', path: '/integrations' },
+                ].map((l) => (
+                  <div key={l.label}>
+                    <a href={l.path} className="text-sm hover:text-white transition-colors block">{l.label}</a>
+                  </div>
                 ))}
               </div>
 
@@ -387,13 +396,21 @@ const AppContent = () => {
 };
 
 const App = () => (
-  <Router>
-    <I18nProvider>
-      <LiveAnnouncerProvider>
-        <AppContent />
-      </LiveAnnouncerProvider>
-    </I18nProvider>
-  </Router>
+  // index.css honours prefers-reduced-motion, but that kill-switch only
+  // reaches CSS animations. Every Framer spring and keyframe — floating
+  // reactions, the 22rem countdown, hero icons, card entrances — kept running
+  // for users who had explicitly asked the OS for less motion, which for
+  // vestibular disorders is not a preference but an accessibility need.
+  // reducedMotion="user" makes Framer read the same media query.
+  <MotionConfig reducedMotion="user">
+    <Router>
+      <I18nProvider>
+        <LiveAnnouncerProvider>
+          <AppContent />
+        </LiveAnnouncerProvider>
+      </I18nProvider>
+    </Router>
+  </MotionConfig>
 );
 
 export default App;
