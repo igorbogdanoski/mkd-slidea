@@ -362,19 +362,40 @@ const PaymentInstructions = ({ method, orderId, amount, currency, onCopy, copied
     </button>
   );
 
-  // Only reachable for an order created before PayPal was withdrawn — the
-  // method is no longer offered, and BILLING.paypal.enabled is false, because
-  // a Macedonian PayPal account can send but cannot receive. Kept so an old
-  // pending order still renders something coherent instead of a blank panel.
   if (method === 'paypal') {
+    // An order can outlive its payment method: this branch is reached both by
+    // a new PayPal order and by an old one created while PayPal was
+    // configured. If the address has since been removed, say so and give a way
+    // out — leaving the customer to send money to nothing is the one outcome
+    // worth writing extra code to avoid.
+    if (!BILLING.paypal.enabled) {
+      return (
+        <div className="space-y-3 text-sm">
+          <p className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-medium">
+            PayPal моментално не е достапен метод. Контактирајте нè на {BILLING.company.supportEmail} за
+            да ја префрлиме нарачката на банкарски трансфер.
+          </p>
+          <Detail label="Износ" value={`${amount} ${currency}`} />
+          <Detail label="Број на нарачка" value={orderId} copy={copyBtn(orderId, 'order')} highlight />
+        </div>
+      );
+    }
     return (
       <div className="space-y-3 text-sm">
-        <p className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-medium">
-          PayPal повеќе не е достапен метод. Контактирајте нè на {BILLING.company.supportEmail} за
-          да ја префрлиме нарачката на банкарски трансфер.
-        </p>
+        {BILLING.paypal.email && (
+          <Detail label="PayPal сметка" value={BILLING.paypal.email} copy={copyBtn(BILLING.paypal.email, 'pp-email')} />
+        )}
+        {BILLING.paypal.meLink && (
+          <Detail label="PayPal.Me" value={BILLING.paypal.meLink} copy={copyBtn(BILLING.paypal.meLink, 'pp-link')} />
+        )}
         <Detail label="Износ" value={`${amount} ${currency}`} />
-        <Detail label="Број на нарачка" value={orderId} copy={copyBtn(orderId, 'order')} highlight />
+        {/* The order id goes in the PayPal note field. Without it a payment
+            arrives as a name and an amount, and matching it to an account by
+            hand is guesswork the moment two people buy the same plan. */}
+        <Detail label="Порака кон уплатата" value={orderId} copy={copyBtn(orderId, 'order')} highlight />
+        <p className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 font-medium">
+          Впишете го бројот на нарачката во полето за порака при уплатата. {BILLING.paypal.note}
+        </p>
       </div>
     );
   }

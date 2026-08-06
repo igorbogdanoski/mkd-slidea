@@ -18,13 +18,19 @@ export const BILLING = {
     supportEmail: env.VITE_BILLING_SUPPORT || 'igorbogdanoski@mismath.net',
     phone: env.VITE_BILLING_PHONE || '+389 70 246 814',
   },
-  // Kept, disabled, so the moment receiving becomes possible it is one flag
-  // rather than a rebuild. See PAYMENT_METHODS below for why it is off.
+  // Was switched off on the general claim that a Macedonian PayPal account
+  // cannot receive. That claim is what the public sources say and it is not
+  // true of this account, which receives today — so the method is back.
+  //
+  // It enables itself from configuration rather than from a hand-set boolean.
+  // An address that is offered but empty is worse than a method that is not
+  // offered: the customer picks it, finds nothing to send to, and is stuck
+  // mid-purchase. No email, no PayPal.
   paypal: {
-    enabled: false,
+    get enabled() { return Boolean(this.email || this.meLink); },
     email: env.VITE_PAYPAL_EMAIL || '',
     meLink: env.VITE_PAYPAL_ME || '',
-    note: 'PayPal во Северна Македонија поддржува само испраќање, не и примање средства.',
+    note: 'Уплатата се потврдува рачно, најдоцна во рок од 24 часа.',
   },
   bankEUR: {
     enabled: true,
@@ -97,17 +103,27 @@ export function formatAmount(amount, currency = 'EUR') {
   }
 }
 
-// PayPal is deliberately absent.
+// Only methods that actually complete are shown. A customer who picks a method
+// and then cannot finish is worse off than one who never saw it — they have
+// committed to buying and been stopped, which is the point in the funnel where
+// they leave and do not come back.
 //
-// PayPal supports North Macedonia for *sending* money only — a Macedonian
-// account cannot receive a payment. Offering it as a method meant a customer
-// could pick it, follow the instructions, and either fail at PayPal's end or
-// send money that never arrives, then wait for an activation that could never
-// come. Stripe does not operate in North Macedonia either. Until a local card
-// gateway (CaSys/CPay through a bank contract) or a merchant-of-record is in
-// place, bank transfer is the only method that actually completes, so it is
-// the only one shown.
+// Bank transfer carries the important half of the revenue and is not a
+// fallback: a public school is a budget user whose money sits in the Treasury,
+// so it pays by invoice against a bank account. It has no card and no PayPal,
+// and no amount of card support changes that.
+//
+// PayPal covers the other customer entirely — a teacher paying out of pocket,
+// an NGO, someone abroad — who has no reason to walk into a bank for €4 and
+// will simply not buy if that is the only way. It appears only when an address
+// is configured (VITE_PAYPAL_EMAIL or VITE_PAYPAL_ME).
+//
+// Stripe still does not operate in North Macedonia; the workaround is a US LLC
+// with the tax filings that follow it, which is not worth it at this size.
 export const PAYMENT_METHODS = [
+  ...(BILLING.paypal.enabled
+    ? [{ id: 'paypal', label: 'PayPal', icon: 'paypal', description: 'Уплата на PayPal сметка — најбрзо за поединци.' }]
+    : []),
   { id: 'bank_eur', label: 'IBAN / SWIFT (EUR)', icon: 'bank', description: 'Меѓународен банкарски трансфер во евра.' },
   { id: 'bank_mkd', label: 'Трансакциска сметка (МКД)', icon: 'bank-mk', description: 'Домашен трансфер во денари.' },
 ];

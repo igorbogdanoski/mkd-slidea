@@ -107,29 +107,42 @@ describe('the price ladder is not inverted', () => {
 });
 
 describe('only payment methods that can actually receive money are offered', () => {
-  // PayPal supports North Macedonia for sending only — a Macedonian account
-  // cannot receive. Offering it meant a customer could follow the instructions
-  // and either fail at PayPal's end or send money that never arrived, then
-  // wait for an activation that could never come. Stripe does not operate here
-  // at all.
-  it('PayPal is not offered', () => {
-    expect(PAYMENT_METHODS.map((m) => m.id)).not.toContain('paypal');
-    expect(BILLING.paypal.enabled).toBe(false);
+  // The failure this guards against is a customer who has decided to buy,
+  // picks a method, and then cannot finish — the worst place in the funnel to
+  // stop someone. So a method appears only when the details needed to pay it
+  // are present.
+  it('PayPal is offered exactly when an address is configured', () => {
+    const offered = PAYMENT_METHODS.map((m) => m.id).includes('paypal');
+    expect(offered).toBe(BILLING.paypal.enabled);
+    expect(BILLING.paypal.enabled).toBe(Boolean(BILLING.paypal.email || BILLING.paypal.meLink));
   });
 
-  it('the server rejects methods the UI does not offer', () => {
+  it('the server accepts every method the UI offers', () => {
+    // Superset, not equality: the server is a separate deployment and does not
+    // see the client's build-time PayPal config, and an old pending order can
+    // name a method no longer shown. It must never reject one currently
+    // offered — that would break checkout for a build it cannot see.
     const allowed = orderApi.match(/\[([^\]]*)\]\.includes\(method\)/)[1]
       .split(',')
       .map((s) => s.trim().replace(/['"]/g, ''));
-    expect(allowed.sort()).toEqual(PAYMENT_METHODS.map((m) => m.id).sort());
+    for (const m of PAYMENT_METHODS) expect(allowed).toContain(m.id);
   });
 
   it('every offered method has the details needed to actually pay', () => {
+    const CONFIG = { bank_eur: BILLING.bankEUR, bank_mkd: BILLING.bankMKD, paypal: BILLING.paypal };
     for (const m of PAYMENT_METHODS) {
-      const config = m.id === 'bank_eur' ? BILLING.bankEUR : BILLING.bankMKD;
+      const config = CONFIG[m.id];
+      // A method with no config object at all is the failure this catches:
+      // mapping an unknown id onto some other method's details would let a
+      // method ship that points a customer at the wrong account.
+      expect(config, `${m.id} is offered but has no config`).toBeTruthy();
       expect(config.enabled, `${m.id} is offered but disabled`).toBe(true);
-      expect(config.beneficiary, `${m.id} has no beneficiary`).toBeTruthy();
-      expect(config.iban || config.account, `${m.id} has no account number`).toBeTruthy();
+      if (m.id === 'paypal') {
+        expect(config.email || config.meLink, 'PayPal is offered with no address').toBeTruthy();
+      } else {
+        expect(config.beneficiary, `${m.id} has no beneficiary`).toBeTruthy();
+        expect(config.iban || config.account, `${m.id} has no account number`).toBeTruthy();
+      }
     }
   });
 });

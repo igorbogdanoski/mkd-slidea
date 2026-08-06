@@ -154,9 +154,14 @@ export default async function handler(req) {
   const order_id = sanitize(body.order_id, 64);
 
   if (!plan || !PLAN_AMOUNTS[plan]) return json({ error: 'Invalid plan' }, 400);
-  // PayPal cannot receive money in North Macedonia, so it is no longer
-  // accepted for new orders — see PAYMENT_METHODS in src/lib/billing.js.
-  if (!['bank_eur', 'bank_mkd'].includes(method)) return json({ error: 'Invalid method' }, 400);
+  // Superset of what the UI offers, deliberately. No money moves through here —
+  // the method is a label on a pending order that is confirmed by hand — and
+  // PayPal is shown only when an address is configured at build time, which
+  // this server does not share. Rejecting a method the client just offered
+  // would break checkout for a build the server cannot see; accepting one it
+  // no longer shows only produces a panel that says so. See PAYMENT_METHODS in
+  // src/lib/billing.js.
+  if (!['paypal', 'bank_eur', 'bank_mkd'].includes(method)) return json({ error: 'Invalid method' }, 400);
   if (!validEmail(email)) return json({ error: 'Invalid email' }, 400);
   if (!/^SLD-[A-Z0-9-]{6,}$/.test(order_id)) return json({ error: 'Invalid order_id' }, 400);
 
