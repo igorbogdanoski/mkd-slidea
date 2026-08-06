@@ -164,7 +164,7 @@ const PollResultsRenderer = ({ currentPoll, visibleOptions, totalVotes, surveyRe
                   {isTop ? medals[i] : i + 1}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <MathText as="h4" className="text-3xl font-black text-white mb-3 truncate">{opt.text}</MathText>
+                  <MathText as="h4" className="presenter-answer presenter-answer-wrap font-black text-white mb-3 line-clamp-2">{opt.text}</MathText>
                   <div className="h-3 bg-slate-700/60 rounded-full overflow-hidden">
                     <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }}
                       transition={{ duration: 1.2, ease: 'circOut', delay: i * 0.08 + 0.2 }}
@@ -199,7 +199,7 @@ const PollResultsRenderer = ({ currentPoll, visibleOptions, totalVotes, surveyRe
             className={`${colors[i % colors.length]} p-8 rounded-xl shadow-xl border-t-4 border-black/5 min-h-[200px] flex items-center justify-center relative`}
           >
             <div className="absolute top-4 left-4 w-4 h-4 bg-black/10 rounded-full" />
-            <MathText as="p" className="text-slate-800 text-2xl font-black leading-tight text-center">{opt.text}</MathText>
+            <MathText as="p" className="text-slate-800 presenter-answer-sm presenter-answer-wrap font-black text-center">{opt.text}</MathText>
           </motion.div>
         ))}
       </div>

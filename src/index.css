@@ -86,6 +86,39 @@
   }
 }
 
+/* ── Presenter type ramp ──────────────────────────────────────────────────
+   The presenter view is the one surface whose reading distance is not the
+   reader's choice. Everywhere else someone who cannot read something leans in
+   or zooms; the back row of a classroom cannot do either.
+
+   The rule of thumb for projected text is cap height ≈ viewing distance / 150.
+   A back row about 9 m from a 2 m-wide screen therefore needs roughly 45 px at
+   1080p — and Tailwind's fixed sizes are half that (text-xl is 20 px), because
+   they were chosen for a laptop at arm's length.
+
+   Fixed px is also the deeper problem: the same markup is thrown onto a wall
+   and previewed in a window, and a CSS pixel does not know the difference.
+   These sizes scale with the viewport instead, with a floor that keeps a small
+   laptop preview usable and a ceiling that stops a 4K projector from fitting
+   three words per line. */
+.presenter-answer {
+  font-size: clamp(1.5rem, 2.3vw, 3rem);
+  line-height: 1.15;
+}
+
+.presenter-answer-sm {
+  font-size: clamp(1.25rem, 1.7vw, 2.25rem);
+  line-height: 1.2;
+}
+
+/* A truncated answer is not small, it is absent — the student cannot recover
+   the missing half by squinting. Where an option is allowed to wrap, wrap it
+   and bound it by lines rather than by a single clipped row. */
+.presenter-answer-wrap {
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
 /* ── Reaction animations ──────────────────────────────────────────────── */
 
 /* Cooldown ring depletes clockwise over 2 s (circumference ≈ 150.8) */

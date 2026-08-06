@@ -53,10 +53,10 @@ export const BarsView = ({ options, totalVotes }) => {
               transition={{ delay: i * 0.06, type: 'spring', stiffness: 200, damping: 22 }}
             >
               <div className="flex justify-between items-end mb-3 px-2">
-                <span className={`text-3xl font-black ${isLeading ? 'text-white' : 'text-slate-300'}`}>
+                <span className={`presenter-answer presenter-answer-wrap font-black pr-6 ${isLeading ? 'text-white' : 'text-slate-300'}`}>
                   {isLeading && '👑 '}<MathText>{option.text}</MathText>
                 </span>
-                <span className={`text-4xl font-black ${p.text}`}>{pct}%</span>
+                <span className={`presenter-answer font-black flex-shrink-0 ${p.text}`}>{pct}%</span>
               </div>
               <div className="h-20 w-full bg-slate-800 rounded-[1.5rem] overflow-hidden border border-slate-700/50 p-2">
                 <motion.div
@@ -121,8 +121,8 @@ export const DonutView = ({ options, totalVotes }) => {
               className="flex items-center gap-4"
             >
               <div className={`w-5 h-5 rounded-full flex-shrink-0 ${p.bar}`} />
-              <span className="text-slate-200 font-black text-xl flex-1 truncate">{o.text}</span>
-              <span className={`font-black text-2xl ${p.text}`}>{pct}%</span>
+              <span className="text-slate-200 font-black presenter-answer-sm presenter-answer-wrap flex-1">{o.text}</span>
+              <span className={`font-black presenter-answer-sm ${p.text}`}>{pct}%</span>
             </motion.div>
           );
         })}
@@ -163,7 +163,7 @@ export const PodiumView = ({ options, totalVotes }) => {
             >
               <div className="text-center">
                 <div className="text-5xl mb-2">{medals[pos]}</div>
-                <p className="text-white font-black text-lg leading-tight text-center line-clamp-2">{opt.text}</p>
+                <p className="text-white font-black presenter-answer-sm presenter-answer-wrap text-center line-clamp-3">{opt.text}</p>
                 <p className={`font-black text-3xl mt-1 ${PALETTE[origIdx % PALETTE.length].text}`}>{pct}%</p>
                 <p className="text-slate-500 text-sm font-bold">{opt.votes} гл.</p>
               </div>
@@ -188,8 +188,8 @@ export const PodiumView = ({ options, totalVotes }) => {
                 className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5 flex items-center gap-4"
               >
                 <span className="text-slate-500 font-black text-2xl w-8">#{idx + 1}</span>
-                <span className="text-slate-300 font-black flex-1 truncate">{opt.text}</span>
-                <span className={`font-black text-xl ${PALETTE[idx % PALETTE.length].text}`}>{pct}%</span>
+                <span className="text-slate-300 font-black presenter-answer-sm presenter-answer-wrap flex-1 line-clamp-3">{opt.text}</span>
+                <span className={`font-black text-xl flex-shrink-0 ${PALETTE[idx % PALETTE.length].text}`}>{pct}%</span>
               </motion.div>
             );
           })}
@@ -214,7 +214,7 @@ export const NumbersView = ({ options, totalVotes }) => {
             transition={{ delay: i * 0.07 }}
             className="flex items-center justify-between bg-slate-800/40 border border-slate-700/40 rounded-[2rem] px-10 py-7"
           >
-            <span className="text-3xl font-black text-slate-200 flex-1 pr-8">{opt.text}</span>
+            <span className="presenter-answer presenter-answer-wrap font-black text-slate-200 flex-1 pr-8">{opt.text}</span>
             <div className="flex items-center gap-8">
               <span className="text-slate-500 font-black text-2xl">{opt.votes} гл.</span>
               <span className={`font-black text-6xl w-36 text-right ${p.text}`}>{pct}%</span>
