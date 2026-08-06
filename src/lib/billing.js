@@ -28,7 +28,12 @@ export const BILLING = {
   // mid-purchase. No email, no PayPal.
   paypal: {
     get enabled() { return Boolean(this.email || this.meLink); },
-    email: env.VITE_PAYPAL_EMAIL || '',
+    // Defaulted in source like the IBAN and the МКД account above, not held in
+    // env alone — it is a payment address printed on the checkout page for the
+    // customer to send to, not a secret, and leaving it to a Vercel variable
+    // means one unset variable silently removes a payment method in
+    // production with nothing failing to show it.
+    email: env.VITE_PAYPAL_EMAIL || 'igor.bogdanoski@mismath.net',
     meLink: env.VITE_PAYPAL_ME || '',
     note: 'Уплатата се потврдува рачно, најдоцна во рок од 24 часа.',
   },
