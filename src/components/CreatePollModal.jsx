@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Plus, Trash2, Save, ChevronDown, Image as ImageIcon, Trash } from 'lucide-react';
+import { X, Plus, Trash2, Save, ChevronDown, ChevronUp, Image as ImageIcon, Trash } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MathSymbolPicker from './MathSymbolPicker';
 import IllustrationPickerModal from './IllustrationPickerModal';
@@ -76,6 +76,25 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
     const newOptions = [...options];
     newOptions[index] = value;
     setOptions(newOptions);
+  };
+
+  // The numbered badge beside each option always looked like an order, and for
+  // a ranking activity it *is* one — the sequence entered here is the correct
+  // answer participants are asked to reproduce. There was no way to change it:
+  // a wrong order meant deleting every option and retyping them.
+  const moveOption = (index, delta) => {
+    const to = index + delta;
+    if (to < 0 || to >= options.length) return;
+    const next = [...options];
+    [next[index], next[to]] = [next[to], next[index]];
+    setOptions(next);
+    // No answer-key remap needed here: this modal's `correctAnswer` is free
+    // text for open questions, not an index into these options. CreateQuizModal
+    // keeps `isCorrect` on the option object itself, so it travels with the
+    // move rather than pointing at a position.
+    // Keep the caret with the option the user is moving, so a second press
+    // moves the same one again instead of whatever landed under the cursor.
+    requestAnimationFrame(() => { try { optionRefs.current[to]?.focus(); } catch { /* ignore */ } });
   };
 
   const [scaleMin, setScaleMin] = useState('');
@@ -517,9 +536,31 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
                           maxLength={150}
                           className="flex-1 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-2.5 font-bold text-sm focus:border-indigo-600 focus:bg-white outline-none transition-all"
                         />
+                        <div className="flex flex-col shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => moveOption(i, -1)}
+                            disabled={i === 0}
+                            aria-label={`Помести ја опцијата ${i + 1} нагоре`}
+                            className="p-0.5 text-slate-300 hover:text-indigo-600 disabled:opacity-25 disabled:hover:text-slate-300 transition-all"
+                          >
+                            <ChevronUp className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => moveOption(i, 1)}
+                            disabled={i === options.length - 1}
+                            aria-label={`Помести ја опцијата ${i + 1} надолу`}
+                            className="p-0.5 text-slate-300 hover:text-indigo-600 disabled:opacity-25 disabled:hover:text-slate-300 transition-all"
+                          >
+                            <ChevronDown className="w-4 h-4" />
+                          </button>
+                        </div>
                         {options.length > 2 && (
                           <button
+                            type="button"
                             onClick={() => removeOption(i)}
+                            aria-label={`Избриши ја опцијата ${i + 1}`}
                             className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all shrink-0"
                           >
                             <Trash2 className="w-4 h-4" />

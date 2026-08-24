@@ -13,6 +13,33 @@ import PoweredByBadge from './PoweredByBadge';
 
 const isLockErrorMsg = (msg) => String(msg || '').includes('lock:sb-');
 
+// What will be written to the votes row, derived from the submitted value
+// alone. Pure and network-free on purpose: the row has to be claimed before
+// any tally moves, so this cannot depend on a call that has already counted
+// something. The branches in handleVote produce the same strings — this stays
+// in step with them, and voteAnswer.test.js holds the two together.
+export function deriveAnswer(val, poll) {
+  // Fill-in-the-blanks arrives as { blankId: answer, … } and must be matched
+  // before the numeric branch, which would read the object as an option index.
+  if (val && typeof val === 'object' && !Array.isArray(val)) {
+    return { answerText: JSON.stringify(val).slice(0, 2000), isCorrect: null };
+  }
+  if (typeof val === 'string') {
+    return { answerText: val, isCorrect: null };
+  }
+  if (Array.isArray(val)) {
+    // Ranking: the whole ordering, most preferred first.
+    return {
+      answerText: val.map((i) => poll?.options?.[i]?.text).filter(Boolean).join(' > '),
+      isCorrect: null,
+    };
+  }
+  const option = poll?.options?.[val];
+  // Thrown before anything is counted, so a bad index costs nothing.
+  if (!option) throw new Error('Invalid option selected');
+  return { answerText: option.text, isCorrect: option.is_correct ?? null };
+}
+
 // Retries a vote call a few times on Supabase's known auth-lock contention
 // error before giving up — a transient "lock:sb-*" failure isn't a real vote
 // failure, but it also isn't a guaranteed success; retrying resolves the
@@ -420,6 +447,49 @@ const EventWrapper = ({ type, username, setUsername }) => {
           let answerText = null;
           let isCorrect = null;
 
+          // ── Claim the vote before counting it ────────────────────────────
+          // The tally lives in options.votes and moves through increment_vote,
+          // which is a blind `votes = votes + 1` with no idea who is calling.
+          // The one-vote-per-session rule lives somewhere else entirely: the
+          // UNIQUE(poll_id, session_id) on the votes table.
+          //
+          // Those used to run in the wrong order — tally first, votes row
+          // afterwards with ignoreDuplicates, which swallows the conflict
+          // without an error. So a second submission moved the counter and
+          // then quietly failed to record itself: the chart went up, the votes
+          // table stayed at one row, and the only thing standing between a
+          // participant and voting twice was the client-side `userVoted` flag.
+          //
+          // Now the row is claimed first and its conflict is the gate. If no
+          // row comes back, this session already voted and nothing is counted.
+          const sid = getSessionId();
+          // With multiple votes allowed each attempt needs its own row, or it
+          // would no-op against the previous vote via that same constraint.
+          const voteRowSid = event?.allow_multiple_votes ? `${sid}-${Date.now()}` : sid;
+          const { answerText: claimText, isCorrect: claimCorrect } = deriveAnswer(val, currentPoll);
+
+          const { data: claimed, error: claimError } = await supabase.from('votes').upsert(
+            {
+              poll_id: currentPoll.id,
+              session_id: voteRowSid,
+              username: username || 'Анонимен',
+              answer_text: claimText,
+              is_correct: claimCorrect,
+            },
+            { onConflict: 'poll_id,session_id', ignoreDuplicates: true }
+          ).select('poll_id');
+
+          // A network failure must not be read as "already voted" — that would
+          // drop the vote silently. Let it throw into the offline path below.
+          if (claimError) throw claimError;
+
+          if (Array.isArray(claimed) && claimed.length === 0) {
+            // ignoreDuplicates returns zero rows on conflict: already voted.
+            markVoted(currentPoll.id);
+            setVoteError('Веќе гласавте на оваа активност.');
+            return;
+          }
+
           // Fill-in-the-blanks arrives as { blankId: answer, … }. It has to be
           // matched before the numeric branch below, which would otherwise
           // treat the object as an option index and fail with "Invalid option
@@ -476,29 +546,11 @@ const EventWrapper = ({ type, username, setUsername }) => {
             }
           }
           
-          const sid = getSessionId();
-          // With multiple votes allowed, each attempt needs its own row —
-          // the real session id would silently no-op against the prior vote
-          // via the poll_id+session_id uniqueness constraint otherwise.
-          const voteRowSid = event?.allow_multiple_votes ? `${sid}-${Date.now()}` : sid;
-
-          // Record vote in votes table. Use ignoreDuplicates:true (DO NOTHING on conflict)
-          // so anon users don't need UPDATE permission — INSERT is enough.
-          const { error: votesError } = await supabase.from('votes').upsert(
-            {
-              poll_id: currentPoll.id,
-              session_id: voteRowSid,
-              username: username || 'Анонимен',
-              answer_text: answerText,
-              is_correct: isCorrect,
-            },
-            { onConflict: 'poll_id,session_id', ignoreDuplicates: true }
-          );
-
-          if (votesError) {
-            // Non-fatal: vote already counted in options.votes via RPC; just log
-            console.warn('votes record failed (non-fatal):', votesError.message);
-          }
+          // The votes row was already written by the claim above, with the
+          // same answer_text and is_correct the branches derive. `answerText`
+          // and `isCorrect` stay in place because the quiz branch reads them
+          // for the on-screen result.
+          void answerText; void isCorrect;
 
           markVoted(currentPoll.id);
         } catch (err) {

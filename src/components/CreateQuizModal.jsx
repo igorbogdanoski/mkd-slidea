@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Plus, Trash2, Save, CheckCircle2, Trophy } from 'lucide-react';
+import { X, Plus, Trash2, Save, CheckCircle2, Trophy, ChevronUp, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MathSymbolPicker from './MathSymbolPicker';
 import { applyInsertion } from '../lib/insertAtCursor';
@@ -57,6 +57,17 @@ const CreateQuizModal = ({ isOpen, onClose, onSave, initialData = null }) => {
     const newOptions = [...options];
     newOptions[index].text = value;
     setOptions(newOptions);
+  };
+
+  // Same gap the poll editor had: the choices could be typed and deleted but
+  // never reordered. `isCorrect` lives on the option object, so it travels
+  // with the move — the answer key cannot drift onto a different choice.
+  const moveOption = (index, delta) => {
+    const to = index + delta;
+    if (to < 0 || to >= options.length) return;
+    const next = [...options];
+    [next[index], next[to]] = [next[to], next[index]];
+    setOptions(next);
   };
 
   const setCorrectOption = (index) => {
@@ -181,8 +192,28 @@ const CreateQuizModal = ({ isOpen, onClose, onSave, initialData = null }) => {
                         onFocus={() => { activeFieldRef.current = { kind: 'option', index: i }; }}
                         className={`flex-1 border-2 rounded-xl px-4 py-2.5 font-bold text-sm outline-none transition-all ${opt.isCorrect ? 'border-emerald-300 bg-emerald-50/40' : 'bg-slate-50 border-slate-100 focus:border-indigo-600 focus:bg-white'}`}
                       />
+                      <div className="flex flex-col shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => moveOption(i, -1)}
+                          disabled={i === 0}
+                          aria-label={`Помести ја опцијата ${i + 1} нагоре`}
+                          className="p-0.5 text-slate-300 hover:text-indigo-600 disabled:opacity-25 disabled:hover:text-slate-300 transition-all"
+                        >
+                          <ChevronUp className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveOption(i, 1)}
+                          disabled={i === options.length - 1}
+                          aria-label={`Помести ја опцијата ${i + 1} надолу`}
+                          className="p-0.5 text-slate-300 hover:text-indigo-600 disabled:opacity-25 disabled:hover:text-slate-300 transition-all"
+                        >
+                          <ChevronDown className="w-4 h-4" />
+                        </button>
+                      </div>
                       {options.length > 2 && (
-                        <button onClick={() => removeOption(i)} className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all shrink-0">
+                        <button type="button" onClick={() => removeOption(i)} aria-label={`Избриши ја опцијата ${i + 1}`} className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all shrink-0">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       )}
