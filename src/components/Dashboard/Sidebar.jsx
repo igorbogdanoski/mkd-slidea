@@ -65,11 +65,18 @@ const OnboardingChecklist = ({ user, setActiveTab }) => {
 
   return (
     <div className="mx-4 mb-3 bg-gradient-to-br from-indigo-50 to-violet-50 rounded-3xl border border-indigo-100 overflow-hidden">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-5 py-3.5 text-left"
-      >
-        <div className="flex items-center gap-2.5">
+      {/* The dismiss control used to sit inside the expand/collapse button.
+          A button inside a button is invalid HTML — React says so on every
+          render — and it behaves the way the markup implies: dismissing also
+          toggled the panel, because the click bubbles to the enclosing button.
+          They are siblings now, so each does one thing. */}
+      <div className="w-full flex items-center justify-between px-5 py-3.5">
+        <button
+          type="button"
+          onClick={() => setOpen(o => !o)}
+          aria-expanded={open}
+          className="flex items-center gap-2.5 text-left flex-1"
+        >
           <div className="flex gap-0.5">
             {items.map((_, i) => (
               <div key={i} className={`w-5 h-1.5 rounded-full transition-all ${i < done ? 'bg-indigo-600' : 'bg-indigo-200'}`} />
@@ -78,14 +85,26 @@ const OnboardingChecklist = ({ user, setActiveTab }) => {
           <span className="text-xs font-semibold text-indigo-700 uppercase tracking-widest">
             {allDone ? '🎉 Подготвен!' : `${done}/4 чекори`}
           </span>
-        </div>
+        </button>
         <div className="flex items-center gap-1">
-          <button onClick={dismiss} className="p-1 hover:bg-indigo-100 rounded-lg transition-colors text-indigo-400">
+          <button
+            type="button"
+            onClick={dismiss}
+            aria-label="Скриј го водичот"
+            className="p-1 hover:bg-indigo-100 rounded-lg transition-colors text-indigo-400"
+          >
             <X size={12} />
           </button>
-          {open ? <ChevronUp size={14} className="text-indigo-400" /> : <ChevronDown size={14} className="text-indigo-400" />}
+          <button
+            type="button"
+            onClick={() => setOpen(o => !o)}
+            aria-label={open ? 'Собери го водичот' : 'Прошири го водичот'}
+            className="p-1 text-indigo-400"
+          >
+            {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          </button>
         </div>
-      </button>
+      </div>
 
       {open && (
         <div className="px-5 pb-4 space-y-2">

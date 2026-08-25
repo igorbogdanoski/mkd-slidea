@@ -28,11 +28,16 @@ const signIn = async (page) => {
 const openTypeGrid = async (page) => {
   const grid = page.locator('[data-type="poll"]');
   if (await grid.isVisible({ timeout: 1500 }).catch(() => false)) return;
+  // /host creates an event on first load when the browser has no active one,
+  // so the "add activity" control appears only once that round trip finishes.
+  // Waiting a fixed moment made these tests pass alone and skip in a serial
+  // run, reporting "implementation pending" for a feature that works — wait
+  // for the control instead of for the clock.
   for (const sel of ['[data-testid="add-activity"]', '[data-testid="add-activity-empty"]']) {
     const btn = page.locator(sel).first();
-    if (await btn.isVisible({ timeout: 3000 }).catch(() => false)) {
+    if (await btn.waitFor({ state: 'visible', timeout: 12000 }).then(() => true).catch(() => false)) {
       await btn.click();
-      await grid.waitFor({ timeout: 5000 }).catch(() => {});
+      await grid.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
       return;
     }
   }

@@ -257,16 +257,20 @@ test.describe('Host — Session Creation', () => {
     await goTo(page, '/dashboard');
     await page.waitForTimeout(1500);
 
-    // The dashboard opens on "home"; the per-event results button lives in the
-    // events tab. This clicked whatever matched first on the landing tab and
-    // then waited for a dialog that was never going to open.
-    const eventsTab = page.getByRole('button', { name: /Настани/ }).first();
-    if (await eventsTab.isVisible({ timeout: 4000 }).catch(() => false)) {
+    // The dashboard opens on "home", where the onboarding checklist has a
+    // "Прегледај резултати" step — which is what the original
+    // button:has-text("Резултати") matched first, so the click never reached
+    // an event and no dialog was ever going to open. The per-event button is
+    // in the "Мои презентации" tab, and :has-text is a case-insensitive
+    // substring match, so it also matches "Сподели јавни резултати" on the
+    // same card. Both mistakes are avoided by naming the button exactly.
+    const eventsTab = page.getByRole('button', { name: /Мои презентации/ }).first();
+    if (await eventsTab.isVisible({ timeout: 5000 }).catch(() => false)) {
       await eventsTab.click();
-      await page.waitForTimeout(1200);
+      await page.waitForTimeout(1500);
     }
 
-    const resultsBtn = page.locator('button:has-text("Резултати")').first();
+    const resultsBtn = page.locator('button:has-text("📊 Резултати")').first();
 
     if (await resultsBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
       await resultsBtn.click();
