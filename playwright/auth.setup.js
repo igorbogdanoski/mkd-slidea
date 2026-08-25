@@ -22,7 +22,10 @@ export default async function globalSetup() {
   }
 
   const browser = await chromium.launch();
-  const context = await browser.newContext();
+  // Desktop viewport: the logout control this setup waits on is `hidden
+  // nav:block`, so at the default 1280×720 headless size it exists but is not
+  // visible and the wait times out on a login that actually succeeded.
+  const context = await browser.newContext({ viewport: { width: 1600, height: 900 } });
   const page = await context.newPage();
 
   await page.addInitScript(() => {
@@ -35,7 +38,10 @@ export default async function globalSetup() {
   await page.locator('button[type="submit"]').first().click();
 
   // Wait for logout link — proves session is active
-  await page.locator('text=Одјави').waitFor({ timeout: 20000 });
+  // Either the visible desktop control or the mobile menu's copy — whichever
+  // this viewport renders. Waiting on one specific element made the check
+  // depend on a breakpoint rather than on being logged in.
+  await page.locator('text=Одјави').first().waitFor({ state: 'attached', timeout: 20000 });
 
   fs.mkdirSync(path.dirname(AUTH_FILE), { recursive: true });
   await context.storageState({ path: AUTH_FILE });

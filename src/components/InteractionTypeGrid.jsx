@@ -84,6 +84,12 @@ const InteractionTypeGrid = ({ onSelect }) => {
       {types.map((type) => (
         <motion.button
           key={type.id}
+          // A stable hook that does not move when the wording does. The e2e
+          // suite already looked for [data-type="rating"] and fell back to
+          // matching Macedonian labels — which had drifted, so every one of
+          // those tests reported "implementation pending" and skipped itself
+          // for features that exist and work.
+          data-type={type.id}
           whileHover={{ y: -5, scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => onSelect(type.id)}

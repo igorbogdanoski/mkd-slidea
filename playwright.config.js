@@ -20,7 +20,11 @@ export default defineConfig({
     // Smoke tests — no auth
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      // Desktop Chrome is 1280 wide and the desktop nav only appears at the
+      // `nav:` breakpoint of 1360px, so the logout control every authenticated
+      // spec waits on was rendered hidden and each of them timed out on a login
+      // that had actually succeeded. Wider than the breakpoint, once, here.
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1600, height: 900 } },
       testIgnore: /auth\.spec/,
     },
     // Auth tests — UI login per test (storageState skipped: Supabase lock contention blocks INITIAL_SESSION)
@@ -28,6 +32,7 @@ export default defineConfig({
       name: 'chromium-auth',
       use: {
         ...devices['Desktop Chrome'],
+        viewport: { width: 1600, height: 900 },
       },
       testMatch: /auth\.spec/,
     },

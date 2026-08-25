@@ -194,7 +194,10 @@ test('AT-SCALE: Scale 1–10 — создава, учесник избира, Pr
   const partPage = await partCtx.newPage();
   await joinEvent(partPage, code, 'Тест Скала');
   await expect(partPage.locator('#poll-question')).toContainText(question, { timeout: 30_000 });
-  await partPage.getByRole('button', { name: '5', exact: true }).click();
+  // Scale buttons carry aria-label="5 од 10", which is the accessible name a
+  // screen reader announces — so an exact match on "5" never resolves. Match
+  // the label the app actually exposes.
+  await partPage.getByRole('button', { name: /^5 од / }).first().click();
 
   const { ctx: presCtx, page: presPage } = await openPresenter(browser, code, question);
   await expect(presPage.locator('body')).toContainText('Просек', { timeout: 30_000 });

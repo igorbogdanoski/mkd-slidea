@@ -272,6 +272,7 @@ const CreatePollModal = ({ isOpen, onClose, onSave, type = 'poll', initialData =
                 <textarea
                   ref={questionRef}
                   rows={2}
+                  data-testid="question-input"
                   placeholder="Што сакате да прашате? Можете и: x² + y² = r²"
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}

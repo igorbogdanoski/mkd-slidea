@@ -157,6 +157,7 @@ const CreateQuizModal = ({ isOpen, onClose, onSave, initialData = null }) => {
                 <textarea
                   ref={questionRef}
                   rows={2}
+                  data-testid="question-input"
                   placeholder="Пр. Ако x² + 4 = 13, колку е x?"
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
@@ -177,6 +178,7 @@ const CreateQuizModal = ({ isOpen, onClose, onSave, initialData = null }) => {
                   {options.map((opt, i) => (
                     <div key={i} className="flex gap-2 items-center">
                       <button
+                        data-testid="correct-answer"
                         onClick={() => setCorrectOption(i)}
                         className={`p-2 rounded-xl transition-all shrink-0 ${opt.isCorrect ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-50 text-slate-300 hover:text-slate-400'}`}
                         title={opt.isCorrect ? 'Точен одговор' : 'Означи како точен'}

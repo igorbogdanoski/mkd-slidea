@@ -315,6 +315,7 @@ const Host = ({ setView, user }) => {
                     <div className="flex flex-wrap gap-4 justify-end">
                       <button
                         onClick={() => setShowInteractionGrid(true)}
+                        data-testid="add-activity"
                         className="flex items-center justify-center gap-3 px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black text-lg hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 active:scale-95"
                       >
                         <Plus className="w-6 h-6" /> Додај активност
@@ -438,6 +439,7 @@ const Host = ({ setView, user }) => {
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                           <button
                             onClick={() => setShowInteractionGrid(true)}
+                            data-testid="add-activity-empty"
                             className="px-8 py-3 bg-white border-2 border-slate-100 text-slate-400 rounded-xl font-black hover:border-indigo-600 hover:text-indigo-600 transition-all"
                           >
                             Започни рачно

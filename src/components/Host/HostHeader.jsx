@@ -25,7 +25,7 @@ const HostHeader = ({ event, setIsQRModalOpen, setView, isRemoteMode, setIsRemot
           <Smartphone className="w-4 h-4" /> Далечинска
         </button>
         <button onClick={() => setIsQRModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 rounded-xl font-mono font-bold text-slate-600 text-lg transition-all group">
-          <QrCode className="w-5 h-5 group-hover:rotate-12 transition-transform" /> #{event.code}
+          <QrCode className="w-5 h-5 group-hover:rotate-12 transition-transform" /> <span data-testid="event-code">#{event.code}</span>
         </button>
         <button onClick={() => { track('session_started'); window.open(`/event/${event.code}/present`, '_blank'); }} className="flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-600 text-indigo-600 hover:text-white rounded-xl font-bold text-sm transition-all">
           <MonitorPlay className="w-4 h-4" /> Презентација

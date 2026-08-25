@@ -22,6 +22,22 @@ const signIn = async (page) => {
   await page.locator('text=Одјави').waitFor({ timeout: 30000 });
 };
 
+// The type grid lives behind "Додај активност" — the tests went straight to
+// /host and looked for a type button that was not on screen yet, then reported
+// "implementation pending" and skipped themselves for features that work.
+const openTypeGrid = async (page) => {
+  const grid = page.locator('[data-type="poll"]');
+  if (await grid.isVisible({ timeout: 1500 }).catch(() => false)) return;
+  for (const sel of ['[data-testid="add-activity"]', '[data-testid="add-activity-empty"]']) {
+    const btn = page.locator(sel).first();
+    if (await btn.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await btn.click();
+      await grid.waitFor({ timeout: 5000 }).catch(() => {});
+      return;
+    }
+  }
+};
+
 const goTo = async (page, path) => {
   await page.evaluate((p) => {
     window.history.pushState({}, '', p);
@@ -38,6 +54,7 @@ test.describe('Activity Type: Poll', () => {
   test('AT-01: Poll creation form renders with option inputs', async ({ page }) => {
     await signIn(page);
     await goTo(page, '/host');
+    await openTypeGrid(page);
 
     // Open poll creator
     const pollTrigger = page.locator(
@@ -52,15 +69,19 @@ test.describe('Activity Type: Poll', () => {
 
     await page.waitForTimeout(800);
 
-    // Should see question text input
-    const qInput = page.locator(
-      'input[placeholder*="прашање"], textarea[placeholder*="прашање"]'
-    ).first();
+    // The question field, found by its role inside the dialog rather than by
+    // its placeholder copy. This asserted placeholder*="прашање" while the
+    // field actually says "Што сакате да прашате?" — the wording moved and the
+    // test did not, which nobody saw because the whole authenticated suite was
+    // timing out before it reached here.
+    const dialog = page.locator('[role="dialog"]').first();
+    await expect(dialog).toBeVisible({ timeout: 5000 });
+    const qInput = dialog.locator('textarea, input[type="text"]').first();
     await expect(qInput).toBeVisible({ timeout: 5000 });
 
     // Should see at least 2 answer option inputs
-    const optionInputs = page.locator(
-      'input[placeholder*="опција"], input[placeholder*="одговор"], input[placeholder*="Опција"]'
+    const optionInputs = dialog.locator(
+      'input[placeholder*="пција"], input[placeholder*="дговор"]'
     );
     const count = await optionInputs.count();
     expect(count).toBeGreaterThanOrEqual(2);
@@ -69,6 +90,7 @@ test.describe('Activity Type: Poll', () => {
   test('AT-02: Poll question text can be typed', async ({ page }) => {
     await signIn(page);
     await goTo(page, '/host');
+    await openTypeGrid(page);
 
     const pollTrigger = page.locator(
       'button:has-text("Прашање"), [data-type="poll"]'
@@ -101,6 +123,7 @@ test.describe('Activity Type: Quiz', () => {
   test('AT-03: Quiz form has correct-answer selector', async ({ page }) => {
     await signIn(page);
     await goTo(page, '/host');
+    await openTypeGrid(page);
 
     const quizTrigger = page.locator(
       'button:has-text("Квиз"), [data-type="quiz"]'
@@ -154,6 +177,7 @@ test.describe('Activity Type: Word Cloud', () => {
   test('AT-05: Word cloud activity renders in host view', async ({ page }) => {
     await signIn(page);
     await goTo(page, '/host');
+    await openTypeGrid(page);
 
     const wcTrigger = page.locator(
       'button:has-text("Облак"), button:has-text("Word"), [data-type="wordcloud"]'
@@ -187,6 +211,7 @@ test.describe('Activity Type: Open Text', () => {
   test('AT-07: Open text activity in host has question input', async ({ page }) => {
     await signIn(page);
     await goTo(page, '/host');
+    await openTypeGrid(page);
 
     const openTrigger = page.locator(
       'button:has-text("Отворен"), button:has-text("Open"), [data-type="open"]'
@@ -196,9 +221,8 @@ test.describe('Activity Type: Open Text', () => {
       await openTrigger.click();
       await page.waitForTimeout(800);
 
-      const qInput = page.locator(
-        'input[placeholder*="прашање"], textarea[placeholder*="прашање"]'
-      ).first();
+      const qInput = page.locator('[role="dialog"]').first()
+        .locator('textarea, input[type="text"]').first();
       await expect(qInput).toBeVisible({ timeout: 5000 });
     } else {
       test.skip(true, 'Open text trigger not found');
@@ -214,6 +238,7 @@ test.describe('Activity Type: Rating (Star)', () => {
   test('AT-08: Rating activity can be created in host', async ({ page }) => {
     await signIn(page);
     await goTo(page, '/host');
+    await openTypeGrid(page);
 
     const ratingTrigger = page.locator(
       'button:has-text("Рејтинг"), button:has-text("Rating"), button:has-text("Оценка"), [data-type="rating"]'
@@ -227,9 +252,8 @@ test.describe('Activity Type: Rating (Star)', () => {
       await expect(page.locator('body')).not.toContainText('TypeError');
 
       // Should show question input
-      const qInput = page.locator(
-        'input[placeholder*="прашање"], textarea[placeholder*="прашање"]'
-      ).first();
+      const qInput = page.locator('[role="dialog"]').first()
+        .locator('textarea, input[type="text"]').first();
       await expect(qInput).toBeVisible({ timeout: 5000 });
     } else {
       // Rating not yet implemented — mark as known issue
@@ -281,6 +305,7 @@ test.describe('Activity Type: Ranking', () => {
   test('AT-11: Ranking activity can be created in host', async ({ page }) => {
     await signIn(page);
     await goTo(page, '/host');
+    await openTypeGrid(page);
 
     const rankTrigger = page.locator(
       'button:has-text("Рангирање"), button:has-text("Ranking"), [data-type="ranking"]'
@@ -329,6 +354,7 @@ test.describe('Activity Type: Survey', () => {
   test('AT-13: Survey can be created with multiple questions', async ({ page }) => {
     await signIn(page);
     await goTo(page, '/host');
+    await openTypeGrid(page);
 
     const surveyTrigger = page.locator(
       'button:has-text("Анкета"), button:has-text("Survey"), button:has-text("Форма"), [data-type="survey"]'

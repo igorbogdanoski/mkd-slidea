@@ -111,10 +111,17 @@ test.describe('Host — Session Creation', () => {
 
     // Should show event code somewhere on the host page
     const codeEl = page.locator(
-      '[data-testid="event-code"], .event-code, text=/[A-Z0-9]{5,8}/'
+      // A regex text engine cannot be comma-joined with CSS selectors —
+      // Playwright rejects the whole string, so this check never ran. Split
+      // into two locators and take whichever the page provides.
+      '[data-testid="event-code"], .event-code'
     ).first();
 
-    await expect(codeEl).toBeVisible({ timeout: 8000 });
+    const codeFallback = page.getByText(/^[A-Z0-9]{5,8}$/).first();
+    const shown = await codeEl.isVisible({ timeout: 4000 }).catch(() => false)
+      ? codeEl
+      : codeFallback;
+    await expect(shown).toBeVisible({ timeout: 8000 });
   });
 
   test('H-06: AI Assistant modal opens', async ({ page }) => {
@@ -250,10 +257,16 @@ test.describe('Host — Session Creation', () => {
     await goTo(page, '/dashboard');
     await page.waitForTimeout(1500);
 
-    // Click the first event's results button
-    const resultsBtn = page.locator(
-      'button:has-text("Резултати"), button:has-text("Results"), a:has-text("Резултати")'
-    ).first();
+    // The dashboard opens on "home"; the per-event results button lives in the
+    // events tab. This clicked whatever matched first on the landing tab and
+    // then waited for a dialog that was never going to open.
+    const eventsTab = page.getByRole('button', { name: /Настани/ }).first();
+    if (await eventsTab.isVisible({ timeout: 4000 }).catch(() => false)) {
+      await eventsTab.click();
+      await page.waitForTimeout(1200);
+    }
+
+    const resultsBtn = page.locator('button:has-text("Резултати")').first();
 
     if (await resultsBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
       await resultsBtn.click();
@@ -285,11 +298,11 @@ test.describe('Host — Presenter View Controls', () => {
     await page.goto(`${BASE}/event/${EVENT_CODE}/present`);
     await page.waitForTimeout(2000);
 
-    const qrBtn = page.locator(
-      'button:has-text("QR"), button[title*="QR"], button[aria-label*="QR"]'
-    ).first();
-
-    await expect(qrBtn).toBeVisible({ timeout: 8000 });
+    // The QR is rendered inline in the header and is always on screen — there
+    // is no button to press, which is the better behaviour for a projector.
+    // This asserted a button that has never existed.
+    const qr = page.locator('svg[height="100"], header svg').first();
+    await expect(qr).toBeVisible({ timeout: 8000 });
   });
 
   test('H-11: Presenter shows participant count', async ({ page }) => {
@@ -298,9 +311,10 @@ test.describe('Host — Presenter View Controls', () => {
     await page.waitForTimeout(2000);
 
     // Participant counter should be visible
-    const counter = page.locator(
-      '[data-testid="participant-count"], .participant-count, text=/\\d+ учесник/i'
-    ).first();
+    // The sidebar says "N во живо", not "N учесник" — and a regex text
+    // engine cannot be comma-joined with CSS selectors anyway, so this
+    // locator was rejected outright rather than merely not matching.
+    const counter = page.getByText(/\d+\s+во живо/i).first();
 
     await expect(counter).toBeVisible({ timeout: 8000 });
   });

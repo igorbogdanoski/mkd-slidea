@@ -107,7 +107,12 @@ test('E2E-01: Poll — host создава, учесник гласа, Presenter
   const partPage = await partCtx.newPage();
   await joinEvent(partPage, code, 'Тест Учесник');
   await expect(partPage.locator('#poll-question')).toContainText(question, { timeout: 30_000 });
-  await partPage.getByRole('radio', { name: 'Математика' }).click();
+  // Options are buttons, not radios. They submit the moment they are pressed,
+  // so there is no selected-but-unsubmitted state for a radio to convey — the
+  // app moved away from role=radio deliberately and this assertion did not
+  // follow, which is why the core flow test had been failing on a flow that
+  // works.
+  await partPage.getByRole('button', { name: 'Математика' }).first().click();
   await expect(partPage.locator('body')).toContainText(/Ви благодариме|Точно|Прифатено/i, { timeout: 20_000 });
 
   // Presenter (трет контекст) — треба да го види прашањето и резултатите
@@ -139,7 +144,7 @@ test('E2E-02: Quiz — host создава, учесник одговара со
   const partPage = await partCtx.newPage();
   await joinEvent(partPage, code, 'Тест Квиз');
   await expect(partPage.locator('#poll-question')).toContainText(question, { timeout: 30_000 });
-  await partPage.getByRole('radio', { name: '4' }).click();
+  await partPage.getByRole('button', { name: '4' }).first().click();
   // Квизот дава моментален фидбек (точно/неточно)
   await expect(partPage.locator('body')).toContainText(/Точно|Не\s*точно/i, { timeout: 20_000 });
 
