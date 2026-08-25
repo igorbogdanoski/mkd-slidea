@@ -122,6 +122,26 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
     return () => clearInterval(t);
   }, [currentPoll?.timer_ends_at]);
 
+  // Fill-in-the-blanks answers live in votes.answer_text as JSON — the
+  // activity has no options, because nothing is being counted. Without this
+  // the projector fell through to the multiple-choice branch and rendered an
+  // empty panel: the class answered on their phones and the wall stayed blank.
+  const [blankResponses, setBlankResponses] = useState([]);
+  useEffect(() => {
+    if (currentPoll.type !== 'fill_blanks') { setBlankResponses([]); return; }
+    const fetchBlanks = async () => {
+      const { data } = await supabase.from('votes').select('answer_text').eq('poll_id', currentPoll.id);
+      setBlankResponses((data || []).map((r) => {
+        try { return JSON.parse(r.answer_text); } catch { return null; }
+      }).filter(Boolean));
+    };
+    fetchBlanks();
+    const ch = supabase.channel(`blanks-${currentPoll.id}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'votes', filter: `poll_id=eq.${currentPoll.id}` }, fetchBlanks)
+      .subscribe();
+    return () => ch.unsubscribe();
+  }, [currentPoll.id, currentPoll.type]);
+
   // Fetch survey responses for current poll (type=survey only)
   useEffect(() => {
     if (currentPoll.type !== 'survey') { setSurveyResponses([]); return; }
@@ -223,6 +243,7 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
               <PollResultsRenderer
                 currentPoll={currentPoll}
                 visibleOptions={visibleOptions}
+                blankResponses={blankResponses}
                 totalVotes={totalVotes}
                 surveyResponses={surveyResponses}
                 averageRating={averageRating}

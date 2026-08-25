@@ -6,7 +6,71 @@ import WordCloud from '../WordCloud';
 import { BarsView, DonutView, PodiumView, NumbersView } from './ChartViews';
 
 // ─── Per-activity-type results renderer (pure derive-and-render) ──────────────
-const PollResultsRenderer = ({ currentPoll, visibleOptions, totalVotes, surveyResponses, averageRating, chartMode }) => {
+const PollResultsRenderer = ({ currentPoll, visibleOptions, totalVotes, surveyResponses, blankResponses = [], averageRating, chartMode }) => {
+  // Fill-in-the-blanks has no options to chart — nothing is counted, the
+  // answers are read. Shown per gap, with the accepted answer beside it so the
+  // class can check their own, and a count of how many wrote each thing.
+  if (currentPoll.type === 'fill_blanks') {
+    const gaps = Array.isArray(currentPoll.blanks) ? currentPoll.blanks : [];
+    if (gaps.length === 0) {
+      return (
+        <div className="py-20 text-center text-slate-500 font-bold presenter-answer-sm border-2 border-dashed border-slate-800 rounded-[3rem]">
+          Оваа активност нема дефинирани празнини.
+        </div>
+      );
+    }
+    return (
+      <div className="space-y-6">
+        {gaps.map((gap, gi) => {
+          const given = blankResponses.map((r) => String(r?.[gap.id] ?? '').trim()).filter(Boolean);
+          // Same shallow normalisation the checker uses — case and spacing
+          // only. Anything more aggressive merges genuinely different answers.
+          const tally = new Map();
+          for (const g of given) {
+            const key = g.toLowerCase().replace(/\s+/g, ' ');
+            tally.set(key, { text: g, count: (tally.get(key)?.count || 0) + 1 });
+          }
+          const ranked = [...tally.values()].sort((a, b) => b.count - a.count).slice(0, 8);
+          const accepted = (gap.accept || []).map((a) => String(a).toLowerCase().replace(/\s+/g, ' '));
+
+          return (
+            <div key={gap.id || gi} className="bg-slate-800/40 border border-slate-700/40 rounded-[2rem] px-8 py-6">
+              <div className="flex items-baseline justify-between mb-4 gap-6">
+                <span className="text-slate-500 font-black text-sm uppercase tracking-widest">Празнина {gi + 1}</span>
+                <MathText as="span" className="presenter-answer-sm font-black text-emerald-400">
+                  {(gap.accept || [])[0] || '—'}
+                </MathText>
+              </div>
+              {ranked.length === 0 ? (
+                <p className="text-slate-600 font-bold presenter-answer-sm">Сè уште нема одговори</p>
+              ) : (
+                <div className="flex flex-wrap gap-3">
+                  {ranked.map((r, i) => {
+                    const isRight = accepted.includes(r.text.toLowerCase().replace(/\s+/g, ' '));
+                    return (
+                      <span key={i}
+                        className={`px-5 py-2.5 rounded-2xl font-black presenter-answer-sm presenter-answer-wrap border ${
+                          isRight
+                            ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
+                            : 'bg-slate-900/60 border-slate-700/60 text-slate-300'
+                        }`}>
+                        <MathText>{r.text}</MathText>
+                        {r.count > 1 && <span className="text-slate-500 ml-2">×{r.count}</span>}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+        <p aria-live="polite" aria-atomic="true" className="text-right text-slate-600 font-bold text-sm uppercase tracking-widest pr-4">
+          {blankResponses.length} одговори
+        </p>
+      </div>
+    );
+  }
+
   if (currentPoll.type === 'survey') {
     const qs = currentPoll.survey_questions || [];
     const total = surveyResponses.length;

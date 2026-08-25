@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { track } from '@vercel/analytics';
 import { supabase } from '../lib/supabase';
+import { normaliseActivityType, templateActivities } from '../lib/activityTypes';
 import { getAuthHeader } from '../lib/authHeader';
 import { generateCode } from '../lib/eventCode';
 import { useLiveAnnouncer } from './useLiveAnnouncer';
@@ -401,13 +402,24 @@ export const useHostSession = (user) => {
     if (!event?.id) return;
     try {
       let basePosition = polls.length;
-      for (const p of template.polls) {
+      for (const p of templateActivities(template)) {
         const { data: newPoll, error: pollError } = await supabase.from('polls').insert([{
           event_id: event.id,
           question: p.question,
           is_quiz: !!p.is_quiz,
-          type: p.type || 'poll',
+          type: normaliseActivityType(p.type),
           position: basePosition++,
+          // The answer key travels with the activity. It used to be dropped
+          // here — this is the path most content arrives through, and every
+          // template carrying a correct answer, an explanation or a set of
+          // blanks landed in the event without them. A fill-in-the-blanks
+          // activity with no `blanks` has no gaps to fill and cannot be
+          // answered at all.
+          correct_answer: p.correct_answer ?? null,
+          answer_explanation: p.answer_explanation ?? null,
+          blanks: p.blanks ?? null,
+          survey_questions: p.survey_questions ?? null,
+          curriculum_tags: p.curriculum_tags ?? null,
         }]).select().single();
         if (pollError) throw pollError;
         if (Array.isArray(p.options) && p.options.length > 0) {
