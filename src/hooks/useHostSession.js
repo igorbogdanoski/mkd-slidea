@@ -29,7 +29,12 @@ const createEventWithRetry = async (userId, attempts = 5) => {
     const { data, error } = await supabase
       .from('events')
       .insert([{ code, title: 'Мојот настан', user_id: userId || null }])
-      .select()
+      // Naming the columns, not `.select()`. A bare .select() asks
+      // PostgREST for `select=*`, which needs read access to every column
+      // — including password and cohost_code, which are revoked. The read
+      // path was fixed for this and the insert's return was not, so
+      // creating an event answered 403 and the host page showed "Грешка".
+      .select('id, code, title, user_id, org_id, created_at, starts_at, ended_at, active_poll_id, is_locked, has_password, allow_multiple_votes, async_mode, async_deadline, questions_moderation, is_public_scoreboard, brand_color, brand_font, logo_url, cover_image, reminded')
       .single();
     if (!error) return { data, code };
     if (error.code !== '23505') return { data: null, error };

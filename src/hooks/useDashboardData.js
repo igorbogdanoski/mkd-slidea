@@ -74,7 +74,9 @@ export const useDashboardData = ({ user, activeTab, setView }) => {
         ({ data: event, error: eventError } = await supabase
           .from('events')
           .insert([{ code: eventCode, title: template.title, user_id: user?.id }])
-          .select()
+          // Named columns — see the note in useHostSession: `select=*`
+          // needs every column, and two of them are revoked.
+          .select('id, code, title, user_id, org_id, created_at, starts_at, ended_at, active_poll_id, is_locked, has_password, allow_multiple_votes, async_mode, async_deadline, questions_moderation, is_public_scoreboard, brand_color, brand_font, logo_url, cover_image, reminded')
           .single());
         if (!eventError || eventError.code !== '23505') break;
       }
