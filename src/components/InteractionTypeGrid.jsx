@@ -9,6 +9,7 @@ import {
   ListOrdered,
   SlidersHorizontal,
   ClipboardList,
+  PenLine,
 } from 'lucide-react';
 
 const InteractionTypeGrid = ({ onSelect }) => {
@@ -68,6 +69,18 @@ const InteractionTypeGrid = ({ onSelect }) => {
       icon: <SlidersHorizontal className="w-8 h-8 text-teal-600" />,
       color: 'bg-teal-50',
       borderColor: 'border-teal-100',
+    },
+    {
+      // The app has rendered, answered and marked this type for a long time,
+      // and 158 activities in the seeded library use it — but it was never in
+      // this picker, so it could only arrive through a template or an import
+      // and a teacher could not write one of their own.
+      id: 'fill_blanks',
+      titleMK: 'Пополни празнини',
+      description: 'Реченица со празни места — учениците ги пополнуваат.',
+      icon: <PenLine className="w-8 h-8 text-fuchsia-600" />,
+      color: 'bg-fuchsia-50',
+      borderColor: 'border-fuchsia-100',
     },
     {
       id: 'survey',

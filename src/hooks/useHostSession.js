@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { track } from '@vercel/analytics';
 import { supabase } from '../lib/supabase';
 import { normaliseActivityType, templateActivities, optionsForType, carriedActivityFields } from '../lib/activityTypes';
+import { surveyTally } from '../lib/surveyAnswers';
 import { getAuthHeader } from '../lib/authHeader';
 import { generateCode } from '../lib/eventCode';
 import { useLiveAnnouncer } from './useLiveAnnouncer';
@@ -311,15 +312,24 @@ export const useHostSession = (user) => {
   const onSavePoll = async (pollData, editingPoll) => {
     try {
       if (editingPoll) {
+        // Everything the editor produces, not a hand-picked subset. `blanks`,
+        // `correct_answer` and `answer_explanation` were missing from both this
+        // and the insert below, so editing a fill-in-the-blanks silently
+        // emptied its gaps and editing an open question threw away its answer
+        // key. Undefined is omitted rather than written, so a modal that does
+        // not carry a field leaves the stored value alone.
         const updatePayload = {
           question: pollData.question,
-          type: pollData.type || 'poll',
+          type: normaliseActivityType(pollData.type),
           is_quiz: !!pollData.is_quiz,
           presenter_notes: pollData.presenter_notes ?? null,
           curriculum_tags: pollData.curriculum_tags ?? null,
           cover_url: pollData.cover_url ?? null,
           cover_meta: pollData.cover_meta ?? null,
         };
+        for (const key of ['blanks', 'correct_answer', 'answer_explanation', 'survey_questions', 'needs_moderation']) {
+          if (pollData[key] !== undefined) updatePayload[key] = pollData[key];
+        }
         // Editing a survey poll previously never touched survey_questions —
         // only top-level fields updated, so sub-question edits were silently
         // discarded. Only set it when the form actually sent one (undefined
@@ -371,16 +381,21 @@ export const useHostSession = (user) => {
           }
         }
       } else {
+        // The fifth place this omission appeared, and the one that mattered
+        // most: this is the path a teacher uses. `blanks` was not written, so
+        // every fill-in-the-blanks made in the editor arrived with no gaps and
+        // could not be answered at all; `correct_answer` and
+        // `answer_explanation` were not written either, so "Покажи одговор"
+        // had nothing to reveal. `position` was missing too, leaving new
+        // activities with a null and no defined order among themselves.
         const { data: newPoll, error: pollError } = await supabase.from('polls').insert([{
           event_id: event.id,
           question: pollData.question,
           is_quiz: !!pollData.is_quiz,
           type: normaliseActivityType(pollData.type),
+          position: polls.length,
+          ...carriedActivityFields(pollData),
           survey_questions: pollData.survey_questions || [],
-          presenter_notes: pollData.presenter_notes ?? null,
-          curriculum_tags: pollData.curriculum_tags ?? null,
-          cover_url: pollData.cover_url ?? null,
-          cover_meta: pollData.cover_meta ?? null,
         }]).select().single();
         if (pollError) throw pollError;
 
@@ -671,17 +686,11 @@ export const useHostSession = (user) => {
         } else {
           rows.push([poll.question, typeLabel, `${responses.length} одговори`, responses.length, '', '']);
           questions.forEach((q) => {
-            const values = responses
-              .map((r) => (r.answers || {})[q.id])
-              .filter((v) => v !== undefined && v !== null && v !== '');
-            const tally = new Map();
-            for (const v of values) tally.set(String(v), (tally.get(String(v)) || 0) + 1);
-            [...tally.entries()]
-              .sort((a, b) => b[1] - a[1])
-              .forEach(([answer, count], i) => {
-                const pct = values.length ? Math.round((count / values.length) * 100) : 0;
-                rows.push(['', '', `${i === 0 ? `${q.text} → ` : ''}${answer}`, count, `${pct}%`, '']);
-              });
+            // Answers are a list of { qId, value }, not a map keyed by id.
+            const { ranked } = surveyTally(responses, q.id);
+            ranked.forEach(({ answer, count, pct }, i) => {
+              rows.push(['', '', `${i === 0 ? `${q.text} → ` : ''}${answer}`, count, `${pct}%`, '']);
+            });
           });
         }
         rows.push([]);

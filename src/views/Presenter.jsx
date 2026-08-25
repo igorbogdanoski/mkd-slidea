@@ -158,8 +158,10 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
       // Answers only — no session id, no name. The projector shows
       // distributions, never who said what, and reading the table directly
       // meant this page held identifying data it never displays.
+      // Keep the { answers } row shape — the renderer reads `r.answers`, and
+      // unwrapping it here made every survey question look unanswered.
       const { data } = await supabase.rpc('poll_survey_answers', { p_poll_id: currentPoll.id });
-      setSurveyResponses((data || []).map((r) => r.answers));
+      setSurveyResponses(data || []);
     };
     fetchResponses();
     const ch = supabase.channel(`survey-${currentPoll.id}`)

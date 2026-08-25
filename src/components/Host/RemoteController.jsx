@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { supabase } from '../../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Users, Lock, RotateCcw, Smartphone, X } from 'lucide-react';
 import { useEventStore } from '../../lib/store';
@@ -8,13 +9,33 @@ const RemoteController = ({ polls, activePollIndex, setActivePoll, eventCode, ev
   const currentPoll = polls[activePollIndex];
   const isLocked = !!event?.is_locked;
 
-  // Live response count derived from current poll's options/votes
+  // Live response count. Most types carry it in options.votes, but a survey
+  // and a fill-in-the-blanks keep their answers elsewhere and have no options
+  // at all — the fallback here read `currentPoll.response_count`, a column
+  // that does not exist, so those two always showed nobody had answered and a
+  // host driving from a phone would keep waiting for a room that was done.
+  const [asideCount, setAsideCount] = useState(null);
+  const countedInOptions = Array.isArray(currentPoll?.options) && currentPoll.options.length > 0;
+  const needsAsideCount = !!currentPoll && !countedInOptions
+    && ['survey', 'fill_blanks', 'open', 'wordcloud'].includes(currentPoll.type);
+
+  useEffect(() => {
+    if (!needsAsideCount) { setAsideCount(null); return undefined; }
+    let cancelled = false;
+    const fn = currentPoll.type === 'survey' ? 'poll_survey_answers' : 'poll_answer_texts';
+    const read = async () => {
+      const { data } = await supabase.rpc(fn, { p_poll_id: currentPoll.id });
+      if (!cancelled) setAsideCount(Array.isArray(data) ? data.length : 0);
+    };
+    read();
+    const id = setInterval(read, 4000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [needsAsideCount, currentPoll?.id, currentPoll?.type]);
+
   const responseCount = (() => {
     if (!currentPoll) return 0;
-    if (Array.isArray(currentPoll.options) && currentPoll.options.length > 0) {
-      return currentPoll.options.reduce((sum, o) => sum + (o.votes || 0), 0);
-    }
-    return currentPoll.response_count || 0;
+    if (countedInOptions) return currentPoll.options.reduce((sum, o) => sum + (o.votes || 0), 0);
+    return asideCount ?? 0;
   })();
   const responsePct = activeParticipants > 0
     ? Math.min(100, Math.round((responseCount / activeParticipants) * 100))

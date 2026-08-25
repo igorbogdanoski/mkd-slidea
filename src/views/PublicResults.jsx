@@ -7,6 +7,7 @@ import {
 } from 'recharts';
 import { Share2, Copy, CheckCheck, ExternalLink, BarChart2, Trophy, Cloud, Star, AlignLeft, ListOrdered, Scale, Hash } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { surveyTally } from '../lib/surveyAnswers';
 import { useSEO } from '../hooks/useSEO';
 
 // ── Constants ──────────────────────────────────────────────────────────────
@@ -140,17 +141,16 @@ const PollCard = ({ poll, index }) => {
         ) : isSurvey ? (
           <div className="space-y-4">
             {(Array.isArray(poll.survey_questions) ? poll.survey_questions : []).map((q) => {
-              const values = (extra || []).map((r) => r?.[q.id]).filter((v) => v !== undefined && v !== null && v !== '');
-              const tally = new Map();
-              for (const v of values) tally.set(String(v), (tally.get(String(v)) || 0) + 1);
-              const ranked = [...tally.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
+              // Answers are a list of { qId, value }; reading them as a map
+              // keyed by question id returns undefined for every one, which
+              // renders as "нема одговори" for a class that answered.
+              const ranked = surveyTally(extra || [], q.id).ranked.slice(0, 8);
               return (
                 <div key={q.id}>
                   <p className="text-sm font-black text-slate-700 mb-2">{q.text}</p>
                   {ranked.length === 0 ? (
                     <p className="text-sm text-slate-300 font-bold">Нема одговори</p>
-                  ) : ranked.map(([answer, count], i) => {
-                    const pct = values.length ? Math.round((count / values.length) * 100) : 0;
+                  ) : ranked.map(({ answer, count, pct }, i) => {
                     return (
                       <div key={i} className="mb-2">
                         <div className="flex justify-between text-xs font-bold text-slate-500 mb-1">
