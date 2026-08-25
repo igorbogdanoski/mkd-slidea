@@ -37,8 +37,12 @@ export default async function handler(req) {
     return new Response(JSON.stringify({ error: 'pollId and text required' }), { status: 400 });
   }
 
-  const clean = String(text).replace(/<[^>]+>/g, '').trim().slice(0, 300);
-  if (!clean) return new Response(JSON.stringify({ error: 'empty text' }), { status: 400 });
+  // Bounded loosely here, then trimmed to the activity's own limit once the
+  // poll has been read below — an open question may run to a paragraph while a
+  // word cloud stays one word. A single 300 for both cut open answers off
+  // mid-sentence, on the server, after the client had already accepted them.
+  const raw = String(text).replace(/<[^>]+>/g, '').trim().slice(0, 4000);
+  if (!raw) return new Response(JSON.stringify({ error: 'empty text' }), { status: 400 });
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
     return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500 });
@@ -52,11 +56,14 @@ export default async function handler(req) {
 
   try {
     const pollRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/polls?id=eq.${encodeURIComponent(pollId)}&select=needs_moderation&limit=1`,
+      `${SUPABASE_URL}/rest/v1/polls?id=eq.${encodeURIComponent(pollId)}&select=needs_moderation,type&limit=1`,
       { headers }
     );
     const pollRows = pollRes.ok ? await pollRes.json() : [];
     const isModerated = Array.isArray(pollRows) && pollRows[0]?.needs_moderation === true;
+    const LIMITS = { wordcloud: 40, open: 1500 };
+    const clean = raw.slice(0, LIMITS[pollRows[0]?.type] ?? 300);
+    if (!clean) return new Response(JSON.stringify({ error: 'empty text' }), { status: 400 });
 
     // Atomic upsert: INSERT ... ON CONFLICT (poll_id, lower(text)) DO UPDATE
     // votes = votes + 1. Concurrent submissions of the same word merge into

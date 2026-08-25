@@ -375,7 +375,7 @@ export const useHostSession = (user) => {
           event_id: event.id,
           question: pollData.question,
           is_quiz: !!pollData.is_quiz,
-          type: pollData.type || 'poll',
+          type: normaliseActivityType(pollData.type),
           survey_questions: pollData.survey_questions || [],
           presenter_notes: pollData.presenter_notes ?? null,
           curriculum_tags: pollData.curriculum_tags ?? null,
@@ -384,20 +384,40 @@ export const useHostSession = (user) => {
         }]).select().single();
         if (pollError) throw pollError;
 
-        if (pollData.options && pollData.options.length > 0) {
-          let optionsToInsert = [];
-          if (pollData.type === 'rating') {
-            optionsToInsert = ['1', '2', '3', '4', '5'].map(val => ({ poll_id: newPoll.id, text: val }));
-          } else {
-            optionsToInsert = pollData.options.map(o => ({
-              poll_id: newPoll.id,
-              text: typeof o === 'string' ? o : o.text,
-              is_correct: o.is_correct || false,
-              label: (typeof o === 'string' ? null : o.label) || null,
-            }));
-          }
+        // The create path had the same defect the other four had, and it is
+        // the one that matters most: the editor sends `options: []` for a
+        // rating — its scale is supplied by the app, not authored — so
+        // `length > 0` skipped insertion and the activity was created with no
+        // stars to tap. Fixing the seven existing rows did not close this.
+        const wantedOptions = optionsForType(pollData.type, pollData.options);
+        if (wantedOptions.length > 0) {
+          const optionsToInsert = wantedOptions.map(o => ({
+            poll_id: newPoll.id,
+            text: typeof o === 'string' ? o : o.text,
+            is_correct: (typeof o === 'string' ? false : o.is_correct) || false,
+            label: (typeof o === 'string' ? null : o.label) || null,
+          }));
           const { error: optError } = await supabase.from('options').insert(optionsToInsert);
           if (optError) throw optError;
+        }
+
+        // Nothing was ever activated automatically, so a host who created
+        // their first activity saw the room still sitting on the waiting
+        // screen and no indication that a card has to be clicked. When the
+        // event has no active activity at all, the one just created is
+        // certainly the one they meant.
+        if (!event?.active_poll_id) {
+          setEvent((prev) => (prev ? { ...prev, active_poll_id: newPoll.id } : prev));
+          const { error: activateError } = await supabase
+            .from('events')
+            .update({ active_poll_id: newPoll.id })
+            .eq('id', event.id);
+          // Not fatal: the activity exists either way and the host can still
+          // click it. Reverting the local guess keeps the two in step.
+          if (activateError) {
+            console.warn('Could not activate the first activity:', activateError.message);
+            setEvent((prev) => (prev ? { ...prev, active_poll_id: null } : prev));
+          }
         }
       }
       return true;

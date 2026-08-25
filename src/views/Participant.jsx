@@ -5,6 +5,7 @@ import { useEventStore } from '../lib/store';
 import PoweredByBadge from '../components/PoweredByBadge';
 import ParticipantCaptions from '../components/ParticipantCaptions';
 import MathSymbolPicker from '../components/MathSymbolPicker';
+import { answerLimit, answerMinLength, isLongForm } from '../lib/answerLimits';
 import { applyInsertion } from '../lib/insertAtCursor';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import { accessibleScaleColor } from '../lib/contrast';
@@ -166,8 +167,7 @@ const Participant = ({
 
   const submitResponse = async () => {
     const clean = response.trim();
-    const minLen = currentPoll.type === 'wordcloud' ? 2 : 3;
-    if (clean.length < minLen) return;
+    if (clean.length < answerMinLength(currentPoll.type)) return;
     handleVote(clean);
     setResponse('');
   };
@@ -700,22 +700,51 @@ const Participant = ({
                   />
                 ) : isTextType ? (
                   <div className="space-y-4">
-                    <input 
-                      ref={responseRef}
-                      type="text"
-                      placeholder={currentPoll.type === 'wordcloud' ? "Внесете збор..." : "Вашиот одговор..."}
-                      value={response}
-                      onChange={(e) => setResponse(e.target.value)}
-                      maxLength={currentPoll.type === 'wordcloud' ? 40 : 300}
-                      className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all"
-                      onKeyDown={(e) => e.key === 'Enter' && submitResponse()}
-                    />
+                    {/* An open question asks someone to explain something, so it
+                        gets a box that grows and a limit that fits a paragraph.
+                        It was a single-line input capped at 300 characters —
+                        the word cloud's shape, applied to both — and a longer
+                        answer simply stopped being accepted mid-sentence with
+                        nothing to say why. Enter submits the word cloud, where
+                        the answer is one word; in the open box Enter is a new
+                        line, and the button submits. */}
+                    {isLongForm(currentPoll.type) ? (
+                      <>
+                        <textarea
+                          ref={responseRef}
+                          rows={5}
+                          placeholder="Вашиот одговор..."
+                          value={response}
+                          onChange={(e) => setResponse(e.target.value)}
+                          maxLength={answerLimit(currentPoll.type)}
+                          className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all resize-y min-h-[8rem]"
+                          onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submitResponse(); }}
+                        />
+                        <div className="flex justify-between items-center text-xs font-bold text-slate-400 px-1">
+                          <span>Ctrl+Enter за испраќање</span>
+                          <span className={response.length > answerLimit(currentPoll.type) - 100 ? 'text-amber-600' : ''}>
+                            {response.length} / {answerLimit(currentPoll.type)}
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <input
+                        ref={responseRef}
+                        type="text"
+                        placeholder="Внесете збор..."
+                        value={response}
+                        onChange={(e) => setResponse(e.target.value)}
+                        maxLength={answerLimit(currentPoll.type)}
+                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 font-bold focus:border-indigo-600 focus:bg-white outline-none transition-all"
+                        onKeyDown={(e) => e.key === 'Enter' && submitResponse()}
+                      />
+                    )}
                     {currentPoll.type === 'open' && (
                       <MathSymbolPicker onInsert={insertResponseSymbol} compact />
                     )}
                     <button
                       onClick={() => { haptic([30]); submitResponse(); }}
-                      disabled={response.trim().length < (currentPoll.type === 'wordcloud' ? 2 : 3)}
+                      disabled={response.trim().length < answerMinLength(currentPoll.type)}
                       className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 disabled:opacity-50"
                     >
                       Испрати

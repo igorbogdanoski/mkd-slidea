@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase, warmUp } from '../lib/supabase';
+import { answerLimit } from '../lib/answerLimits';
 import { pipelineQuestions } from '../lib/questionsCore';
 import { useEventStore } from '../lib/store';
 
@@ -332,7 +333,11 @@ export const useEvent = (eventCode, username) => {
 
   const vote = async (optionId, pollId, textValue, weight) => {
     if (textValue) {
-      const clean = textValue.replace(/<[^>]+>/g, '').trim().slice(0, 300);
+      // The cap follows the activity type — a word cloud wants one word, an
+      // open question wants a paragraph. A single 300 shared by both truncated
+      // open answers mid-sentence. See src/lib/answerLimits.js.
+      const pollType = polls.find((p) => p.id === pollId)?.type;
+      const clean = textValue.replace(/<[^>]+>/g, '').trim().slice(0, answerLimit(pollType));
       if (!clean) return { data: null, error: null };
       // Text votes go through a server endpoint to bypass anon RLS on the options table
       const res = await fetch('/api/vote-text', {

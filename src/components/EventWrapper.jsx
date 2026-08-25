@@ -214,6 +214,39 @@ const EventWrapper = ({ type, username, setUsername }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event?.id, currentPollId]);
 
+  // Timer per active poll — MUST be before any early returns (Rules of Hooks).
+  // It sat below them at first, so on the loading render these hooks did not
+  // run and on the next one they did: "Rendered more hooks than during the
+  // previous render", and the participant page died into the error boundary.
+  // The version this replaced was a plain computation, which is why it was
+  // safe down there.
+  //
+  // This used to be computed during render and nothing else, so it only moved
+  // when something unrelated happened to re-render the page — a vote landing,
+  // a poll refresh. On the participant's phone the countdown sat frozen while
+  // the host's and the projector's ran, which is what "не е синхронизиран со
+  // хостот" describes. Both of those already tick on their own interval; this
+  // one did not.
+  //
+  // It matters beyond the display: `timerExpired` below is what stops a late
+  // answer, so without a tick the deadline passed unnoticed and voting stayed
+  // open until the next incidental render.
+  //
+  // Driven off `timer_ends_at`, an absolute instant set by the host, so every
+  // device counts down to the same moment regardless of when it last rendered.
+  const activePollTimerEndsAt = polls[activePollIndex >= 0 ? activePollIndex : 0]?.timer_ends_at;
+  const [timerRemaining, setTimerRemaining] = useState(null);
+  useEffect(() => {
+    if (!activePollTimerEndsAt) { setTimerRemaining(null); return undefined; }
+    const tick = () => setTimerRemaining(
+      Math.max(0, Math.round((new Date(activePollTimerEndsAt) - Date.now()) / 1000))
+    );
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [activePollTimerEndsAt]);
+  const timerExpired = !!activePollTimerEndsAt && timerRemaining === 0;
+
   // Lock state polling — MUST be before any early returns (Rules of Hooks)
   //
   // This used to run only while already locked, so it could notice an unlock
@@ -431,12 +464,6 @@ const EventWrapper = ({ type, username, setUsername }) => {
     );
   }
 
-  // Timer per active poll
-  const activePollTimerEndsAt = polls[activePollIndex >= 0 ? activePollIndex : 0]?.timer_ends_at;
-  const timerRemaining = activePollTimerEndsAt
-    ? Math.max(0, Math.round((new Date(activePollTimerEndsAt) - Date.now()) / 1000))
-    : null;
-  const timerExpired = activePollTimerEndsAt && timerRemaining === 0;
   const currentPollForWrapper = polls[activePollIndex];
   const resultsVisible = currentPollForWrapper?.results_visible !== false;
 

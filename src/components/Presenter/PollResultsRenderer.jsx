@@ -260,10 +260,24 @@ const PollResultsRenderer = ({ currentPoll, visibleOptions, totalVotes, surveyRe
             initial={{ opacity: 0, scale: 0.8, rotate: Math.random() * 10 - 5 }}
             animate={{ opacity: 1, scale: 1, rotate: Math.random() * 6 - 3 }}
             whileHover={{ scale: 1.05, rotate: 0 }}
-            className={`${colors[i % colors.length]} p-8 rounded-xl shadow-xl border-t-4 border-black/5 min-h-[200px] flex items-center justify-center relative`}
+            className={`${colors[i % colors.length]} p-8 rounded-xl shadow-xl border-t-4 border-black/5 min-h-[200px] max-h-[420px] flex items-center justify-center relative overflow-hidden`}
           >
             <div className="absolute top-4 left-4 w-4 h-4 bg-black/10 rounded-full" />
-            <MathText as="p" className="text-slate-800 presenter-answer-sm presenter-answer-wrap font-black text-center">{opt.text}</MathText>
+            {/* Now that an open question accepts a paragraph rather than a
+                line, a note can hold far more than fits. Long answers drop to
+                a smaller size and scroll inside their own card instead of
+                pushing the grid apart — and they are still centred and large
+                when they are short, which is the common case. */}
+            <MathText
+              as="p"
+              className={`text-slate-800 presenter-answer-wrap font-black text-center w-full ${
+                String(opt.text || '').length > 180
+                  ? 'text-xl leading-snug overflow-y-auto max-h-[340px] text-left'
+                  : 'presenter-answer-sm'
+              }`}
+            >
+              {opt.text}
+            </MathText>
           </motion.div>
         ))}
       </div>
