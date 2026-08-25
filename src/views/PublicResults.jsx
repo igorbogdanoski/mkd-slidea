@@ -25,6 +25,8 @@ const typeInfo = (poll) => {
   if (poll.type === 'scale')      return { icon: <Scale size={13} />,  label: 'Скала',              color: 'text-teal-600 bg-teal-50 border-teal-100' };
   if (poll.type === 'open')       return { icon: <AlignLeft size={13} />, label: 'Отворен',         color: 'text-emerald-600 bg-emerald-50 border-emerald-100' };
   if (poll.type === 'ranking')    return { icon: <ListOrdered size={13} />, label: 'Рангирање',     color: 'text-violet-600 bg-violet-50 border-violet-100' };
+  if (poll.type === 'fill_blanks') return { icon: <AlignLeft size={13} />, label: 'Празнини',        color: 'text-fuchsia-600 bg-fuchsia-50 border-fuchsia-100' };
+  if (poll.type === 'survey')     return { icon: <BarChart2 size={13} />, label: 'Формулар',         color: 'text-green-600 bg-green-50 border-green-100' };
   return                                { icon: <BarChart2 size={13} />, label: 'Анкета',            color: 'text-indigo-600 bg-indigo-50 border-indigo-100' };
 };
 
@@ -32,7 +34,27 @@ const typeInfo = (poll) => {
 
 const PollCard = ({ poll, index }) => {
   const approvedOptions = (poll.options || []).filter(o => o.is_approved !== false);
-  const totalVotes = approvedOptions.reduce((s, o) => s + (o.votes || 0), 0);
+
+  // Two types keep their answers outside the options table, so the sum below
+  // is always zero for them and the card said "Нема гласови" — not "we don't
+  // show this here" but a plain statement that nobody answered, on a page
+  // whose whole purpose is showing what the class answered.
+  const isBlanks = poll.type === 'fill_blanks';
+  const isSurvey = poll.type === 'survey';
+  const [extra, setExtra] = React.useState(null);
+  React.useEffect(() => {
+    if (!isBlanks && !isSurvey) return;
+    const fn = isBlanks ? 'poll_answer_texts' : 'poll_survey_answers';
+    supabase.rpc(fn, { p_poll_id: poll.id }).then(({ data }) => {
+      if (!data) { setExtra([]); return; }
+      setExtra(isBlanks
+        ? data.map((r) => { try { return JSON.parse(r.answer_text); } catch { return null; } }).filter(Boolean)
+        : data.map((r) => r.answers).filter(Boolean));
+    });
+  }, [poll.id, isBlanks, isSurvey]);
+
+  const optionVotes = approvedOptions.reduce((s, o) => s + (o.votes || 0), 0);
+  const totalVotes = (isBlanks || isSurvey) ? (extra?.length ?? 0) : optionVotes;
   const { icon, label, color } = typeInfo(poll);
   const sorted = [...approvedOptions].sort((a, b) => (b.votes || 0) - (a.votes || 0));
 
@@ -75,7 +97,77 @@ const PollCard = ({ poll, index }) => {
 
       {/* Body */}
       <div className="px-8 pb-8">
-        {totalVotes === 0 ? (
+        {(isBlanks || isSurvey) && extra === null ? (
+          <p className="text-sm text-slate-300 font-bold text-center py-6">Се вчитува…</p>
+
+        ) : isBlanks ? (
+          <div className="space-y-4">
+            {(Array.isArray(poll.blanks) ? poll.blanks : []).map((gap, gi) => {
+              const given = (extra || []).map((r) => String(r?.[gap.id] ?? '').trim()).filter(Boolean);
+              const tally = new Map();
+              for (const g of given) {
+                const k = g.toLowerCase().replace(/\s+/g, ' ');
+                tally.set(k, { text: g, count: (tally.get(k)?.count || 0) + 1 });
+              }
+              const accepted = (gap.accept || []).map((a) => String(a).toLowerCase().replace(/\s+/g, ' '));
+              const ranked = [...tally.values()].sort((a, b) => b.count - a.count).slice(0, 12);
+              return (
+                <div key={gap.id || gi}>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+                    Празнина {gi + 1} · точен: {(gap.accept || [])[0] || '—'}
+                  </p>
+                  {ranked.length === 0 ? (
+                    <p className="text-sm text-slate-300 font-bold">Нема одговори</p>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {ranked.map((r, i) => {
+                        const right = accepted.includes(r.text.toLowerCase().replace(/\s+/g, ' '));
+                        return (
+                          <span key={i} className={`px-3 py-1.5 rounded-full font-bold text-sm border ${
+                            right ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                                  : 'bg-slate-50 border-slate-200 text-slate-600'}`}>
+                            {r.text}{r.count > 1 ? ` ×${r.count}` : ''}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+        ) : isSurvey ? (
+          <div className="space-y-4">
+            {(Array.isArray(poll.survey_questions) ? poll.survey_questions : []).map((q) => {
+              const values = (extra || []).map((r) => r?.[q.id]).filter((v) => v !== undefined && v !== null && v !== '');
+              const tally = new Map();
+              for (const v of values) tally.set(String(v), (tally.get(String(v)) || 0) + 1);
+              const ranked = [...tally.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
+              return (
+                <div key={q.id}>
+                  <p className="text-sm font-black text-slate-700 mb-2">{q.text}</p>
+                  {ranked.length === 0 ? (
+                    <p className="text-sm text-slate-300 font-bold">Нема одговори</p>
+                  ) : ranked.map(([answer, count], i) => {
+                    const pct = values.length ? Math.round((count / values.length) * 100) : 0;
+                    return (
+                      <div key={i} className="mb-2">
+                        <div className="flex justify-between text-xs font-bold text-slate-500 mb-1">
+                          <span>{answer}</span><span>{pct}% ({count})</span>
+                        </div>
+                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                          <div className="h-full rounded-full" style={{ width: `${pct}%`, background: PALETTE[i % PALETTE.length] }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
+
+        ) : totalVotes === 0 ? (
           <p className="text-sm text-slate-300 font-bold text-center py-6">Нема гласови</p>
 
         ) : isWordCloud ? (
@@ -261,7 +353,7 @@ const PublicResults = () => {
 
       const { data: ps } = await supabase
         .from('polls')
-        .select('id, event_id, question, active, is_quiz, created_at, type, results_visible, position, timer_ends_at, survey_questions, needs_moderation, curriculum_tags, options(id, poll_id, text, votes, is_correct, is_approved)')
+        .select('id, event_id, question, active, is_quiz, created_at, type, results_visible, position, timer_ends_at, survey_questions, blanks, needs_moderation, curriculum_tags, options(id, poll_id, text, votes, is_correct, is_approved)')
         .eq('event_id', ev.id)
         .order('created_at', { ascending: true });
 
