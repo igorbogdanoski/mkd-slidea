@@ -56,32 +56,18 @@ export default function EventScoreboard() {
     setQuizQs(pollIds.length);
     if (!pollIds.length) { setRows([]); setLoading(false); return; }
 
-    // 3. Fetch all votes for those quiz polls
-    const { data: votes } = await supabase
-      .from('votes')
-      .select('session_id, username, is_correct, created_at')
-      .in('poll_id', pollIds);
-
-    // 4. Aggregate client-side: group by session_id
-    const map = new Map();
-    for (const v of votes || []) {
-      const sid = v.session_id || v.username || 'anon';
-      if (!map.has(sid)) {
-        map.set(sid, {
-          username: v.username || 'Анонимен',
-          correct: 0,
-          total: 0,
-          firstAt: v.created_at,
-        });
-      }
-      const entry = map.get(sid);
-      entry.total++;
-      if (v.is_correct) entry.correct++;
-      if (v.created_at < entry.firstAt) entry.firstAt = v.created_at;
-    }
-
-    const sorted = [...map.values()]
-      .sort((a, b) => b.correct - a.correct || a.firstAt.localeCompare(b.firstAt));
+    // 3+4. Aggregated in the database. This is a public route, and the read
+    // it used to make — every vote row for the event's quizzes, with
+    // session_id, username and is_correct — was a full copy of who answered
+    // what, handed to anyone who opened the page. event_scoreboard returns
+    // only what the board displays: a name, a score and a time.
+    const { data: scored } = await supabase.rpc('event_scoreboard', { p_event_code: code });
+    const sorted = (scored || []).map((r) => ({
+      username: r.username,
+      correct: Number(r.correct) || 0,
+      total: Number(r.total) || 0,
+      firstAt: r.first_at,
+    }));
 
     setRows(sorted);
     setLoading(false);

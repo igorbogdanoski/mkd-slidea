@@ -84,7 +84,14 @@ export const useHostSession = (user) => {
           alert('Не успеа да се создаде настан. Ве молиме обидете се повторно.');
         }
       } else {
-        const { data } = await supabase.from('events').select('*').eq('code', eventCode).single();
+        // Explicit column list, not `*`: `password` and `cohost_code` are
+        // revoked at the database, and SELECT * over a column the role may
+        // not read fails outright rather than quietly omitting it. The
+        // co-host code is fetched separately, owner-scoped, when the
+        // settings dialog needs it.
+        const { data } = await supabase.from('events')
+          .select('id, code, title, user_id, org_id, created_at, starts_at, ended_at, active_poll_id, is_locked, has_password, allow_multiple_votes, async_mode, async_deadline, questions_moderation, is_public_scoreboard, brand_color, brand_font, logo_url, cover_image, reminded')
+          .eq('code', eventCode).single();
         if (data) {
           setEvent(data);
         } else {

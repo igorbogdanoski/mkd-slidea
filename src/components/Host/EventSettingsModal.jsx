@@ -39,6 +39,22 @@ const EventSettingsModal = ({
   // Focus containment + Escape. Without it Tab walks out of the open
   // dialog into the page behind, and a keyboard user has no way to close.
   const trapRef = useFocusTrap(isOpen, { onEscape: onClose });
+  // The password field holds only what is being typed now. The stored one is
+  // never read back — see the note beside the input.
+  const [pwdDraft, setPwdDraft] = React.useState('');
+  const [pwdSaved, setPwdSaved] = React.useState(false);
+  // The co-host code is not part of the event object any more — the column is
+  // closed at the database, because any signed-in account could otherwise read
+  // any event's code and take host control of someone else's session. It is
+  // fetched here through a function that returns it only to the owner.
+  const [cohostCode, setCohostCode] = React.useState(null);
+  React.useEffect(() => {
+    if (!isOpen || !event?.id) return;
+    supabase.rpc('my_event_cohost_code', { p_event_id: event.id })
+      .then(({ data }) => setCohostCode(data || null));
+  }, [isOpen, event?.id]);
+  // Hooks run before this, never after — an early return above them would
+  // change the hook order between renders.
   if (!isOpen) return null;
 
   return (
@@ -173,12 +189,12 @@ const EventSettingsModal = ({
               <p className="font-black text-slate-900">Ко-домаќин</p>
             </div>
             <p className="text-sm text-slate-400 font-bold mb-4">Сподели пристап до овој настан со колега</p>
-            {event.cohost_code ? (
+            {cohostCode ? (
               <div className="space-y-3">
                 <div className="flex items-center gap-2 bg-white border-2 border-indigo-100 rounded-xl px-4 py-3">
-                  <span className="flex-1 font-black text-indigo-700 tracking-widest text-lg">{event.cohost_code}</span>
+                  <span className="flex-1 font-black text-indigo-700 tracking-widest text-lg">{cohostCode}</span>
                   <button
-                    onClick={() => { navigator.clipboard.writeText(event.cohost_code); }}
+                    onClick={() => { navigator.clipboard.writeText(cohostCode); }}
                     className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
                     title="Копирај"
                   >
@@ -191,7 +207,7 @@ const EventSettingsModal = ({
                 <button
                   onClick={async () => {
                     await supabase.from('events').update({ cohost_code: null }).eq('id', event.id);
-                    setEvent(prev => ({ ...prev, cohost_code: null }));
+                    setCohostCode(null);
                   }}
                   className="text-xs font-semibold text-red-400 hover:text-red-600 transition-colors uppercase tracking-widest"
                 >
@@ -203,7 +219,7 @@ const EventSettingsModal = ({
                 onClick={async () => {
                   const code = generateCode(8);
                   await supabase.from('events').update({ cohost_code: code }).eq('id', event.id);
-                  setEvent(prev => ({ ...prev, cohost_code: code }));
+                  setCohostCode(code);
                 }}
                 className="w-full py-3 bg-white border-2 border-dashed border-slate-200 text-slate-500 rounded-xl font-bold text-sm hover:border-indigo-400 hover:text-indigo-600 transition-all flex items-center justify-center gap-2"
               >
@@ -216,31 +232,63 @@ const EventSettingsModal = ({
           <div className="p-5 bg-slate-50 rounded-2xl">
             <p className="font-black text-slate-900 mb-1">Лозинка за настанот</p>
             <p className="text-sm text-slate-400 font-bold mb-3">Учесниците мора да ја внесат пред да влезат</p>
+            {/* The stored password is never read back into this field. It used
+                to be pre-filled from event.password, which required the column
+                to be readable by the client at all — and it was readable by
+                anyone, since the same key serves every browser. The column is
+                write-only now: set a new one, or clear it. What is on screen
+                is what you are about to save, never what is already saved. */}
             <div className="relative">
               <input
                 type={showPwd ? 'text' : 'password'}
-                defaultValue={event.password || ''}
-                onBlur={async (e) => {
-                  const val = e.target.value.trim() || null;
-                  await supabase.from('events').update({ password: val }).eq('id', event.id);
-                  setEvent(prev => ({ ...prev, password: val }));
+                value={pwdDraft}
+                onChange={(e) => setPwdDraft(e.target.value)}
+                onBlur={async () => {
+                  const val = pwdDraft.trim();
+                  // An untouched empty field means "leave it as it is", not
+                  // "remove the password" — blur fires on simply tabbing past.
+                  if (!val) return;
+                  await supabase.from('events').update({ password: val, has_password: true }).eq('id', event.id);
+                  setEvent(prev => ({ ...prev, has_password: true }));
+                  setPwdDraft('');
+                  setPwdSaved(true);
                 }}
-                placeholder="Без лозинка"
+                placeholder={event.has_password ? 'Внесете нова лозинка за промена' : 'Без лозинка'}
                 className="w-full bg-white border-2 border-slate-100 rounded-xl px-4 py-3 font-bold focus:border-indigo-600 outline-none transition-all pr-12"
               />
               <button
                 type="button"
                 onClick={() => setShowPwd(v => !v)}
+                aria-label={showPwd ? 'Сокриј ја лозинката' : 'Прикажи ја лозинката'}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
               >
                 {showPwd ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
-            {event.password && (
-              <p className="mt-2 text-[10px] font-black text-emerald-600 uppercase tracking-widest">
-                🔒 Настанот е заштитен со лозинка
-              </p>
-            )}
+            <div className="mt-2 flex items-center gap-3 flex-wrap">
+              {event.has_password && (
+                <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">
+                  🔒 Настанот е заштитен со лозинка
+                </p>
+              )}
+              {event.has_password && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!window.confirm('Отстрани ја лозинката? Настанот ќе биде отворен за секој со кодот.')) return;
+                    await supabase.from('events').update({ password: null, has_password: false }).eq('id', event.id);
+                    setEvent(prev => ({ ...prev, has_password: false }));
+                    setPwdDraft('');
+                  }}
+                  className="text-[10px] font-black text-red-500 hover:text-red-600 uppercase tracking-widest"
+                >
+                  Отстрани лозинка
+                </button>
+              )}
+              {pwdSaved && (
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Зачувано</span>
+              )}
+            </div>
           </div>
 
           {/* Async / Homework mode */}

@@ -143,20 +143,16 @@ const EventWrapper = ({ type, username, setUsername }) => {
     if (type !== 'present' || !event?.id) return;
     const quizPollIds = polls.filter((p) => p.is_quiz).map((p) => p.id);
     if (!quizPollIds.length) { setLeaderboard([]); return; }
+    // Aggregated in the database instead of pulling every vote row to the
+    // projector and grouping in the browser. The old read asked for
+    // session_id, username and is_correct across the event's quizzes — which,
+    // with the table open to anon, was a full copy of who answered what.
     supabase
-      .from('votes')
-      .select('session_id, username, is_correct')
-      .in('poll_id', quizPollIds)
+      .rpc('event_leaderboard', { p_event_code: normalizedCode })
       .then(({ data }) => {
-        const map = new Map();
-        for (const v of data || []) {
-          const sid = v.session_id || v.username || 'anon';
-          if (!map.has(sid)) map.set(sid, { username: v.username || 'Анонимен', points: 0 });
-          if (v.is_correct) map.get(sid).points++;
-        }
-        setLeaderboard([...map.values()]);
+        setLeaderboard((data || []).map((r) => ({ username: r.username, points: Number(r.points) || 0 })));
       });
-  }, [type, event?.id, polls]);
+  }, [type, event?.id, polls, normalizedCode]);
 
   // Reset quiz result when active poll changes
   const currentPollId = polls[activePollIndex >= 0 ? activePollIndex : 0]?.id;
@@ -190,13 +186,18 @@ const EventWrapper = ({ type, username, setUsername }) => {
   // authority when the query fails or the phone is offline: dropping the local
   // guard on a network error would hand out a second vote to anyone with a
   // flaky connection.
+  //
+  // Read through my_voted_polls() rather than the votes table. The table read
+  // was `session_id = <mine>`, which looks scoped but is only a filter the
+  // caller chose — with the anon key that ships in this bundle, dropping it
+  // returned every vote in every event, names and answers included. The
+  // function is SECURITY DEFINER and returns poll ids for one session in one
+  // event, and nothing else.
   useEffect(() => {
     if (!event?.id) return;
     const sid = getSessionId();
     supabase
-      .from('votes')
-      .select('poll_id')
-      .eq('session_id', sid)
+      .rpc('my_voted_polls', { p_event_code: normalizedCode, p_session_id: sid })
       .then(({ data, error }) => {
         if (error || !data) return;
         const fromDb = data.map((r) => r.poll_id);

@@ -129,8 +129,12 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
   const [blankResponses, setBlankResponses] = useState([]);
   useEffect(() => {
     if (currentPoll.type !== 'fill_blanks') { setBlankResponses([]); return; }
+    // poll_answer_texts() returns the answers for this one activity and
+    // nothing that identifies who wrote them — the projector needs the words,
+    // never the names. Reading the votes table directly here would have meant
+    // the projector page holding usernames it never shows.
     const fetchBlanks = async () => {
-      const { data } = await supabase.from('votes').select('answer_text').eq('poll_id', currentPoll.id);
+      const { data } = await supabase.rpc('poll_answer_texts', { p_poll_id: currentPoll.id });
       setBlankResponses((data || []).map((r) => {
         try { return JSON.parse(r.answer_text); } catch { return null; }
       }).filter(Boolean));
@@ -139,21 +143,32 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
     const ch = supabase.channel(`blanks-${currentPoll.id}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'votes', filter: `poll_id=eq.${currentPoll.id}` }, fetchBlanks)
       .subscribe();
-    return () => ch.unsubscribe();
+    // Realtime honours row security, so a projector opened without an account
+    // no longer receives vote inserts — correctly, since it may not read that
+    // table. One refresh every few seconds keeps the wall live. It is a single
+    // client asking about a single activity, not a room-wide poll.
+    const fallback = setInterval(fetchBlanks, 5000);
+    return () => { ch.unsubscribe(); clearInterval(fallback); };
   }, [currentPoll.id, currentPoll.type]);
 
   // Fetch survey responses for current poll (type=survey only)
   useEffect(() => {
     if (currentPoll.type !== 'survey') { setSurveyResponses([]); return; }
     const fetchResponses = async () => {
-      const { data } = await supabase.from('survey_responses').select('answers').eq('poll_id', currentPoll.id);
-      setSurveyResponses(data || []);
+      // Answers only — no session id, no name. The projector shows
+      // distributions, never who said what, and reading the table directly
+      // meant this page held identifying data it never displays.
+      const { data } = await supabase.rpc('poll_survey_answers', { p_poll_id: currentPoll.id });
+      setSurveyResponses((data || []).map((r) => r.answers));
     };
     fetchResponses();
     const ch = supabase.channel(`survey-${currentPoll.id}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'survey_responses', filter: `poll_id=eq.${currentPoll.id}` }, fetchResponses)
       .subscribe();
-    return () => ch.unsubscribe();
+    // Same reason as the blanks panel above: realtime is filtered by row
+    // security for an unauthenticated projector.
+    const fallback = setInterval(fetchResponses, 5000);
+    return () => { ch.unsubscribe(); clearInterval(fallback); };
   }, [currentPoll.id, currentPoll.type]);
 
   // Pause / Resume helper

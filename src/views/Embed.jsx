@@ -42,7 +42,7 @@ const Embed = () => {
   useEffect(() => {
     if (!currentPollId) return;
     const sid = getSessionId();
-    supabase.from('votes').select('id').eq('poll_id', currentPollId).eq('session_id', sid).single()
+    supabase.rpc('has_voted', { p_poll_id: currentPollId, p_session_id: sid })
       .then(({ data }) => { if (data) setVoted(true); });
   }, [currentPollId]);
 
