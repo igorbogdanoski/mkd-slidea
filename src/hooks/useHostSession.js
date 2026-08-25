@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { track } from '@vercel/analytics';
 import { supabase } from '../lib/supabase';
-import { normaliseActivityType, templateActivities, optionsForType } from '../lib/activityTypes';
+import { normaliseActivityType, templateActivities, optionsForType, carriedActivityFields } from '../lib/activityTypes';
 import { getAuthHeader } from '../lib/authHeader';
 import { generateCode } from '../lib/eventCode';
 import { useLiveAnnouncer } from './useLiveAnnouncer';
@@ -413,11 +413,7 @@ export const useHostSession = (user) => {
           // blanks landed in the event without them. A fill-in-the-blanks
           // activity with no `blanks` has no gaps to fill and cannot be
           // answered at all.
-          correct_answer: p.correct_answer ?? null,
-          answer_explanation: p.answer_explanation ?? null,
-          blanks: p.blanks ?? null,
-          survey_questions: p.survey_questions ?? null,
-          curriculum_tags: p.curriculum_tags ?? null,
+          ...carriedActivityFields(p),
         }]).select().single();
         if (pollError) throw pollError;
         // Was `if (p.options.length > 0)`, which skipped option creation
@@ -474,28 +470,51 @@ export const useHostSession = (user) => {
   };
 
   const onDuplicatePoll = async (poll) => {
+    // A duplicate is the same activity, not a stripped one. This used to copy
+    // the question, type, quiz flag and options and nothing else, so a copied
+    // fill-in-the-blanks lost its gaps and a copied survey lost its questions
+    // — both unanswerable, with no sign anything was missing.
     const { data: newPoll, error } = await supabase
       .from('polls')
-      .insert([{ event_id: event.id, question: `${poll.question} (копија)`, type: poll.type, is_quiz: poll.is_quiz, position: polls.length }])
+      .insert([{
+        event_id: event.id,
+        question: `${poll.question} (копија)`,
+        type: normaliseActivityType(poll.type),
+        is_quiz: !!poll.is_quiz,
+        position: polls.length,
+        ...carriedActivityFields(poll),
+      }])
       .select().single();
     if (error || !newPoll) return;
-    if (poll.options?.length > 0) {
+    // Votes are not copied, so the copy starts at zero.
+    const wanted = optionsForType(poll.type, poll.options);
+    if (wanted.length > 0) {
       await supabase.from('options').insert(
-        poll.options.map(o => ({ poll_id: newPoll.id, text: o.text, is_correct: o.is_correct || false }))
+        wanted.map(o => ({
+          poll_id: newPoll.id,
+          text: typeof o === 'string' ? o : o.text,
+          is_correct: (typeof o === 'string' ? false : o.is_correct) || false,
+          votes: 0,
+        }))
       );
     }
   };
 
   const handlePPTXImport = async (slides, pollType) => {
     let succeeded = 0;
+    let nextPosition = polls.length;
     for (const slide of slides) {
       if (pollType === 'ai' && slide._aiPoll) {
         const ai = slide._aiPoll;
+        // `position` was omitted here, so every imported slide landed with a
+        // null position and ORDER BY position put them all at the end in
+        // whatever order the database returned — the deck arrived shuffled.
         const { data: newPoll, error: pollError } = await supabase.from('polls').insert([{
           event_id: event.id,
           question: ai.question,
-          type: ai.type || 'quiz',
+          type: normaliseActivityType(ai.type || 'quiz'),
           is_quiz: !!ai.is_quiz,
+          position: nextPosition++,
         }]).select().single();
         if (pollError) continue;
         const opts = (ai.options || [])
@@ -512,18 +531,28 @@ export const useHostSession = (user) => {
         continue;
       }
 
+      const type = normaliseActivityType(pollType);
       const { data: newPoll, error: pollError } = await supabase.from('polls').insert([{
         event_id: event.id,
         question: slide.title,
-        type: pollType,
+        type,
         is_quiz: false,
+        position: nextPosition++,
       }]).select().single();
       if (pollError) continue;
-      if (pollType === 'poll') {
-        const opts = slide.allText.filter(t => t !== slide.title).slice(0, 8);
-        if (opts.length > 0) {
-          await supabase.from('options').insert(opts.map(text => ({ poll_id: newPoll.id, text })));
-        }
+      // Only `poll` used to get options, so importing a deck as ratings
+      // produced activities with no scale to tap. optionsForType supplies the
+      // fixed scale for the types that have one.
+      const authored = type === 'poll'
+        ? slide.allText.filter(t => t !== slide.title).slice(0, 8)
+        : [];
+      const wanted = optionsForType(type, authored);
+      if (wanted.length > 0) {
+        await supabase.from('options').insert(wanted.map(o => ({
+          poll_id: newPoll.id,
+          text: typeof o === 'string' ? o : o.text,
+          votes: 0,
+        })));
       }
       succeeded++;
     }
@@ -534,8 +563,23 @@ export const useHostSession = (user) => {
     if (!window.confirm('Дали сте сигурни? Сите резултати ќе бидат избришани и учесниците ќе можат да гласаат повторно.')) return;
     const pollIds = polls.map(p => p.id);
     if (pollIds.length === 0) return;
-    await supabase.from('options').update({ votes: 0 }).in('poll_id', pollIds);
+
+    // For a word cloud or an open question the option rows *are* the answers —
+    // one per distinct word — so zeroing their counts left the whole previous
+    // session still on the board. Those get deleted; everything else keeps its
+    // authored choices and only loses the counts.
+    const textPollIds = polls.filter(p => ['wordcloud', 'open'].includes(p.type)).map(p => p.id);
+    const countedPollIds = pollIds.filter(id => !textPollIds.includes(id));
+    if (textPollIds.length) await supabase.from('options').delete().in('poll_id', textPollIds);
+    if (countedPollIds.length) await supabase.from('options').update({ votes: 0 }).in('poll_id', countedPollIds);
+
     await supabase.from('votes').delete().in('poll_id', pollIds);
+
+    const surveyIds = polls.filter(p => p.type === 'survey').map(p => p.id);
+    if (surveyIds.length) await supabase.from('survey_responses').delete().in('poll_id', surveyIds);
+
+    const revealed = polls.filter(p => p.answer_revealed).map(p => p.id);
+    if (revealed.length) await supabase.from('polls').update({ answer_revealed: false }).in('id', revealed);
   };
 
   const exportToCSV = async () => {
@@ -549,7 +593,69 @@ export const useHostSession = (user) => {
     for (const poll of polls) {
       const opts = (poll.options || []).filter(o => o.is_approved !== false);
       const total = opts.reduce((s, o) => s + (o.votes || 0), 0);
-      const typeLabel = poll.is_quiz ? 'Квиз' : { poll: 'Анкета', wordcloud: 'Облак', open: 'Отворен текст', rating: 'Оценување', ranking: 'Рангирање', scale: 'Скала', survey: 'Формулар' }[poll.type] || 'Анкета';
+      const typeLabel = poll.is_quiz ? 'Квиз' : { poll: 'Анкета', wordcloud: 'Облак', open: 'Отворен текст', rating: 'Оценување', ranking: 'Рангирање', scale: 'Скала', survey: 'Формулар', fill_blanks: 'Пополни празнини' }[poll.type] || 'Анкета';
+
+      // Two types keep their answers somewhere other than the options table,
+      // and the export only ever read options — so a fill-in-the-blanks
+      // activity and a whole survey came out as "— 0 0%", with every answer
+      // the class gave missing from the record the teacher keeps.
+      if (poll.type === 'fill_blanks') {
+        const { data: given } = await supabase.from('votes')
+          .select('username, answer_text').eq('poll_id', poll.id);
+        const gaps = Array.isArray(poll.blanks) ? poll.blanks : [];
+        if (!given || given.length === 0) {
+          rows.push([poll.question, typeLabel, '—', 0, '0%', '']);
+        } else {
+          given.forEach((v, i) => {
+            let parsed = {};
+            try { parsed = JSON.parse(v.answer_text) || {}; } catch { parsed = {}; }
+            const written = gaps.length
+              ? gaps.map((g, gi) => `${gi + 1}: ${parsed[g.id] ?? ''}`).join(' | ')
+              : String(v.answer_text || '');
+            const key = gaps.map((g, gi) => `${gi + 1}: ${(g.accept || [])[0] ?? ''}`).join(' | ');
+            const correct = gaps.length
+              ? gaps.every((g) => (g.accept || []).some((a) =>
+                  String(a).trim().toLowerCase() === String(parsed[g.id] ?? '').trim().toLowerCase()))
+              : null;
+            rows.push([
+              i === 0 ? poll.question : '',
+              i === 0 ? typeLabel : '',
+              `${v.username || 'Анонимен'} — ${written}`,
+              1, '', correct === null ? '' : (correct ? 'Да' : 'Не'),
+            ]);
+          });
+          rows.push(['', '', `Точен одговор: ${gaps.map((g, gi) => `${gi + 1}: ${(g.accept || [])[0] ?? ''}`).join(' | ')}`, '', '', '']);
+        }
+        rows.push([]);
+        continue;
+      }
+
+      if (poll.type === 'survey') {
+        const { data: responses } = await supabase.from('survey_responses')
+          .select('answers').eq('poll_id', poll.id);
+        const questions = Array.isArray(poll.survey_questions) ? poll.survey_questions : [];
+        if (!responses || responses.length === 0) {
+          rows.push([poll.question, typeLabel, '—', 0, '0%', '']);
+        } else {
+          rows.push([poll.question, typeLabel, `${responses.length} одговори`, responses.length, '', '']);
+          questions.forEach((q) => {
+            const values = responses
+              .map((r) => (r.answers || {})[q.id])
+              .filter((v) => v !== undefined && v !== null && v !== '');
+            const tally = new Map();
+            for (const v of values) tally.set(String(v), (tally.get(String(v)) || 0) + 1);
+            [...tally.entries()]
+              .sort((a, b) => b[1] - a[1])
+              .forEach(([answer, count], i) => {
+                const pct = values.length ? Math.round((count / values.length) * 100) : 0;
+                rows.push(['', '', `${i === 0 ? `${q.text} → ` : ''}${answer}`, count, `${pct}%`, '']);
+              });
+          });
+        }
+        rows.push([]);
+        continue;
+      }
+
       if (opts.length === 0) {
         rows.push([poll.question, typeLabel, '—', 0, '0%', '']);
       } else {

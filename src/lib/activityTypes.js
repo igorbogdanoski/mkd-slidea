@@ -58,6 +58,37 @@ export function optionsForType(type, authored) {
   return supplied;
 }
 
+// Everything that defines an activity apart from its question, type and
+// options. Three separate code paths built a poll row by listing fields by
+// hand — applying a template, duplicating an activity, importing slides — and
+// all three listed a different subset. Each omission is silent and each one
+// breaks something specific: an activity without `blanks` has no gaps to fill,
+// one without `survey_questions` has no questions, one without
+// `correct_answer` can never reveal an answer it was written to teach.
+//
+// One list, so adding a field to the editor cannot quietly fail to survive a
+// copy.
+const CARRIED_FIELDS = [
+  'correct_answer',
+  'answer_explanation',
+  'blanks',
+  'survey_questions',
+  'curriculum_tags',
+  'presenter_notes',
+  'cover_url',
+  'cover_meta',
+  'needs_moderation',
+];
+
+/** The defining fields of an activity, ready to spread into an insert. */
+export function carriedActivityFields(source) {
+  const out = {};
+  for (const key of CARRIED_FIELDS) out[key] = source?.[key] ?? null;
+  // A copy starts unrevealed: the reveal belongs to the round it was made in.
+  out.answer_revealed = false;
+  return out;
+}
+
 /**
  * The activities inside a template row.
  *

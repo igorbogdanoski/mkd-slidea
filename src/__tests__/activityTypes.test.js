@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { normaliseActivityType, templateActivities, optionsForType, RENDERABLE_TYPES } from '../lib/activityTypes';
+import { normaliseActivityType, templateActivities, optionsForType, carriedActivityFields, RENDERABLE_TYPES } from '../lib/activityTypes';
 
 // Two failures this guards against, both silent. A type nothing matches falls
 // through to the multiple-choice branch and renders that activity's options —
@@ -90,5 +90,65 @@ describe('optionsForType', () => {
 
   it('accepts plain strings as options', () => {
     expect(optionsForType('poll', ['A', 'Б'])).toEqual(['A', 'Б']);
+  });
+});
+
+describe('carriedActivityFields', () => {
+  // Three separate paths built a poll row by listing fields by hand — applying
+  // a template, duplicating an activity, importing slides — and each listed a
+  // different subset. Every omission is silent and each breaks something
+  // specific: no `blanks` means no gaps to fill, no `survey_questions` means
+  // no questions, and the activity is simply unanswerable.
+  const source = {
+    question: 'Колку е $1/2 + 1/4$?',
+    type: 'fill_blanks',
+    correct_answer: '3/4',
+    answer_explanation: 'Прво заеднички именител.',
+    blanks: [{ id: 'b1', accept: ['3/4'] }],
+    survey_questions: null,
+    curriculum_tags: ['МА.6.2.3'],
+    presenter_notes: 'Потсети на именител',
+    cover_url: 'https://example.mk/a.png',
+    cover_meta: { author: 'x' },
+    needs_moderation: true,
+    answer_revealed: true,
+    votes: 99,
+  };
+
+  it('carries every field that defines the activity', () => {
+    const carried = carriedActivityFields(source);
+    expect(carried.blanks).toEqual(source.blanks);
+    expect(carried.correct_answer).toBe('3/4');
+    expect(carried.answer_explanation).toBe('Прво заеднички именител.');
+    expect(carried.curriculum_tags).toEqual(['МА.6.2.3']);
+    expect(carried.presenter_notes).toBe('Потсети на именител');
+    expect(carried.cover_url).toBe('https://example.mk/a.png');
+    expect(carried.needs_moderation).toBe(true);
+  });
+
+  it('starts the copy unrevealed', () => {
+    // The reveal belongs to the round it was made in, not to the copy.
+    expect(carriedActivityFields(source).answer_revealed).toBe(false);
+  });
+
+  it('does not carry results or identity', () => {
+    const carried = carriedActivityFields(source);
+    for (const k of ['votes', 'id', 'event_id', 'position', 'question', 'type']) {
+      expect(carried, k).not.toHaveProperty(k);
+    }
+  });
+
+  it('produces explicit nulls rather than undefined for a bare source', () => {
+    // undefined is dropped by the client and leaves the column at its default;
+    // null is the value actually intended.
+    const carried = carriedActivityFields({});
+    expect(carried.blanks).toBe(null);
+    expect(carried.correct_answer).toBe(null);
+    expect(Object.values(carried).every((v) => v !== undefined)).toBe(true);
+  });
+
+  it('survives null and undefined input', () => {
+    expect(() => carriedActivityFields(null)).not.toThrow();
+    expect(carriedActivityFields(undefined).blanks).toBe(null);
   });
 });

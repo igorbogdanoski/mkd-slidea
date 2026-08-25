@@ -11,7 +11,16 @@ const TYPE_LABELS = {
   open: 'Отворен текст',
   rating: 'Оценување',
   ranking: 'Рангирање',
+  // Three types were missing and every one of them printed as "Анкета",
+  // mislabelling the activity in the record a teacher keeps.
+  scale: 'Скала 1–10',
+  survey: 'Анкетен формулар',
+  fill_blanks: 'Пополни празнини',
 };
+
+// Types whose results are a bar chart of their options. `scale` was left out,
+// so a scale activity printed its question and then nothing at all.
+const BAR_TYPES = new Set(['poll', 'quiz', 'rating', 'ranking', 'scale']);
 
 const COLORS = ['#6366f1', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4'];
 
@@ -58,7 +67,9 @@ const ExportPDFModal = ({ isOpen, onClose, event, polls }) => {
       if (pollIds.length > 0) {
         const [{ data: surveys }, { data: votes }] = await Promise.all([
           supabase.from('survey_responses').select('poll_id, session_id, answers').in('poll_id', pollIds),
-          supabase.from('votes').select('poll_id, session_id').in('poll_id', pollIds),
+          // answer_text is needed for fill-in-the-blanks, whose answers live
+          // here rather than in the options table.
+          supabase.from('votes').select('poll_id, session_id, username, answer_text').in('poll_id', pollIds),
         ]);
         surveyRows = surveys || [];
         voteRows = votes || [];
@@ -130,7 +141,7 @@ const ExportPDFModal = ({ isOpen, onClose, event, polls }) => {
           const colors = ['#6366f1','#8b5cf6','#10b981','#f59e0b','#ef4444','#06b6d4'];
           const participantCount = voteCountByPoll[poll.id] || (poll.type === 'survey' ? (surveyByPoll[poll.id]?.length || 0) : 0);
 
-          const barsHtml = (poll.type === 'poll' || poll.type === 'quiz' || poll.type === 'rating' || poll.type === 'ranking' || !poll.type) && visibleOptions.length > 0
+          const barsHtml = (BAR_TYPES.has(poll.type) || !poll.type) && visibleOptions.length > 0
             ? visibleOptions
                 .sort((a, b) => (b.votes || 0) - (a.votes || 0))
                 .map((opt, j) => {
@@ -158,6 +169,44 @@ const ExportPDFModal = ({ isOpen, onClose, event, polls }) => {
                   .map(opt => `<span style="padding:4px 14px;background:#f1f5f9;border-radius:999px;font-size:12px;font-weight:700;color:#334155">${escapeHtml(opt.text)}${opt.votes > 1 ? ' ×' + opt.votes : ''}</span>`)
                   .join('')
               }</div>`
+            : '';
+
+          // Fill-in-the-blanks keeps its answers in votes.answer_text as JSON,
+          // so it matched none of the blocks above and printed as a bare
+          // question — every answer the class gave missing from the record.
+          const blanksHtml = poll.type === 'fill_blanks'
+            ? (() => {
+                const gaps = Array.isArray(poll.blanks) ? poll.blanks : [];
+                const given = voteRows
+                  .filter((v) => v.poll_id === poll.id)
+                  .map((v) => { try { return JSON.parse(v.answer_text); } catch { return null; } })
+                  .filter(Boolean);
+                if (gaps.length === 0) return '';
+                return gaps.map((gap, gi) => {
+                  const answers = given.map((g) => String(g?.[gap.id] ?? '').trim()).filter(Boolean);
+                  const tally = new Map();
+                  for (const a of answers) {
+                    const k = a.toLowerCase().replace(/\s+/g, ' ');
+                    tally.set(k, { text: a, count: (tally.get(k)?.count || 0) + 1 });
+                  }
+                  const accepted = (gap.accept || []).map((a) => String(a).toLowerCase().replace(/\s+/g, ' '));
+                  const chips = [...tally.values()]
+                    .sort((a, b) => b.count - a.count)
+                    .slice(0, 20)
+                    .map((r) => {
+                      const right = accepted.includes(r.text.toLowerCase().replace(/\s+/g, ' '));
+                      return `<span style="padding:4px 14px;border-radius:999px;font-size:12px;font-weight:700;${
+                        right ? 'background:#dcfce7;color:#166534' : 'background:#f1f5f9;color:#334155'
+                      }">${escapeHtml(r.text)}${r.count > 1 ? ' ×' + r.count : ''}</span>`;
+                    }).join('');
+                  return `<div style="margin-bottom:12px">
+                    <div style="font-size:12px;font-weight:900;color:#64748b;margin-bottom:6px">
+                      Празнина ${gi + 1} — точен: ${escapeHtml((gap.accept || [])[0] || '—')}
+                    </div>
+                    <div style="display:flex;flex-wrap:wrap;gap:8px">${chips || '<span style="font-size:12px;color:#94a3b8">Нема одговори</span>'}</div>
+                  </div>`;
+                }).join('');
+              })()
             : '';
 
           const surveyHtml = poll.type === 'survey'
@@ -213,7 +262,7 @@ const ExportPDFModal = ({ isOpen, onClose, event, polls }) => {
             </div>
             <p style="font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.08em">${totalVotes} ${totalVotes === 1 ? 'одговор' : 'одговори'} · ${participantCount} учесници</p>
             ${barsHtml}${tagsHtml}
-            ${surveyHtml}
+            ${surveyHtml}${blanksHtml}
             ${visibleOptions.length === 0 ? '<p style="font-size:12px;color:#cbd5e1;font-weight:700">Нема одговори</p>' : ''}
           </div>`;
         }).join('')}
