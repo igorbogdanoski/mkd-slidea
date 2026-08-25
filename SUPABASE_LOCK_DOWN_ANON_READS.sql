@@ -197,6 +197,8 @@ CREATE POLICY search_logs_owner_read ON public.search_logs FOR SELECT USING (
 );
 
 -- ── 4. events: rows stay readable, two columns do not ──────────────────────
+-- !! ROLLED BACK on 2026-08-06, pending a deploy. Run this section again once
+-- !! the client that names its columns is live. See the note at the end.
 -- Joining by code has to keep working, so the row policy stays `true`. The
 -- password defeats its own feature if it can be read, and the co-host code
 -- hands over host control of someone else's session.
@@ -242,4 +244,22 @@ COMMIT;
 --
 -- And with a simulated host token: the event's owner sees their own 5 votes;
 -- an unrelated authenticated account sees 0.
+--
+-- ── Section 4 was rolled back the same day ─────────────────────────────────
+-- The database was tightened ahead of the client that depends on it, which is
+-- the wrong order. The deployed bundle still issues `select=*` on events, and
+-- a revoked column makes that fail outright with 42501 instead of omitting the
+-- column — so the host screen stopped loading its event at all, in production,
+-- until the grant was restored:
+--
+--   GRANT SELECT ON public.events TO anon, authenticated;
+--
+-- It costs nothing measurable while it stands: password and cohost_code are
+-- NULL on all 232 events, so there is nothing in either column to read. votes,
+-- survey_responses and search_logs stayed closed throughout — the deployed
+-- client only degrades on those (an empty scoreboard, a blank survey panel)
+-- rather than failing.
+--
+-- Re-apply section 4 after deploying. The right order is: deploy the client
+-- that names its columns, confirm the host screen loads, then revoke.
 -- ============================================================================

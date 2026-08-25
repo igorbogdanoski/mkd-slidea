@@ -73,12 +73,21 @@ const Embed = () => {
     setVoteError('');
     try {
       const option = currentPoll.options[optionIndex];
-      await vote(option.id);
       const sid = getSessionId();
-      await supabase.from('votes').upsert(
-        { poll_id: currentPoll.id, session_id: sid, answer_text: option.text, is_correct: option.is_correct ?? null },
-        { onConflict: 'poll_id,session_id', ignoreDuplicates: true }
-      );
+      // Claim before counting, the same way the main participant view does.
+      // This used to call vote() first and record afterwards with the conflict
+      // ignored, so a second submission moved the chart while the votes table
+      // stayed at one row — the embedded widget had the identical defect.
+      const { data: claimed, error: claimError } = await supabase.rpc('claim_vote', {
+        p_poll_id: currentPoll.id,
+        p_session_id: sid,
+        p_username: 'Анонимен',
+        p_answer_text: option.text,
+        p_is_correct: option.is_correct ?? null,
+      });
+      if (claimError) throw claimError;
+      if (claimed === false) { setVoted(true); return; }
+      await vote(option.id);
       setVoted(true);
     } catch {
       setVoteError('Гласањето не успеа.');

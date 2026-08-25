@@ -510,31 +510,35 @@ const EventWrapper = ({ type, username, setUsername }) => {
           // table stayed at one row, and the only thing standing between a
           // participant and voting twice was the client-side `userVoted` flag.
           //
-          // Now the row is claimed first and its conflict is the gate. If no
-          // row comes back, this session already voted and nothing is counted.
+          // Now the row is claimed first and its conflict is the gate.
+          //
+          // Through claim_vote() rather than an upsert whose result is read
+          // back. The read-back version needed SELECT on the votes table, and
+          // the moment that was closed to participants every vote returned 401
+          // — the insert was always fine, it was asking for the row afterwards
+          // that failed. The function performs the same INSERT … ON CONFLICT
+          // DO NOTHING and returns whether a row was created, which is the
+          // only thing this code needs to know.
           const sid = getSessionId();
           // With multiple votes allowed each attempt needs its own row, or it
           // would no-op against the previous vote via that same constraint.
           const voteRowSid = event?.allow_multiple_votes ? `${sid}-${Date.now()}` : sid;
           const { answerText: claimText, isCorrect: claimCorrect } = deriveAnswer(val, currentPoll);
 
-          const { data: claimed, error: claimError } = await supabase.from('votes').upsert(
-            {
-              poll_id: currentPoll.id,
-              session_id: voteRowSid,
-              username: username || 'Анонимен',
-              answer_text: claimText,
-              is_correct: claimCorrect,
-            },
-            { onConflict: 'poll_id,session_id', ignoreDuplicates: true }
-          ).select('poll_id');
+          const { data: claimed, error: claimError } = await supabase.rpc('claim_vote', {
+            p_poll_id: currentPoll.id,
+            p_session_id: voteRowSid,
+            p_username: username || 'Анонимен',
+            p_answer_text: claimText,
+            p_is_correct: claimCorrect,
+          });
 
           // A network failure must not be read as "already voted" — that would
           // drop the vote silently. Let it throw into the offline path below.
           if (claimError) throw claimError;
 
-          if (Array.isArray(claimed) && claimed.length === 0) {
-            // ignoreDuplicates returns zero rows on conflict: already voted.
+          if (claimed === false) {
+            // The constraint refused it: this session already answered.
             markVoted(currentPoll.id);
             setVoteError('Веќе гласавте на оваа активност.');
             return;
