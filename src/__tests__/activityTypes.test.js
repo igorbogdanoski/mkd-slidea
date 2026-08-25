@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { normaliseActivityType, templateActivities, RENDERABLE_TYPES } from '../lib/activityTypes';
+import { normaliseActivityType, templateActivities, optionsForType, RENDERABLE_TYPES } from '../lib/activityTypes';
 
 // Two failures this guards against, both silent. A type nothing matches falls
 // through to the multiple-choice branch and renders that activity's options —
@@ -53,5 +53,42 @@ describe('templateActivities', () => {
 
   it('drops entries that are not activities', () => {
     expect(templateActivities({ polls: [null, 'x', 7, activities[0]] })).toHaveLength(1);
+  });
+});
+
+describe('optionsForType', () => {
+  // A rating maps a tapped star onto options[star - 1]. With no option rows
+  // the index is -1, the lookup misses and tapping does nothing — no error and
+  // no feedback. Seven live rating activities were in exactly that state,
+  // because the paths that create polls skipped option insertion whenever the
+  // author supplied an empty array, which is the shape a rating always has.
+  it('supplies the fixed scale when the author supplied none', () => {
+    expect(optionsForType('rating', []).map((o) => o.text)).toEqual(['1', '2', '3', '4', '5']);
+    expect(optionsForType('scale', undefined)).toHaveLength(10);
+  });
+
+  it('supplies it for the alias spelling too', () => {
+    expect(optionsForType('word_cloud', [])).toEqual([]);
+    expect(optionsForType('rating', null)).toHaveLength(5);
+  });
+
+  it('keeps authored labels when there are some', () => {
+    const authored = [{ text: 'Слабо' }, { text: 'Одлично' }];
+    expect(optionsForType('rating', authored)).toEqual(authored);
+  });
+
+  it('leaves types that legitimately have no options empty', () => {
+    for (const t of ['open', 'wordcloud', 'fill_blanks', 'survey']) {
+      expect(optionsForType(t, []), t).toEqual([]);
+    }
+  });
+
+  it('drops entries with no text rather than creating blank choices', () => {
+    // A blank choice on a projector is an unpressable button with no label.
+    expect(optionsForType('poll', [{ text: 'A' }, {}, null, { text: '' }])).toHaveLength(1);
+  });
+
+  it('accepts plain strings as options', () => {
+    expect(optionsForType('poll', ['A', 'Б'])).toEqual(['A', 'Б']);
   });
 });

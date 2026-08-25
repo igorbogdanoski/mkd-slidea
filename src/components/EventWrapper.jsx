@@ -132,18 +132,6 @@ const EventWrapper = ({ type, username, setUsername }) => {
   // Guard: findIndex returns -1 if poll was deleted after being set active
   const activePollIndex = rawIndex >= 0 ? rawIndex : 0;
 
-  // Fetch which polls this session already voted on from DB
-  useEffect(() => {
-    if (!event?.id) return;
-    const sid = getSessionId();
-    supabase
-      .from('votes')
-      .select('poll_id')
-      .eq('session_id', sid)
-      .then(({ data }) => {
-        if (data) setDbVotedPolls(data.map(r => r.poll_id));
-      });
-  }, [event?.id]);
 
   // Quiz leaderboard for the projector view — gated to type==='present' since
   // it's only ever rendered there, so the hundreds of regular participants
@@ -191,12 +179,73 @@ const EventWrapper = ({ type, username, setUsername }) => {
     if (!v.includes(pollId)) localStorage.setItem(votedKey, JSON.stringify([...v, pollId]));
   };
 
-  // Lock state polling — MUST be before any early returns (Rules of Hooks)
+  // Which polls this session has already answered.
+  //
+  // Re-read when the host moves to another activity, not only once per event.
+  // A host who resets an activity deletes its votes rows precisely so the room
+  // can answer again — but the local cache below still said "voted", so the
+  // reset cleared the chart and left every phone locked out of it.
+  //
+  // The reconcile only runs on a successful read. localStorage stays the
+  // authority when the query fails or the phone is offline: dropping the local
+  // guard on a network error would hand out a second vote to anyone with a
+  // flaky connection.
   useEffect(() => {
-    if (!event?.is_locked) return;
-    const timer = setInterval(refetchLockState, 8000);
-    return () => clearInterval(timer);
-  }, [event?.is_locked, refetchLockState]);
+    if (!event?.id) return;
+    const sid = getSessionId();
+    supabase
+      .from('votes')
+      .select('poll_id')
+      .eq('session_id', sid)
+      .then(({ data, error }) => {
+        if (error || !data) return;
+        const fromDb = data.map((r) => r.poll_id);
+        setDbVotedPolls(fromDb);
+        try {
+          const live = new Set(polls.map((p) => p.id));
+          const known = new Set(fromDb);
+          // Forget a local mark only for an activity that is still in this
+          // event and that the database says has no vote from us any more.
+          const kept = getLocalVoted().filter((id) => !live.has(id) || known.has(id));
+          localStorage.setItem(votedKey, JSON.stringify(kept));
+        } catch { /* private mode — the DB list is enough */ }
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [event?.id, currentPollId]);
+
+  // Lock state polling — MUST be before any early returns (Rules of Hooks)
+  //
+  // This used to run only while already locked, so it could notice an unlock
+  // but never a lock. Realtime does deliver events updates — measured, not
+  // assumed — so in normal conditions the lock lands immediately and this
+  // never fires. It exists for the case where realtime has dropped for one
+  // phone in the room, and that case needs both directions: a host who
+  // presses Заклучи and sees the button turn red believes the room has
+  // stopped answering. Polling only the locked direction left the one
+  // participant who most needed telling as the only one never told.
+  //
+  // Deliberately not an interval while unlocked. Unlocked is the steady state
+  // for the whole room, and a room-wide interval is how the database reached
+  // 72% CPU the last time: 416 participants on a 3s poll is 139 queries a
+  // second. Instead this catches the case that actually loses messages — a
+  // phone that was asleep, backgrounded or off-network — by re-reading once
+  // when it comes back. Zero cost while nothing happens.
+  useEffect(() => {
+    if (!event?.id) return undefined;
+    const onWake = () => { if (!document.hidden) refetchLockState(); };
+    document.addEventListener('visibilitychange', onWake);
+    window.addEventListener('online', onWake);
+    window.addEventListener('focus', onWake);
+    // Once locked, a short interval is worth it: the room is idle, the host is
+    // waiting to unlock, and there are no votes competing for the database.
+    const timer = event?.is_locked ? setInterval(refetchLockState, 8000) : null;
+    return () => {
+      document.removeEventListener('visibilitychange', onWake);
+      window.removeEventListener('online', onWake);
+      window.removeEventListener('focus', onWake);
+      if (timer) clearInterval(timer);
+    };
+  }, [event?.id, event?.is_locked, refetchLockState]);
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">

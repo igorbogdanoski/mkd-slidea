@@ -37,11 +37,50 @@ const PollCard = ({ poll, index, activePollIndex, setActivePoll, onEdit, onDelet
     if (!error && onPollUpdated) onPollUpdated();
   };
 
+  // "Reset" used to mean only `options.votes = 0`, which left two things
+  // behind and got both of them wrong.
+  //
+  // The votes table kept a row per participant, so everyone stayed marked as
+  // having answered. The counter said zero and the room could not answer
+  // again — the one thing a reset is for.
+  //
+  // And for a word cloud or an open question the answers *are* the option
+  // rows: each distinct word is a row. Zeroing their counts left every word
+  // from the previous class still on the board, just weightless.
   const resetVotes = async (e) => {
     e.stopPropagation();
-    if (!window.confirm('Ресетирај ги сите гласови за оваа активност?')) return;
-    const { error } = await supabase.from('options').update({ votes: 0 }).eq('poll_id', poll.id);
-    if (!error && onPollUpdated) onPollUpdated();
+    const wipesAnswers = isTextPoll;
+    const message = wipesAnswers
+      ? 'Ресетирај ја активноста? Сите внесени одговори ќе бидат избришани.'
+      : 'Ресетирај ги сите гласови за оваа активност? Учесниците ќе можат да одговорат повторно.';
+    if (!window.confirm(message)) return;
+
+    if (wipesAnswers) {
+      // The words themselves are the data — remove them, don't zero them.
+      const { error } = await supabase.from('options').delete().eq('poll_id', poll.id);
+      if (error) { console.error('Reset failed:', error.message); return; }
+    } else {
+      const { error } = await supabase.from('options').update({ votes: 0 }).eq('poll_id', poll.id);
+      if (error) { console.error('Reset failed:', error.message); return; }
+    }
+
+    // Clearing who has answered is what actually lets the room answer again.
+    // Non-fatal if it fails: better a reset chart than no reset at all, but it
+    // is reported rather than swallowed.
+    const { error: votesError } = await supabase.from('votes').delete().eq('poll_id', poll.id);
+    if (votesError) console.error('Reset: clearing votes failed:', votesError.message);
+
+    if (poll.type === 'survey') {
+      const { error: surveyError } = await supabase.from('survey_responses').delete().eq('poll_id', poll.id);
+      if (surveyError) console.error('Reset: clearing survey responses failed:', surveyError.message);
+    }
+
+    // A revealed answer belongs to the round that just ended.
+    if (poll.answer_revealed) {
+      await supabase.from('polls').update({ answer_revealed: false }).eq('id', poll.id);
+    }
+
+    if (onPollUpdated) onPollUpdated();
   };
 
   return (

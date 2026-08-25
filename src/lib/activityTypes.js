@@ -33,6 +33,31 @@ export function normaliseActivityType(type) {
   return RENDERABLE_TYPES.has(mapped) ? mapped : 'poll';
 }
 
+// Some types do not have authored options — they have a fixed scale that the
+// app supplies. If those rows are missing, the activity is not "empty", it is
+// dead: `rating` maps a tapped star onto options[star - 1], so with no options
+// the index is -1, the lookup misses, and tapping does nothing at all. No
+// error, no feedback, and seven of these were live.
+//
+// Every path that creates a poll asks this rather than deciding for itself.
+// The template path used to skip options whenever the incoming array was
+// empty, which is exactly the shape an imported rating arrives in.
+const FIXED_SCALES = {
+  rating: () => ['1', '2', '3', '4', '5'].map((text) => ({ text, votes: 0, is_correct: false })),
+  scale: () => Array.from({ length: 10 }, (_, i) => ({ text: String(i + 1), votes: 0, is_correct: false })),
+};
+
+/**
+ * The options a poll of this type must have, given what the author supplied.
+ * Returns [] when the type legitimately has none (open, wordcloud, blanks).
+ */
+export function optionsForType(type, authored) {
+  const t = normaliseActivityType(type);
+  const supplied = Array.isArray(authored) ? authored.filter((o) => o && (typeof o === 'string' || o.text)) : [];
+  if (FIXED_SCALES[t]) return supplied.length > 0 ? supplied : FIXED_SCALES[t]();
+  return supplied;
+}
+
 /**
  * The activities inside a template row.
  *

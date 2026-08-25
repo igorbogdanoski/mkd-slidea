@@ -177,7 +177,16 @@ const Participant = ({
     // moment a rating's options were labelled anything other than "1".."5"
     // the lookup returned -1 and tapping a star did nothing at all, with no
     // error and no feedback. Stars are positional; map them positionally.
-    const idx = Math.min(Math.max(val - 1, 0), currentPoll.options.length - 1);
+    //
+    // With no options at all the clamp produced -1, the lookup missed, and
+    // tapping a star did nothing — the same silent dead end, reached a
+    // different way. Seven live rating activities were in exactly that state.
+    const count = (currentPoll.options || []).length;
+    if (count === 0) {
+      announce('Оваа активност сè уште не е подготвена за одговарање.', { assertive: true });
+      return;
+    }
+    const idx = Math.min(Math.max(val - 1, 0), count - 1);
     if (currentPoll.options[idx]) handleVote(idx);
   };
 
@@ -720,7 +729,16 @@ const Participant = ({
                   // including the one just voted for. Plain buttons in a
                   // labelled group describe what actually happens.
                   <div role="group" aria-labelledby="poll-question" className="contents">
-                    {currentPoll.options.map((option, i) => (
+                    {/* An activity that needs choices but has none rendered as
+                        a blank screen with nothing to press and no explanation
+                        — the participant cannot tell that from a slow network.
+                        Say what happened instead. */}
+                    {(currentPoll.options || []).length === 0 && (
+                      <div className="w-full p-6 rounded-3xl border-2 border-dashed border-amber-200 bg-amber-50 text-amber-900 font-bold text-center">
+                        Оваа активност сè уште нема понудени опции. Почекајте го водителот.
+                      </div>
+                    )}
+                    {(currentPoll.options || []).map((option, i) => (
                       <button
                         key={i}
                         aria-label={toSpokenText(option.text)}

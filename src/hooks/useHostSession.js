@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { track } from '@vercel/analytics';
 import { supabase } from '../lib/supabase';
-import { normaliseActivityType, templateActivities } from '../lib/activityTypes';
+import { normaliseActivityType, templateActivities, optionsForType } from '../lib/activityTypes';
 import { getAuthHeader } from '../lib/authHeader';
 import { generateCode } from '../lib/eventCode';
 import { useLiveAnnouncer } from './useLiveAnnouncer';
@@ -321,17 +321,15 @@ export const useHostSession = (user) => {
           .eq('id', editingPoll.id);
         if (updateError) throw updateError;
 
-        if (pollData.options) {
-          let optionsPayload = [];
-          if (pollData.type === 'rating') {
-            optionsPayload = ['1', '2', '3', '4', '5'].map(val => ({ text: val, is_correct: false }));
-          } else {
-            optionsPayload = pollData.options.map(o => ({
-              text: typeof o === 'string' ? o : o.text,
-              is_correct: o.is_correct || false,
-              label: (typeof o === 'string' ? null : o.label) || null,
-            }));
-          }
+        {
+          // optionsForType supplies the fixed scale for rating and scale when
+          // the author sent none, so those types cannot end up with zero
+          // options — which is not an empty activity but a dead one.
+          const optionsPayload = optionsForType(pollData.type, pollData.options).map(o => ({
+            text: typeof o === 'string' ? o : o.text,
+            is_correct: (typeof o === 'string' ? false : o.is_correct) || false,
+            label: (typeof o === 'string' ? null : o.label) || null,
+          }));
 
           // Update existing option rows in place (by id) for overlapping slots
           // instead of delete-then-insert. Delete-then-insert briefly leaves
@@ -422,17 +420,17 @@ export const useHostSession = (user) => {
           curriculum_tags: p.curriculum_tags ?? null,
         }]).select().single();
         if (pollError) throw pollError;
-        if (Array.isArray(p.options) && p.options.length > 0) {
-          let optionsToInsert = [];
-          if (p.type === 'rating') {
-            optionsToInsert = ['1', '2', '3', '4', '5'].map(val => ({ poll_id: newPoll.id, text: val }));
-          } else {
-            optionsToInsert = p.options.map(o => ({
-              poll_id: newPoll.id,
-              text: typeof o === 'string' ? o : o.text,
-              is_correct: o.is_correct || false,
-            }));
-          }
+        // Was `if (p.options.length > 0)`, which skipped option creation
+        // entirely for a rating imported with an empty array — the shape the
+        // interchange format produces, since a rating has no authored choices.
+        // The activity then had no scale to tap.
+        const wanted = optionsForType(p.type, p.options);
+        if (wanted.length > 0) {
+          const optionsToInsert = wanted.map(o => ({
+            poll_id: newPoll.id,
+            text: typeof o === 'string' ? o : o.text,
+            is_correct: (typeof o === 'string' ? false : o.is_correct) || false,
+          }));
           const { error: optError } = await supabase.from('options').insert(optionsToInsert);
           if (optError) throw optError;
         }
