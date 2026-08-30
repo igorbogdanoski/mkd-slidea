@@ -144,7 +144,9 @@ test('AT-OPEN: Open Text — создава, учесник гледа input, Pr
   const partPage = await partCtx.newPage();
   await joinEvent(partPage, code, 'Тест Текст');
   await expect(partPage.locator('#poll-question')).toContainText(question, { timeout: 30_000 });
-  await expect(partPage.locator('input[placeholder="Вашиот одговор..."]')).toBeVisible({ timeout: 15_000 });
+  // Open answers render as a textarea since long open answers replaced the
+  // one-line input (Participant renders `textarea[placeholder="Вашиот одговор..."]`).
+  await expect(partPage.locator('textarea[placeholder="Вашиот одговор..."], input[placeholder="Вашиот одговор..."]').first()).toBeVisible({ timeout: 15_000 });
 
   const { ctx: presCtx, page: presPage } = await openPresenter(browser, code, question);
   await expect(presPage.locator('body')).toContainText(/нема одговори|Отворени одговори/, { timeout: 30_000 });

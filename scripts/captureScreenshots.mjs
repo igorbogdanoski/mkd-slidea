@@ -3,6 +3,7 @@
 // Run: set BASE_URL=http://localhost:5174&& set SMOKE_TEST_EMAIL=...&& set SMOKE_TEST_PASSWORD=...&& node scripts/captureScreenshots.mjs
 // Слики → docs/user-manual/images/
 // ============================================================================
+/* global window */ // page.evaluate callbacks run in the browser context
 import { chromium } from '@playwright/test';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';

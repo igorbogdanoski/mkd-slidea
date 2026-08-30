@@ -27,7 +27,10 @@ const signIn = async (page) => {
   await page.locator('input[type="email"]').first().fill(EMAIL);
   await page.locator('input[type="password"]').first().fill(PASSWORD);
   await page.locator('button[type="submit"]').first().click();
-  await page.locator('text=Одјави').waitFor({ timeout: 30000 });
+  // At mobile widths the desktop logout control is `hidden nav:block` and the
+  // mobile copy lives inside the hamburger menu — so wait for DOM presence,
+  // not visibility; visibility here would assert the breakpoint, not login.
+  await page.locator('text=Одјави').first().waitFor({ state: 'attached', timeout: 30000 });
 };
 
 // ── Landing Page ──────────────────────────────────────────────────────────

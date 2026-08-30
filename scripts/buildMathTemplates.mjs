@@ -144,7 +144,11 @@ for (const [, group] of groups) {
   // Order by depth so a class warms up, and cap at five: a template is the
   // interactive check inside a lesson, not the whole lesson.
   converted.sort((a, b) => (a.dok ?? 2) - (b.dok ?? 2));
-  const picked = converted.slice(0, 5).map(({ dok, ...rest }) => rest);
+  const picked = converted.slice(0, 5).map((t) => {
+    const rest = { ...t };
+    delete rest.dok;
+    return rest;
+  });
 
   templates.push({
     id: `mk-math-${group.grade.toLowerCase()}-${slugify(group.title)}`,

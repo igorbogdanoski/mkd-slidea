@@ -81,7 +81,11 @@ test.describe('MKD Slidea — Production Smoke Tests', () => {
   });
 
   // ── 9. /api/vote-text endpoint exists ─────────────────────────────────────
-  test('9. /api/vote-text endpoint is reachable (not 404)', async ({ request }) => {
+  test('9. /api/vote-text endpoint is reachable (not 404)', async ({ request, baseURL }) => {
+    // /api/* are Vercel serverless functions — the Vite dev server has no
+    // such routes, so against local dev this can only ever 404. The check is
+    // meaningful against a deployed environment only.
+    test.skip(/localhost|127\.0\.0\.1/.test(baseURL || ''), 'local dev server has no /api/* routes');
     const res = await request.post('/api/vote-text', {
       data: { pollId: '00000000-0000-0000-0000-000000000000', text: 'smoke-test' },
       headers: { 'Content-Type': 'application/json' },

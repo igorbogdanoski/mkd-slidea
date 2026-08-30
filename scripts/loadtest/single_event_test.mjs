@@ -169,7 +169,7 @@ async function main() {
   console.log(`\nDB vote counts after burst: total=${totalVotes} (expected ${voteSuccess})`);
 
   console.log('\nCleaning up...');
-  for (const r of results) { for (const ch of r.channels) { try { r.client.removeChannel(ch); } catch {} } }
+  for (const r of results) { for (const ch of r.channels) { try { r.client.removeChannel(ch); } catch { /* best-effort cleanup */ } } }
   const { error: delErr } = await admin.from('events').delete().eq('id', event.id);
   console.log('Deleted test event:', delErr ? delErr.message : 'ok');
   process.exit(0);

@@ -45,6 +45,15 @@ comment on column public.polls.blanks is
   '(case, spacing, punctuation) and advisory only: the presenter shows every '
   'response so the teacher can see near misses and decide.';
 
+-- 30.08.2026: the editor contract carries `blanks: null` for every
+-- non-fill_blanks activity (carriedActivityFields in src/lib/activityTypes.js,
+-- asserted by unit tests), and create/duplicate/template-apply all spread it
+-- into the insert. NOT NULL rejected every such insert with 23502, silently
+-- breaking all activity creation in production. The client reads blanks
+-- through `Array.isArray(...) ? ... : []` everywhere, so null and '[]' are
+-- both safe; drop the constraint, keep the default.
+alter table public.polls alter column blanks drop not null;
+
 -- Responses. votes.answer_text already holds free text for open questions;
 -- for fill_blanks it holds a JSON object keyed by blank id, so no new table
 -- is needed and existing export/CSV paths keep working.
