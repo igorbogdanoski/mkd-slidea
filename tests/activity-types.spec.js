@@ -150,28 +150,11 @@ test.describe('Activity Type: Quiz', () => {
     await expect(correctMarker).toBeVisible({ timeout: 5000 });
   });
 
-  test('AT-04: Participant quiz shows immediate feedback (correct/incorrect)', async ({ page }) => {
-    await page.goto(`${BASE}/event/${EVENT_CODE}`);
-    await page.waitForTimeout(3000);
-
-    // Look for quiz options
-    const option = page.locator(
-      '.quiz-option, [data-type="quiz-option"], button.option'
-    ).first();
-
-    if (await option.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await option.click();
-      await page.waitForTimeout(1000);
-
-      // After clicking, should show correct/incorrect feedback
-      const body = await page.locator('body').innerText();
-      const hasFeedback = /точно|неточно|correct|incorrect|✓|✗/i.test(body);
-      // Either feedback shown or event not in quiz mode — both ok
-      await expect(page.locator('body')).not.toContainText('TypeError');
-    } else {
-      test.skip(true, 'No quiz activity active');
-    }
-  });
+  // AT-04 (participant quiz feedback) removed: it waited for a `.quiz-option`
+  // class the app does not use, so it skipped every run, and its one assertion
+  // was "no TypeError" — the /точно|неточно/ result was computed and never
+  // checked. e2e-live-flow.spec.js E2E-02 answers a quiz as a participant and
+  // asserts the feedback for real.
 });
 
 // ── WORD CLOUD ─────────────────────────────────────────────────────────────
@@ -267,39 +250,11 @@ test.describe('Activity Type: Rating (Star)', () => {
     }
   });
 
-  test('AT-09: Rating shows stars in participant view', async ({ page }) => {
-    await page.goto(`${BASE}/event/${EVENT_CODE}`);
-    await page.waitForTimeout(3000);
-
-    const stars = page.locator(
-      'button[aria-label*="звезда"], .star-rating, [data-testid="star"], svg[class*="star"]'
-    ).first();
-
-    if (await stars.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await stars.click();
-      await page.waitForTimeout(500);
-      await expect(page.locator('body')).not.toContainText('TypeError');
-    } else {
-      test.skip(true, 'No rating activity active');
-    }
-  });
-
-  test('AT-10: Rating shows average result in presenter view', async ({ page }) => {
-    await page.goto(`${BASE}/event/${EVENT_CODE}/present`);
-    await page.waitForTimeout(3000);
-
-    // If rating is active, should show average
-    const avg = page.locator(
-      'text=/просек|average|\\d\\.\\d\\/5/i'
-    ).first();
-
-    // Only check if rating is visible
-    if (await avg.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await expect(avg).toBeVisible();
-    } else {
-      test.skip(true, 'No rating activity active in presenter');
-    }
-  });
+  // AT-09 and AT-10 removed: both waited for a rating to happen to be the
+  // active activity on a shared event, which is not something they set up, so
+  // both skipped every run. e2e-activity-types.spec.js AT-RATE creates a
+  // rating, clicks the fifth star as a participant and asserts the presenter's
+  // average — the same two things, actually executed.
 });
 
 // ── RANKING ───────────────────────────────────────────────────────────────
@@ -328,27 +283,10 @@ test.describe('Activity Type: Ranking', () => {
     }
   });
 
-  test('AT-12: Ranking items can be dragged in participant view', async ({ page }) => {
-    await page.goto(`${BASE}/event/${EVENT_CODE}`);
-    await page.waitForTimeout(3000);
-
-    const rankItem = page.locator(
-      '.rank-item, [data-testid="rank-item"], [draggable="true"]'
-    ).first();
-
-    if (await rankItem.isVisible({ timeout: 3000 }).catch(() => false)) {
-      const box = await rankItem.boundingBox();
-      // Simulate drag
-      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-      await page.mouse.down();
-      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2 + 60);
-      await page.mouse.up();
-      await page.waitForTimeout(500);
-      await expect(page.locator('body')).not.toContainText('TypeError');
-    } else {
-      test.skip(true, 'No ranking activity active');
-    }
-  });
+  // AT-12 removed: same shared-event dependency, so it never ran, and its only
+  // assertion after the drag was "no TypeError" — it never checked that the
+  // order changed. e2e-activity-types.spec.js AT-RANK submits a ranking as a
+  // participant and asserts the presenter's Borda results.
 });
 
 // ── SURVEY ────────────────────────────────────────────────────────────────
@@ -383,19 +321,8 @@ test.describe('Activity Type: Survey', () => {
     }
   });
 
-  test('AT-14: Survey participant view shows all questions', async ({ page }) => {
-    await page.goto(`${BASE}/event/${EVENT_CODE}`);
-    await page.waitForTimeout(3000);
-
-    // Multi-question surveys have multiple inputs visible at once
-    const inputs = page.locator('input[type="text"], input[type="radio"], textarea');
-    const count = await inputs.count();
-
-    if (count > 3) {
-      // Likely a survey — check no errors
-      await expect(page.locator('body')).not.toContainText('TypeError');
-    } else {
-      test.skip(true, 'No survey activity active');
-    }
-  });
+  // AT-14 removed: it inferred "this is probably a survey" from counting more
+  // than three inputs on a shared event, then asserted only "no TypeError".
+  // e2e-activity-types.spec.js AT-SURVEY creates a survey, answers it as a
+  // participant and asserts the presenter's response count.
 });

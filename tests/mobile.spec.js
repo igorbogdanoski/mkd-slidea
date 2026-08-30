@@ -5,6 +5,7 @@
  * Checks for: overflow, readable text, touch target sizes, hamburger menu.
  */
 import { test, expect } from '@playwright/test';
+import { liveEventWith, joinEvent } from './helpers/liveEvent.js';
 
 const BASE       = process.env.BASE_URL || 'https://slidea.mismath.net';
 const EMAIL      = process.env.SMOKE_TEST_EMAIL || '';
@@ -64,20 +65,20 @@ test.describe('Mobile — Landing Page', () => {
     await page.goto(BASE);
     await page.waitForTimeout(1000);
 
-    const hamburger = page.locator(
-      'button[aria-label*="menu"], button[aria-label*="Menu"], button[aria-label*="навигација"], .hamburger'
-    ).first();
+    // Nav.jsx labels it `t('nav.menu', 'Мени')`. The old list looked for the
+    // Latin "menu"/"Menu" and for "навигација", none of which match Cyrillic
+    // "Мени", so this skipped itself every run instead of testing the menu.
+    const hamburger = page.locator('button[aria-label="Мени"]').first();
+    await expect(hamburger).toBeVisible({ timeout: 10000 });
+    await expect(hamburger).toHaveAttribute('aria-expanded', 'false');
+    await hamburger.click();
 
-    if (await hamburger.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await hamburger.click();
-      await page.waitForTimeout(500);
-
-      // After click, at least one nav link should be visible
-      const mobileLinks = page.locator('nav a, [role="navigation"] a, .mobile-menu a').first();
-      await expect(mobileLinks).toBeVisible({ timeout: 3000 });
-    } else {
-      test.skip(true, 'No hamburger button found');
-    }
+    // The dropdown it controls holds <button>s, not anchors — every item is a
+    // client-side action (setView/navigate), so `nav a` finds nothing.
+    const menu = page.locator('#mobile-menu');
+    await expect(menu).toBeVisible({ timeout: 5000 });
+    await expect(hamburger).toHaveAttribute('aria-expanded', 'true');
+    await expect(menu.locator('button').first()).toBeVisible();
   });
 
   test('M-04: Hero CTA button is tap-friendly (≥44px)', async ({ page }) => {
@@ -153,23 +154,27 @@ test.describe('Mobile — Participant Event View', () => {
     await expect(page.locator('body')).not.toContainText('TypeError');
   });
 
-  test('M-09: Poll options fill width on mobile', async ({ page }) => {
-    await page.setViewportSize(IPHONE_14);
-    await page.goto(`${BASE}/event/${EVENT_CODE}`);
-    await page.waitForTimeout(2000);
+  // Needs a poll to actually be the active activity, which no shared event can
+  // be relied on to have — so it makes its own. `.poll-option` / `button.option`
+  // were never classes the app used, so this only ever skipped.
+  test('M-09: Poll options fill width on mobile', async ({ browser }) => {
+    test.skip(!EMAIL || !PASSWORD, 'SMOKE_TEST_EMAIL / SMOKE_TEST_PASSWORD not set');
+    const { code, hostCtx } = await liveEventWith(browser, {
+      base: BASE, email: EMAIL, password: PASSWORD, type: 'poll',
+      question: 'Каде работите?', options: ['Во основно', 'Во средно'],
+    });
+    const ctx = await browser.newContext({ viewport: IPHONE_14 });
+    const page = await ctx.newPage();
+    await joinEvent(page, BASE, code, 'Тест Мобилен');
 
-    const option = page.locator(
-      'button[data-type="option"], .poll-option, button.option'
-    ).first();
+    const option = page.getByRole('button', { name: 'Во основно' }).first();
+    await expect(option).toBeVisible({ timeout: 30000 });
+    const box = await option.boundingBox();
+    expect(box.width).toBeGreaterThan(200);
+    expect(box.height).toBeGreaterThanOrEqual(44);
 
-    if (await option.isVisible({ timeout: 3000 }).catch(() => false)) {
-      const box = await option.boundingBox();
-      // Options should span most of the mobile viewport width
-      expect(box.width).toBeGreaterThan(200);
-      expect(box.height).toBeGreaterThanOrEqual(44);
-    } else {
-      test.skip(true, 'No active poll options');
-    }
+    await ctx.close();
+    await hostCtx.close();
   });
 
   test('M-10: Participant view — iPhone Pro viewport works', async ({ page }) => {

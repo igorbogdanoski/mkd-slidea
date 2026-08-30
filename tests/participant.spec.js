@@ -7,9 +7,12 @@
  * Uses a permanent test event that must exist in Supabase.
  */
 import { test, expect } from '@playwright/test';
+import { liveEventWith, joinEvent } from './helpers/liveEvent.js';
 
 const BASE       = process.env.BASE_URL || 'https://slidea.mismath.net';
 const EVENT_CODE = process.env.TEST_EVENT_CODE || 'B5V338';
+const EMAIL      = process.env.SMOKE_TEST_EMAIL || '';
+const PASSWORD   = process.env.SMOKE_TEST_PASSWORD || '';
 
 // ── Tests ──────────────────────────────────────────────────────────────────
 
@@ -94,25 +97,30 @@ test.describe('Participant — Join Flow', () => {
   });
 });
 
+// These four need a specific activity type to be the ACTIVE one. Pointed at
+// the shared permanent event they skipped themselves whenever it was not
+// sitting on the type they wanted — and only one activity can be active at a
+// time, so they could never all run. Each builds its own event now.
 test.describe('Participant — Voting Interactions', () => {
+  test.skip(!EMAIL || !PASSWORD, 'SMOKE_TEST_EMAIL / SMOKE_TEST_PASSWORD not set');
 
-  test('P-08: Poll options are clickable (touch-friendly)', async ({ page }) => {
-    await page.goto(`${BASE}/event/${EVENT_CODE}`);
-    await page.waitForTimeout(3000);
+  test('P-08: Poll options are clickable (touch-friendly)', async ({ browser }) => {
+    const { code, hostCtx } = await liveEventWith(browser, {
+      base: BASE, email: EMAIL, password: PASSWORD, type: 'poll',
+      question: 'Каде работите?', options: ['Во основно', 'Во средно'],
+    });
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    await joinEvent(page, BASE, code, 'Тест Учесник');
 
-    // Try to find poll options
-    const option = page.locator(
-      'button[data-type="option"], .poll-option, [data-testid="poll-option"]'
-    ).first();
+    const option = page.getByRole('button', { name: 'Во основно' }).first();
+    await expect(option).toBeVisible({ timeout: 30_000 });
+    const box = await option.boundingBox();
+    expect(box.height).toBeGreaterThanOrEqual(40);
+    expect(box.width).toBeGreaterThanOrEqual(44);
 
-    if (await option.isVisible({ timeout: 3000 }).catch(() => false)) {
-      // Option has sufficient touch target (≥44px)
-      const box = await option.boundingBox();
-      expect(box.height).toBeGreaterThanOrEqual(40);
-      expect(box.width).toBeGreaterThanOrEqual(44);
-    } else {
-      test.skip(true, 'No active poll found');
-    }
+    await ctx.close();
+    await hostCtx.close();
   });
 
   test('P-09: Participant view is mobile-responsive', async ({ page }) => {
@@ -129,53 +137,63 @@ test.describe('Participant — Voting Interactions', () => {
     expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 5); // 5px tolerance
   });
 
-  test('P-10: Word cloud input accepts text', async ({ page }) => {
-    await page.goto(`${BASE}/event/${EVENT_CODE}`);
-    await page.waitForTimeout(3000);
+  test('P-10: Word cloud input accepts text', async ({ browser }) => {
+    const { code, hostCtx } = await liveEventWith(browser, {
+      base: BASE, email: EMAIL, password: PASSWORD, type: 'wordcloud',
+      question: 'Од кој град доаѓате?',
+    });
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    await joinEvent(page, BASE, code, 'Тест Облак');
 
-    const textInput = page.locator(
-      'input[placeholder*="зборов"], input[placeholder*="слово"], textarea[placeholder*="зборов"]'
-    ).first();
+    const textInput = page.locator('input[placeholder="Внесете збор..."]').first();
+    await expect(textInput).toBeVisible({ timeout: 30_000 });
+    await textInput.fill('математика');
+    await expect(textInput).toHaveValue('математика');
 
-    if (await textInput.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await textInput.fill('математика');
-      await expect(textInput).toHaveValue('математика');
-    } else {
-      test.skip(true, 'No word cloud activity active');
-    }
+    await ctx.close();
+    await hostCtx.close();
   });
 
-  test('P-11: Open text accepts multi-line response', async ({ page }) => {
-    await page.goto(`${BASE}/event/${EVENT_CODE}`);
-    await page.waitForTimeout(3000);
+  test('P-11: Open text accepts multi-line response', async ({ browser }) => {
+    const { code, hostCtx } = await liveEventWith(browser, {
+      base: BASE, email: EMAIL, password: PASSWORD, type: 'open',
+      question: 'Кој е вашиот став?',
+    });
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    await joinEvent(page, BASE, code, 'Тест Текст');
 
-    const textarea = page.locator(
-      'textarea[placeholder*="одговор"], textarea[placeholder*="Напиши"]'
-    ).first();
+    // Long open answers replaced the one-line input with a textarea.
+    const textarea = page.locator('textarea[placeholder="Вашиот одговор..."]').first();
+    await expect(textarea).toBeVisible({ timeout: 30_000 });
+    const answer = 'Ова е мојот детален одговор.\nСо повеќе линии.';
+    await textarea.fill(answer);
+    // toHaveValue, not toContainText: a textarea's typed content is its value,
+    // and its text content stays empty — the old assertion could not pass.
+    await expect(textarea).toHaveValue(answer);
 
-    if (await textarea.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await textarea.fill('Ова е мојот детален одговор.\nСо повеќе линии.');
-      await expect(textarea).toContainText('Ова е мојот детален одговор');
-    } else {
-      test.skip(true, 'No open text activity active');
-    }
+    await ctx.close();
+    await hostCtx.close();
   });
 
-  test('P-12: Emoji reactions button exists', async ({ page }) => {
-    await page.goto(`${BASE}/event/${EVENT_CODE}`);
-    await page.waitForTimeout(3000);
+  test('P-12: Emoji reactions are available to a participant', async ({ browser }) => {
+    const { code, hostCtx } = await liveEventWith(browser, {
+      base: BASE, email: EMAIL, password: PASSWORD, type: 'poll',
+      question: 'Што предавате?', options: ['Биологија', 'Хемија'],
+    });
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    await joinEvent(page, BASE, code, 'Тест Реакции');
+    await expect(page.locator('#poll-question')).toContainText('Што предавате', { timeout: 30_000 });
 
-    const reactionBtn = page.locator(
-      'button[aria-label*="реакц"], button:has-text("👍"), button:has-text("😊"), .reaction-btn'
-    ).first();
+    const reactionBtn = page.getByRole('button', { name: /👏|❤️|😮|😂|🔥|👍/ }).first();
+    await expect(reactionBtn).toBeVisible({ timeout: 15_000 });
+    await reactionBtn.click();
+    await expect(page.locator('body')).not.toContainText('TypeError');
 
-    if (await reactionBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await reactionBtn.click();
-      await page.waitForTimeout(300);
-      await expect(page.locator('body')).not.toContainText('TypeError');
-    } else {
-      test.skip(true, 'Reaction buttons not visible');
-    }
+    await ctx.close();
+    await hostCtx.close();
   });
 });
 
