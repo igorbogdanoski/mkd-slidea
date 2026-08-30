@@ -31,6 +31,15 @@ const goTo = async (page, path) => {
   await page.waitForTimeout(600);
 };
 
+// "Додај активност" → InteractionTypeGrid → the create modal for that type.
+// Waits for the add control first: /host with no active_event_code has to
+// create the event before any of this renders.
+const addActivityOfType = async (page, cardName) => {
+  await page.locator('[data-testid="add-activity"], [data-testid="add-activity-empty"]')
+    .first().click({ timeout: 30000 });
+  await page.getByRole('button', { name: cardName }).first().click({ timeout: 15000 });
+};
+
 // ── Tests ──────────────────────────────────────────────────────────────────
 
 test.describe('Host — Session Creation', () => {
@@ -47,61 +56,40 @@ test.describe('Host — Session Creation', () => {
   test('H-02: Host page shows activity type selector', async ({ page }) => {
     await signIn(page);
     await goTo(page, '/host');
-    // Should show at least one way to add an activity
-    const hasSelector = await page.locator(
-      'button:has-text("Прашање"), button:has-text("Квиз"), button:has-text("Poll"), button:has-text("Додај")'
-    ).first().isVisible().catch(() => false);
-    const hasGrid = await page.locator('[data-testid="activity-type-grid"], .activity-type-grid').isVisible().catch(() => false);
-    expect(hasSelector || hasGrid).toBe(true);
+    // /host with no active_event_code creates an event first, so this has to
+    // wait rather than read visibility once. `activity-type-grid` is not a
+    // hook the app has ever had; `add-activity` (and its empty-state twin) is.
+    await expect(
+      page.locator('[data-testid="add-activity"], [data-testid="add-activity-empty"]').first()
+    ).toBeVisible({ timeout: 30000 });
   });
 
   test('H-03: Can add a Poll activity', async ({ page }) => {
     await signIn(page);
     await goTo(page, '/host');
 
-    // Click add poll (keyboard shortcut or button)
-    const pollBtn = page.locator(
-      'button:has-text("Прашање"), button[title*="poll"], button[title*="Poll"], [data-type="poll"]'
-    ).first();
-
-    if (await pollBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await pollBtn.click();
-    } else {
-      await page.keyboard.press('p');
-    }
-
-    await page.waitForTimeout(800);
-
-    // Should see a question input field
-    const questionInput = page.locator(
-      'input[placeholder*="прашање"], input[placeholder*="Прашање"], textarea[placeholder*="прашање"], [data-testid="question-input"]'
-    ).first();
-
-    await expect(questionInput).toBeVisible({ timeout: 5000 });
+    // The real path is "Додај активност" → InteractionTypeGrid → CreatePollModal.
+    // There is no keyboard shortcut and no `data-type="poll"`, so the old
+    // locator list fell through to pressing "p", which does nothing, and then
+    // looked for a placeholder containing "прашање" that the modal never had.
+    await addActivityOfType(page, /Анкета \(Повеќе избор\)/);
+    await expect(
+      page.locator('textarea[placeholder^="Што сакате"]').first()
+    ).toBeVisible({ timeout: 10000 });
   });
 
   test('H-04: Can add a Quiz activity', async ({ page }) => {
     await signIn(page);
     await goTo(page, '/host');
 
-    const quizBtn = page.locator(
-      'button:has-text("Квиз"), button[title*="quiz"], [data-type="quiz"]'
-    ).first();
-
-    if (await quizBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await quizBtn.click();
-    } else {
-      await page.keyboard.press('q');
-    }
-
-    await page.waitForTimeout(800);
-
-    // Quiz should have a "correct answer" indicator
-    const correctIndicator = page.locator(
-      'button:has-text("Точен"), [data-testid="correct-answer"], input[type="radio"], input[type="checkbox"]'
-    ).first();
-
-    await expect(correctIndicator).toBeVisible({ timeout: 5000 });
+    // This one reported green without ever opening the quiz modal: pressing
+    // "q" does nothing, and the assertion's `input[type="checkbox"]` fallback
+    // matched a toggle already on the host page. Drive the real path and
+    // assert on the modal's own hook.
+    await addActivityOfType(page, /Квиз \(Натпревар\)/);
+    await expect(
+      page.locator('[data-testid="correct-answer"]').first()
+    ).toBeVisible({ timeout: 10000 });
   });
 
   test('H-05: Session has a joinable code / QR', async ({ page }) => {

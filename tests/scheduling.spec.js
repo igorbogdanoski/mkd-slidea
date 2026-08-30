@@ -11,15 +11,33 @@
 
 import { test, expect } from '@playwright/test';
 
-const BASE = 'http://localhost:5173';
+const BASE = process.env.BASE_URL || 'http://localhost:5173';
 const TEST_CODE = 'B5V338';
 
+// There is no /login route — sign-in is the modal opened by /?login=1, the
+// same flow every other spec uses. Waiting for the logout control proves the
+// session is live without depending on a redirect that never happens.
 async function loginUser(page) {
-  await page.goto(`${BASE}/login`);
+  await page.addInitScript(() => localStorage.setItem('onboarding_v1_done', 'true'));
+  await page.goto(`${BASE}/?login=1`);
   await page.fill('input[type="email"]', process.env.SMOKE_TEST_EMAIL);
   await page.fill('input[type="password"]', process.env.SMOKE_TEST_PASSWORD);
   await page.click('button[type="submit"]');
-  await page.waitForURL(`${BASE}/dashboard`, { timeout: 15000 });
+  await page.locator('text=Одјави').first().waitFor({ state: 'attached', timeout: 30000 });
+}
+
+// Going to /host with no active_event_code auto-creates an event owned by the
+// signed-in user. SCHED-05..07 need that: B5V338 belongs to Igor, so a
+// throwaway smoke account can read it but every PATCH it sends is refused by
+// RLS — which is what made SCHED-06 meaningless against a shared account.
+async function openOwnEventSettings(page) {
+  await page.evaluate(() => localStorage.removeItem('active_event_code'));
+  await page.goto(`${BASE}/host`);
+  await page.locator('p:has-text("Управувајте со")').waitFor({ timeout: 30000 });
+  // The control is icon-only: `title="Поставки"`, aria-label "Отвори поставки
+  // на настан". The old selector list matched none of them, so all three tests
+  // fell into `test.skip()` and reported green without touching the feature.
+  await page.locator('button[title="Поставки"]').click();
 }
 
 // ── SCHED-01 ─────────────────────────────────────────────────────────────────
@@ -57,8 +75,10 @@ test('SCHED-01: HomeTab renders Upcoming Events section when events have starts_
     window.dispatchEvent(new PopStateEvent('popstate', { state: {} }));
   });
 
-  await expect(page.locator('text=Претстојни настани')).toBeVisible({ timeout: 8000 });
-  await expect(page.locator('text=Распоредена сесија')).toBeVisible();
+  // The section heading is "Наскоро" (HomeTab.jsx) — "Претстојни настани" was
+  // never in the UI, so the old selector could only ever time out.
+  await expect(page.getByRole('heading', { name: 'Наскоро' })).toBeVisible({ timeout: 8000 });
+  await expect(page.locator('text=Распоредена сесија').first()).toBeVisible();
 });
 
 // ── SCHED-02 ─────────────────────────────────────────────────────────────────
@@ -130,10 +150,11 @@ test('SCHED-03: PresentationsTab shows schedule badge on event card', async ({ p
     window.dispatchEvent(new PopStateEvent('popstate', { state: {} }));
   });
 
-  await page.locator('button', { hasText: 'Настани' }).first().click();
-  await expect(page.locator('text=Закажан настан')).toBeVisible({ timeout: 8000 });
-  // Badge should show CalendarClock + time text
-  await expect(page.locator('[class*="indigo-50"]').filter({ hasText: /За \d/ }).first()).toBeVisible();
+  // The sidebar item is "Мои презентации"; `data-tour` is the stable handle.
+  await page.locator('[data-tour="sidebar-presentations"]').click();
+  await expect(page.locator('text=Закажан настан').first()).toBeVisible({ timeout: 8000 });
+  // Badge shows CalendarClock + relative time ("За 5 часа" for a +5 h event).
+  await expect(page.getByText(/За \d+ (мин|час|часа|дена)/).first()).toBeVisible({ timeout: 8000 });
 });
 
 // ── SCHED-04 ─────────────────────────────────────────────────────────────────
@@ -168,34 +189,21 @@ test('SCHED-04: Past starts_at does NOT show schedule badge', async ({ page }) =
     window.dispatchEvent(new PopStateEvent('popstate', { state: {} }));
   });
 
-  await page.locator('button', { hasText: 'Настани' }).first().click();
-  await expect(page.locator('text=Поминат настан')).toBeVisible({ timeout: 8000 });
-  await expect(page.locator('[class*="CalendarClock"]')).toHaveCount(0);
+  await page.locator('[data-tour="sidebar-presentations"]').click();
+  await expect(page.locator('text=Поминат настан').first()).toBeVisible({ timeout: 8000 });
+  // formatSchedule() returns null for a past starts_at, so the badge — and its
+  // relative-time text — must not render at all. Asserting on the icon class
+  // was a no-op: lucide renders `lucide-calendar-clock`, never "CalendarClock".
+  await expect(page.getByText(/За \d+ (мин|час|часа|дена)|^Утре ·/)).toHaveCount(0);
 });
 
 // ── SCHED-05 ─────────────────────────────────────────────────────────────────
 test('SCHED-05: EventSettingsModal contains schedule date-time input', async ({ page }) => {
   await loginUser(page);
 
-  // Open the host view for test event
-  await page.evaluate((code) => {
-    localStorage.setItem('active_event_code', code);
-  }, TEST_CODE);
-
-  await page.evaluate(() => {
-    window.history.pushState({}, '', '/host');
-    window.dispatchEvent(new PopStateEvent('popstate', { state: {} }));
-  });
-
-  // Open settings modal — look for gear/settings button
-  const settingsBtn = page.locator('[aria-label="Поставки"], button:has-text("Поставки"), button[title*="астав"]').first();
-  if (await settingsBtn.isVisible({ timeout: 5000 })) {
-    await settingsBtn.click();
-    await expect(page.locator('text=Закажи настан')).toBeVisible({ timeout: 5000 });
-    await expect(page.locator('input[type="datetime-local"]')).toBeVisible();
-  } else {
-    test.skip();
-  }
+  await openOwnEventSettings(page);
+  await expect(page.locator('text=Закажи настан')).toBeVisible({ timeout: 5000 });
+  await expect(page.locator('input[type="datetime-local"]').first()).toBeVisible();
 });
 
 // ── SCHED-06 ─────────────────────────────────────────────────────────────────
@@ -211,54 +219,33 @@ test('SCHED-06: Setting a schedule time triggers a Supabase update', async ({ pa
     await route.continue();
   });
 
-  await page.evaluate((code) => {
-    localStorage.setItem('active_event_code', code);
-  }, TEST_CODE);
+  await openOwnEventSettings(page);
+  const input = page.locator('input[type="datetime-local"]').first();
+  await expect(input).toBeVisible({ timeout: 5000 });
 
-  await page.evaluate(() => {
-    window.history.pushState({}, '', '/host');
-    window.dispatchEvent(new PopStateEvent('popstate', { state: {} }));
-  });
-
-  const settingsBtn = page.locator('[aria-label="Поставки"], button:has-text("Поставки"), button[title*="астав"]').first();
-  if (await settingsBtn.isVisible({ timeout: 5000 })) {
-    await settingsBtn.click();
-    const input = page.locator('input[type="datetime-local"]');
-    await expect(input).toBeVisible({ timeout: 5000 });
-
-    const future = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
-    const y = future.getFullYear();
-    const mo = String(future.getMonth() + 1).padStart(2, '0');
-    const d = String(future.getDate()).padStart(2, '0');
-    await input.fill(`${y}-${mo}-${d}T10:00`);
-    await input.blur();
-    await page.waitForTimeout(1500);
-    expect(updateCalled).toBe(true);
-  } else {
-    test.skip();
-  }
+  const future = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
+  const y = future.getFullYear();
+  const mo = String(future.getMonth() + 1).padStart(2, '0');
+  const d = String(future.getDate()).padStart(2, '0');
+  await input.fill(`${y}-${mo}-${d}T10:00`);
+  await input.blur();
+  await expect.poll(() => updateCalled, { timeout: 10000 }).toBe(true);
 });
 
 // ── SCHED-07 ─────────────────────────────────────────────────────────────────
 test('SCHED-07: Clear schedule button is visible in EventSettingsModal', async ({ page }) => {
   await loginUser(page);
 
-  await page.evaluate((code) => {
-    localStorage.setItem('active_event_code', code);
-  }, TEST_CODE);
-
-  await page.evaluate(() => {
-    window.history.pushState({}, '', '/host');
-    window.dispatchEvent(new PopStateEvent('popstate', { state: {} }));
-  });
-
-  const settingsBtn = page.locator('[aria-label="Поставки"], button:has-text("Поставки"), button[title*="астав"]').first();
-  if (await settingsBtn.isVisible({ timeout: 5000 })) {
-    await settingsBtn.click();
-    await expect(page.locator('text=Отстрани распоред')).toBeVisible({ timeout: 5000 });
-  } else {
-    test.skip();
-  }
+  await openOwnEventSettings(page);
+  // The clear-schedule control only renders once a schedule exists, so set one
+  // first — otherwise this asserts on a button the UI is right to hide.
+  const input = page.locator('input[type="datetime-local"]').first();
+  await expect(input).toBeVisible({ timeout: 5000 });
+  const future = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+  const stamp = `${future.getFullYear()}-${String(future.getMonth() + 1).padStart(2, '0')}-${String(future.getDate()).padStart(2, '0')}T09:00`;
+  await input.fill(stamp);
+  await input.blur();
+  await expect(page.locator('text=Отстрани распоред')).toBeVisible({ timeout: 10000 });
 });
 
 // ── SCHED-08 ─────────────────────────────────────────────────────────────────
@@ -285,5 +272,7 @@ test('SCHED-08: Upcoming section is absent when no events have starts_at', async
   });
 
   await page.waitForTimeout(2000);
-  await expect(page.locator('text=Претстојни настани')).toHaveCount(0);
+  // Same rename as SCHED-01: asserting count 0 on a string the UI never
+  // rendered made this test pass no matter what the section did.
+  await expect(page.getByRole('heading', { name: 'Наскоро' })).toHaveCount(0);
 });
