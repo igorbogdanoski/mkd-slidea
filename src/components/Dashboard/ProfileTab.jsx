@@ -31,7 +31,9 @@ const ProfileTab = ({ user }) => {
       setLoading(true);
       const { data, error: err } = await supabase
         .from('profiles')
-        .select('name, public_teacher')
+        // email_digest is written on save, so it has to be read back too —
+        // without it the toggle reset itself to off on every reload.
+        .select('name, public_teacher, email_digest')
         .eq('id', user.id)
         .maybeSingle();
       if (cancelled) return;
