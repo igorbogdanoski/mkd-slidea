@@ -46,6 +46,14 @@ playwright/.auth/
 # Playwright output
 playwright-report/
 test-results/
+# The throwaway smoke account's password, written in plain text so a run can
+# read it back. It is a credential: it must never reach the remote.
+playwright/.smoke-pass.tmp
+# Run logs from `npx playwright test … > x.log` — scratch, sometimes with the
+# test account's e-mail in the trace.
+playwright-*.log
+*-verify.log
+debug-*.log
 
 # Screenshots / visual snapshots
 *.png
@@ -59,8 +67,10 @@ test-results/
 # renderer falls back to when satori fails.
 !api/_lib/*.png
 
-# Claude memory & session files
+# Agent tooling — configuration of the tool, not of the project
 .claude/
+.qwen/
+.mcp.json
 
 # Standalone HTML reports (финансиски извештаи, аудити)
 mismath-finansiski-izvestaj.html
