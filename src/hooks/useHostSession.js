@@ -3,7 +3,7 @@ import { track } from '@vercel/analytics';
 import { supabase } from '../lib/supabase';
 import { normaliseActivityType, templateActivities, optionsForType, carriedActivityFields } from '../lib/activityTypes';
 import { surveyTally } from '../lib/surveyAnswers';
-import { POLLS_WITH_OPTIONS } from '../lib/pollColumns';
+import { HOST_POLLS_WITH_OPTIONS } from '../lib/pollColumns';
 import { getAuthHeader } from '../lib/authHeader';
 import { generateCode } from '../lib/eventCode';
 import { useLiveAnnouncer } from './useLiveAnnouncer';
@@ -123,7 +123,7 @@ export const useHostSession = (user) => {
     if (!event?.id) return;
     const eventId = event.id;
     const fetchPolls = async () => {
-      const { data } = await supabase.from('polls').select(POLLS_WITH_OPTIONS).eq('event_id', eventId).order('position', { ascending: true }).order('created_at', { ascending: true });
+      const { data } = await supabase.from('polls').select(HOST_POLLS_WITH_OPTIONS).eq('event_id', eventId).order('position', { ascending: true }).order('created_at', { ascending: true });
       if (data) setPolls(data);
     };
     const fetchPendingQuestions = async () => {
@@ -220,7 +220,7 @@ export const useHostSession = (user) => {
 
   const refreshPolls = async () => {
     if (!event?.id) return;
-    const { data } = await supabase.from('polls').select(POLLS_WITH_OPTIONS).eq('event_id', event.id).order('position', { ascending: true }).order('created_at', { ascending: true });
+    const { data } = await supabase.from('polls').select(HOST_POLLS_WITH_OPTIONS).eq('event_id', event.id).order('position', { ascending: true }).order('created_at', { ascending: true });
     if (data) setPolls(data);
   };
 
@@ -484,7 +484,7 @@ export const useHostSession = (user) => {
           if (optError) throw optError;
         }
       }
-      const { data } = await supabase.from('polls').select(POLLS_WITH_OPTIONS).eq('event_id', event.id).order('position', { ascending: true }).order('created_at', { ascending: true });
+      const { data } = await supabase.from('polls').select(HOST_POLLS_WITH_OPTIONS).eq('event_id', event.id).order('position', { ascending: true }).order('created_at', { ascending: true });
       if (data) setPolls(data);
     } catch (err) {
       console.error('Apply template failed:', err);

@@ -74,7 +74,10 @@ test.describe('Password reset flow', () => {
   test('PWR-07 — back to login link present on forgot password screen', async ({ page }) => {
     await page.goto(BASE + '/?login=1');
     await expect(page.locator('input[type="email"]').first()).toBeVisible({ timeout: 10000 });
-    await page.locator('text=/Заборав|forgot/i').first().click();
+    // Same locator PWR-03 and PWR-04 had: a bare text regex that also matches the
+    // landing page's "незаборавна", so `.first()` could resolve to a paragraph
+    // behind the modal and the click would be intercepted by its own overlay.
+    await forgotButton(page).click();
     await page.waitForTimeout(400);
     // Should be a way back to login
     const backLink = page.locator('text=/Назад|back|Логирај|Login|Врати/i').first();

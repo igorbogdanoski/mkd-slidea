@@ -78,3 +78,23 @@ export const OPTION_COLUMNS = [
 
 /** The select string for "the event's activities, with their options". */
 export const POLLS_WITH_OPTIONS = `${POLL_COLUMNS}, options(${OPTION_COLUMNS})`;
+
+// ── The host side ───────────────────────────────────────────────────────────
+//
+// Everything above is what an ANONYMOUS reader may ask for: the participant, the
+// projector and the public results page. The host screen and the Dashboard run as
+// `authenticated` and are owner-scoped by row security, so they keep the key —
+// and they need it. PollCard paints the correct option's bar emerald, the CSV and
+// Markdown exports print the answer, the editor pre-fills it for editing, and
+// adaptiveSuggestion computes class accuracy from it.
+//
+// Sharing one list between the two would have been the quiet failure: the columns
+// would simply be absent from the host's own fetch, the emerald bar would go
+// indigo for every quiz, and nothing would error.
+export const HOST_POLL_COLUMNS = `${POLL_COLUMNS}, blanks, correct_answer, answer_explanation`;
+
+export const HOST_OPTION_COLUMNS = `${OPTION_COLUMNS}, is_correct`;
+
+/** The same read, for a signed-in owner. */
+export const HOST_POLLS_WITH_OPTIONS =
+  `${HOST_POLL_COLUMNS}, options(${HOST_OPTION_COLUMNS})`;

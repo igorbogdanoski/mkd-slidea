@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { POLL_COLUMNS, OPTION_COLUMNS, POLLS_WITH_OPTIONS } from '../lib/pollColumns';
+import {
+  POLL_COLUMNS, OPTION_COLUMNS, POLLS_WITH_OPTIONS,
+  HOST_POLL_COLUMNS, HOST_OPTION_COLUMNS,
+} from '../lib/pollColumns';
 
 // These exist because the call sites they replaced were `select('*, options(*)')`,
 // and a wildcard is not neutral here: polls.embedding is a 1536-float pgvector
@@ -60,6 +63,25 @@ describe('pollColumns', () => {
     // quiz_verdict() returns the verdict and the correct option id, and only to a
     // session that has a votes row for that activity.
     expect(optionCols).not.toContain('is_correct');
+  });
+
+  it('gives the host side the key the anonymous side does not get', () => {
+    // PollCard paints the correct option's bar emerald, the CSV and Markdown
+    // exports print the answer, the editor pre-fills it, and adaptiveSuggestion
+    // computes class accuracy from it. All of those run as `authenticated` and are
+    // owner-scoped, so they may read it — but only if the select asks for it.
+    // Sharing one list would have failed silently: the columns would simply be
+    // absent from the host's own fetch and every quiz bar would go indigo.
+    expect(HOST_POLL_COLUMNS).toContain('correct_answer');
+    expect(HOST_POLL_COLUMNS).toContain('answer_explanation');
+    expect(HOST_POLL_COLUMNS).toContain('blanks');
+    expect(HOST_OPTION_COLUMNS).toContain('is_correct');
+    // …and the host list still has to be a superset of the anonymous one, or the
+    // projector's own view of the activity would lose columns too.
+    for (const col of pollCols) expect(HOST_POLL_COLUMNS.split(',').map((s) => s.trim())).toContain(col);
+    for (const col of optionCols) expect(HOST_OPTION_COLUMNS.split(',').map((s) => s.trim())).toContain(col);
+    // embedding is not the answer key; it is dead weight on either side.
+    expect(HOST_POLL_COLUMNS).not.toContain('embedding');
   });
 
   it('embeds options inside the polls select', () => {
