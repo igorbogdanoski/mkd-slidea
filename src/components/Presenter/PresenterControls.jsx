@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PartyPopper, Pause, Play, Timer, TimerOff, Eye, EyeOff } from 'lucide-react';
 
 // ─── Footer controls: pause / timer / confetti ────────────────────────────────
-const PresenterControls = ({ event, onToggleLock, lockPending, handleToggleLock, timerRemaining, timerPickerOpen, setTimerPickerOpen, handleStartTimer, handleStopTimer, fireConfetti, onStartTimer, currentPoll, onToggleAnswer }) => {
+const PresenterControls = ({ event, onToggleLock, lockPending, handleToggleLock, timerRemaining, timerPickerOpen, setTimerPickerOpen, handleStartTimer, handleStopTimer, fireConfetti, onStartTimer, currentPoll, onToggleAnswer, hasKey }) => {
   const timerPickerRef = useRef(null);
 
   // Close timer picker on outside click
@@ -42,8 +42,7 @@ const PresenterControls = ({ event, onToggleLock, lockPending, handleToggleLock,
       {/* Reveal the answer key — only for the activity types that have one.
           The reveal is written to the poll row, so this button changes what
           every phone in the room shows at the same instant. */}
-      {onToggleAnswer && ['open', 'fill_blanks'].includes(currentPoll?.type) &&
-        (currentPoll?.correct_answer || (currentPoll?.blanks || []).length > 0) && (
+      {onToggleAnswer && ['open', 'fill_blanks'].includes(currentPoll?.type) && hasKey && (
         <button
           onClick={() => onToggleAnswer(currentPoll.id, !currentPoll.answer_revealed)}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-xs transition-all border ${

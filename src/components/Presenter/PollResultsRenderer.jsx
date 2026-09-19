@@ -6,12 +6,21 @@ import WordCloud from '../WordCloud';
 import { BarsView, DonutView, PodiumView, NumbersView } from './ChartViews';
 
 // ─── Per-activity-type results renderer (pure derive-and-render) ──────────────
-const PollResultsRenderer = ({ currentPoll, visibleOptions, totalVotes, surveyResponses, blankResponses = [], averageRating, chartMode }) => {
+const PollResultsRenderer = ({ currentPoll, visibleOptions, totalVotes, surveyResponses, blankResponses = [], blankGaps = [], answerKey = null, averageRating, chartMode }) => {
   // Fill-in-the-blanks has no options to chart — nothing is counted, the
-  // answers are read. Shown per gap, with the accepted answer beside it so the
-  // class can check their own, and a count of how many wrote each thing.
+  // answers are read. Shown per gap, with a count of how many wrote each thing.
+  //
+  // The accepted answer beside each gap, and the right/wrong marking of every
+  // response, appear only once the host has revealed. They used to be there from
+  // the moment the activity loaded — and /event/:id/present is not a protected
+  // route, so anyone in the room could open it on a phone and read the answers
+  // before answering. answerKey is null until poll_answer_key() says the reveal
+  // has happened, so the gate is in the database rather than in this file.
   if (currentPoll.type === 'fill_blanks') {
-    const gaps = Array.isArray(currentPoll.blanks) ? currentPoll.blanks : [];
+    const gaps = blankGaps.length
+      ? blankGaps
+      : (Array.isArray(answerKey?.blanks) ? answerKey.blanks.map((b) => ({ id: b.id })) : []);
+    const keyBlanks = Array.isArray(answerKey?.blanks) ? answerKey.blanks : [];
     if (gaps.length === 0) {
       return (
         <div className="py-20 text-center text-slate-500 font-bold presenter-answer-sm border-2 border-dashed border-slate-800 rounded-[3rem]">
@@ -31,26 +40,36 @@ const PollResultsRenderer = ({ currentPoll, visibleOptions, totalVotes, surveyRe
             tally.set(key, { text: g, count: (tally.get(key)?.count || 0) + 1 });
           }
           const ranked = [...tally.values()].sort((a, b) => b.count - a.count).slice(0, 8);
-          const accepted = (gap.accept || []).map((a) => String(a).toLowerCase().replace(/\s+/g, ' '));
+          const accepted = answerKey
+            ? (keyBlanks.find((b) => b.id === gap.id)?.accept || [])
+                .map((a) => String(a).toLowerCase().replace(/\s+/g, ' '))
+            : [];
 
           return (
             <div key={gap.id || gi} className="bg-slate-800/40 border border-slate-700/40 rounded-[2rem] px-8 py-6">
               <div className="flex items-baseline justify-between mb-4 gap-6">
                 <span className="text-slate-500 font-black text-sm uppercase tracking-widest">Празнина {gi + 1}</span>
-                <MathText as="span" className="presenter-answer-sm font-black text-emerald-400">
-                  {(gap.accept || [])[0] || '—'}
-                </MathText>
+                {answerKey && (
+                  <MathText as="span" className="presenter-answer-sm font-black text-emerald-400">
+                    {(keyBlanks.find((b) => b.id === gap.id)?.accept || [])[0] || '—'}
+                  </MathText>
+                )}
               </div>
               {ranked.length === 0 ? (
                 <p className="text-slate-600 font-bold presenter-answer-sm">Сè уште нема одговори</p>
               ) : (
                 <div className="flex flex-wrap gap-3">
                   {ranked.map((r, i) => {
-                    const isRight = accepted.includes(r.text.toLowerCase().replace(/\s+/g, ' '));
+                    const isRight = answerKey
+                      && accepted.includes(r.text.toLowerCase().replace(/\s+/g, ' '));
                     return (
                       <span key={i}
                         className={`px-5 py-2.5 rounded-2xl font-black presenter-answer-sm presenter-answer-wrap border ${
-                          isRight
+                          // Unrevealed, every response is neutral: the wall is
+                          // showing what the class wrote, not marking it.
+                          !answerKey
+                            ? 'bg-slate-900/60 border-slate-700/60 text-slate-300'
+                            : isRight
                             ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
                             : 'bg-slate-900/60 border-slate-700/60 text-slate-300'
                         }`}>

@@ -701,15 +701,29 @@ const EventWrapper = ({ type, username, setUsername }) => {
             const option = currentPoll.options[val];
             if (!option) throw new Error('Invalid option selected');
             answerText = option.text;
-            isCorrect = option.is_correct ?? null;
             pendingOps.push({ kind: 'option', optionId: option.id });
             const optionVoteRes = await withLockRetry(() => vote(option.id));
             if (optionVoteRes?.error) throw optionVoteRes.error;
             pendingOps.length = 0;
             if (currentPoll.is_quiz) {
-              const correctIndex = currentPoll.options.findIndex(o => o.is_correct);
-              setQuizResult({ isCorrect: !!option.is_correct, selectedIndex: val, correctIndex });
-              if (option.is_correct) {
+              // The verdict comes back from the database instead of being read
+              // off the option, which no longer carries is_correct. quiz_verdict
+              // only answers for a session that has a votes row for this
+              // activity — which this one has, because the claim above wrote it.
+              const { data: verdict } = await supabase.rpc('quiz_verdict', {
+                p_poll_id: currentPoll.id,
+                p_session_id: voteRowSid,
+              });
+              const graded = Array.isArray(verdict) ? verdict[0] : verdict;
+              isCorrect = graded?.is_correct ?? null;
+              setQuizResult({
+                isCorrect: !!isCorrect,
+                selectedIndex: val,
+                // -1 when the database named no correct option, which then
+                // highlights nothing rather than guessing at one.
+                correctIndex: currentPoll.options.findIndex((o) => o.id === graded?.correct_option_id),
+              });
+              if (isCorrect) {
                 confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#10B981', '#34D399', '#6EE7B7'] });
               }
             }

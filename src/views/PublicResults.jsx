@@ -8,6 +8,7 @@ import {
 import { Share2, Copy, CheckCheck, ExternalLink, BarChart2, Trophy, Cloud, Star, AlignLeft, ListOrdered, Scale, Hash } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { surveyTally } from '../lib/surveyAnswers';
+import { useAnswerKey, useParticipantBlanks } from '../hooks/useAnswerKey';
 import { useSEO } from '../hooks/useSEO';
 
 // ── Constants ──────────────────────────────────────────────────────────────
@@ -42,6 +43,14 @@ const PollCard = ({ poll, index }) => {
   // whose whole purpose is showing what the class answered.
   const isBlanks = poll.type === 'fill_blanks';
   const isSurvey = poll.type === 'survey';
+  // The gap ids and the accepted answers no longer ride along on the poll. This
+  // page is public and anonymous, so it gets them the same way a participant
+  // does: ids always, answers only once the host has revealed — which for a
+  // share link sent after the lesson is the normal case, and for a code guessed
+  // mid-lesson is the point.
+  const { key: answerKey } = useAnswerKey(poll.id, poll.answer_revealed);
+  const blankGaps = useParticipantBlanks(poll.id, isBlanks);
+  const keyBlanks = Array.isArray(answerKey?.blanks) ? answerKey.blanks : [];
   const [extra, setExtra] = React.useState(null);
   React.useEffect(() => {
     if (!isBlanks && !isSurvey) return;
@@ -103,26 +112,31 @@ const PollCard = ({ poll, index }) => {
 
         ) : isBlanks ? (
           <div className="space-y-4">
-            {(Array.isArray(poll.blanks) ? poll.blanks : []).map((gap, gi) => {
+            {blankGaps.map((gap, gi) => {
               const given = (extra || []).map((r) => String(r?.[gap.id] ?? '').trim()).filter(Boolean);
               const tally = new Map();
               for (const g of given) {
                 const k = g.toLowerCase().replace(/\s+/g, ' ');
                 tally.set(k, { text: g, count: (tally.get(k)?.count || 0) + 1 });
               }
-              const accepted = (gap.accept || []).map((a) => String(a).toLowerCase().replace(/\s+/g, ' '));
+              const accepted = answerKey
+                ? (keyBlanks.find((b) => b.id === gap.id)?.accept || [])
+                    .map((a) => String(a).toLowerCase().replace(/\s+/g, ' '))
+                : [];
               const ranked = [...tally.values()].sort((a, b) => b.count - a.count).slice(0, 12);
               return (
                 <div key={gap.id || gi}>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
-                    Празнина {gi + 1} · точен: {(gap.accept || [])[0] || '—'}
+                    Празнина {gi + 1}
+                    {answerKey && <> · точен: {(keyBlanks.find((b) => b.id === gap.id)?.accept || [])[0] || '—'}</>}
                   </p>
                   {ranked.length === 0 ? (
                     <p className="text-sm text-slate-300 font-bold">Нема одговори</p>
                   ) : (
                     <div className="flex flex-wrap gap-2">
                       {ranked.map((r, i) => {
-                        const right = accepted.includes(r.text.toLowerCase().replace(/\s+/g, ' '));
+                        const right = !!answerKey
+                          && accepted.includes(r.text.toLowerCase().replace(/\s+/g, ' '));
                         return (
                           <span key={i} className={`px-3 py-1.5 rounded-full font-bold text-sm border ${
                             right ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
@@ -353,7 +367,7 @@ const PublicResults = () => {
 
       const { data: ps } = await supabase
         .from('polls')
-        .select('id, event_id, question, active, is_quiz, created_at, type, results_visible, position, timer_ends_at, survey_questions, blanks, needs_moderation, curriculum_tags, options(id, poll_id, text, votes, is_correct, is_approved)')
+        .select('id, event_id, question, active, is_quiz, created_at, type, results_visible, position, timer_ends_at, survey_questions, answer_revealed, needs_moderation, curriculum_tags, options(id, poll_id, text, votes, is_approved)')
         .eq('event_id', ev.id)
         .order('created_at', { ascending: true });
 

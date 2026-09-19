@@ -9,22 +9,24 @@ import MathText from './MathText';
 // task than "answer 1, answer 2, answer 3" — the sentence is most of the
 // scaffolding, and taking it away turns a comprehension question into a
 // recall one.
-const FillBlanksInput = ({ poll, onSubmit, disabled }) => {
+//
+// `gaps` is [{ id, size }] from participant_blanks(), not poll.blanks. The
+// stored gaps carry an accept[] array, and that array IS the answer — it used to
+// ship to every participant along with the activity. The width is now computed
+// in the database from those answers and clamped to the same 6–16 character
+// range this component applied itself, so the field still does not spell out how
+// long the answer is (a three-character box is a hint) and nothing else leaks.
+const FillBlanksInput = ({ poll, gaps = [], onSubmit, disabled }) => {
   const [answers, setAnswers] = useState({});
   const parts = parsePrompt(poll?.question || '');
-  const blanks = Array.isArray(poll?.blanks) ? poll.blanks : [];
 
   const set = (id, value) => setAnswers((a) => ({ ...a, [id]: value }));
-  const filled = blanks.filter((b) => String(answers[b.id] || '').trim()).length;
-  const ready = blanks.length > 0 && filled === blanks.length;
+  const filled = gaps.filter((b) => String(answers[b.id] || '').trim()).length;
+  const ready = gaps.length > 0 && filled === gaps.length;
 
-  // A gap is sized from the longest answer it accepts, so the field itself
-  // does not leak how long the answer is — a three-character box is a hint.
-  const widthFor = (id) => {
-    const b = blanks.find((x) => x.id === id);
-    const longest = Math.max(6, ...(b?.accept || []).map((a) => String(a).length));
-    return `${Math.min(16, Math.max(6, longest + 3))}ch`;
-  };
+  // Already clamped server-side. A gap the function did not return falls back to
+  // the narrowest box rather than to a width derived from an answer.
+  const widthFor = (id) => `${gaps.find((g) => g.id === id)?.size ?? 6}ch`;
 
   return (
     <div className="space-y-6">
@@ -39,7 +41,7 @@ const FillBlanksInput = ({ poll, onSubmit, disabled }) => {
               value={answers[part.id] || ''}
               onChange={(e) => set(part.id, e.target.value)}
               disabled={disabled}
-              aria-label={`Празнина ${blanks.findIndex((b) => b.id === part.id) + 1} од ${blanks.length}`}
+              aria-label={`Празнина ${gaps.findIndex((b) => b.id === part.id) + 1} од ${gaps.length}`}
               style={{ width: widthFor(part.id) }}
               className="mx-1 px-2 py-1 border-b-2 border-indigo-300 focus:border-indigo-600 bg-indigo-50/40 focus:bg-white rounded-t-md text-center font-bold text-indigo-900 outline-none transition-colors disabled:opacity-60"
               autoComplete="off"
@@ -50,9 +52,9 @@ const FillBlanksInput = ({ poll, onSubmit, disabled }) => {
         )}
       </p>
 
-      {blanks.length > 1 && (
+      {gaps.length > 1 && (
         <p className="text-xs font-semibold text-slate-500" aria-live="polite">
-          Пополнети {filled} од {blanks.length}
+          Пополнети {filled} од {gaps.length}
         </p>
       )}
 
@@ -61,7 +63,7 @@ const FillBlanksInput = ({ poll, onSubmit, disabled }) => {
         disabled={disabled || !ready}
         className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 disabled:opacity-50"
       >
-        {ready ? 'Испрати' : `Пополни ги сите празнини (${filled}/${blanks.length})`}
+        {ready ? 'Испрати' : `Пополни ги сите празнини (${filled}/${gaps.length})`}
       </button>
     </div>
   );

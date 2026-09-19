@@ -12,6 +12,7 @@ import { accessibleScaleColor } from '../lib/contrast';
 import MathText from '../components/MathText';
 import FillBlanksInput from '../components/FillBlanksInput';
 import AnswerReveal from '../components/AnswerReveal';
+import { useAnswerKey, useParticipantBlanks } from '../hooks/useAnswerKey';
 import { toSpokenText } from '../lib/mathText';
 import { useLiveAnnouncer } from '../hooks/useLiveAnnouncer';
 
@@ -64,6 +65,16 @@ const Participant = ({
   const [dragIndex, setDragIndex] = React.useState(null);
   // Kept so the reveal can show the student what they themselves wrote.
   const [lastBlankAnswers, setLastBlankAnswers] = React.useState(null);
+
+  // Both above the `if (!username)` return, with every other hook: the key and
+  // the gap list arrive from the database now rather than riding along on the
+  // activity, and a hook that only ran on some renders is how this file once
+  // died into the error boundary with "rendered more hooks than during the
+  // previous render".
+  const { key: answerKey } = useAnswerKey(currentPoll.id, currentPoll.answer_revealed);
+  // Inlined rather than using the `isFillBlanks` const further down: that one is
+  // declared after the early return, so reading it here would be a TDZ error.
+  const blankGaps = useParticipantBlanks(currentPoll.id, currentPoll.type === 'fill_blanks');
 
   // Reaction bar — per-emoji cooldown (2 s) + burst counter for ripple key
   const [reactionCooldowns, setReactionCooldowns] = React.useState({});
@@ -433,7 +444,12 @@ const Participant = ({
                     </p>
                     <div className="space-y-3 mt-2">
                       {currentPoll.options.map((option, i) => {
-                        const isCorrect = option.is_correct;
+                        // From the verdict quiz_verdict() returned, not from
+                        // options.is_correct — that column no longer comes down
+                        // with the activity. correctIndex is -1 when the database
+                        // named no correct option, which then highlights nothing
+                        // rather than guessing.
+                        const isCorrect = i === quizResult.correctIndex;
                         const isSelected = i === quizResult.selectedIndex;
                         return (
                           <motion.div
@@ -724,6 +740,7 @@ const Participant = ({
                 ) : isFillBlanks ? (
                   <FillBlanksInput
                     poll={currentPoll}
+                    gaps={blankGaps}
                     disabled={userVoted}
                     onSubmit={(answers) => { haptic([30]); setLastBlankAnswers(answers); handleVote(answers); }}
                   />
@@ -823,7 +840,7 @@ const Participant = ({
                 is advisory. They compare their answer to the key themselves,
                 which is also the better learning moment. */}
             {answerRevealed && (
-              <AnswerReveal poll={currentPoll} given={lastBlankAnswers} />
+              <AnswerReveal answerKey={answerKey} given={lastBlankAnswers} />
             )}
           </div>
 

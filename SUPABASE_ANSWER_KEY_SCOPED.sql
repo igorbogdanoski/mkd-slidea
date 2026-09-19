@@ -134,6 +134,27 @@ $fn$;
 
 GRANT EXECUTE ON FUNCTION public.quiz_verdict(UUID, TEXT) TO anon, authenticated;
 
+-- ── 3b. Aggregate accuracy, for the projector's curriculum benchmark ───────
+-- CurriculumBenchmarkBadge compares this class's accuracy on the live activity
+-- against the curriculum average. It computed that by summing options.votes for
+-- the options marked is_correct — which is the answer key again, just used as a
+-- filter. The projector is an anonymous route, so revoking is_correct would have
+-- left it permanently reporting 0% and telling every class it was below average.
+--
+-- What it actually needs is two numbers, and the votes rows are already graded
+-- by claim_vote_graded(), so the sum moves into the database. It reveals nothing
+-- about which option was right, only how many answers were.
+CREATE OR REPLACE FUNCTION public.poll_accuracy(p_poll_id UUID)
+RETURNS TABLE (correct BIGINT, total BIGINT)
+LANGUAGE sql SECURITY DEFINER SET search_path = public AS $fn$
+  SELECT COUNT(*) FILTER (WHERE v.is_correct) AS correct,
+         COUNT(*)                             AS total
+  FROM public.votes v
+  WHERE v.poll_id = p_poll_id;
+$fn$;
+
+GRANT EXECUTE ON FUNCTION public.poll_accuracy(UUID) TO anon, authenticated;
+
 -- ============================================================================
 -- 4. NOT YET APPLIED — run only after the client that reads through the
 --    functions above is deployed and confirmed in production.

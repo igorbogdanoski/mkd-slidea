@@ -41,6 +41,23 @@ const CurriculumBenchmarkBadge = ({ poll }) => {
     return () => { cancelled = true; };
   }, [tag, poll?.is_quiz]);
 
+  // How this class did on the live activity, as two numbers from the database.
+  // It was summed here from options.votes filtered on is_correct — the answer key
+  // used as a filter — and this badge renders on the projector, which is an
+  // anonymous route. Revoking is_correct without moving the sum would have left
+  // it permanently at 0%, telling every class it was below the curriculum average.
+  const [accuracy, setAccuracy] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    if (!poll?.id || !poll?.is_quiz) { setAccuracy(null); return undefined; }
+    supabase.rpc('poll_accuracy', { p_poll_id: poll.id }).then(({ data: rows }) => {
+      if (cancelled) return;
+      const row = Array.isArray(rows) ? rows[0] : rows;
+      setAccuracy(row ? { correct: Number(row.correct) || 0, total: Number(row.total) || 0 } : null);
+    });
+    return () => { cancelled = true; };
+  }, [poll?.id, poll?.is_quiz]);
+
   if (!tag || !poll?.is_quiz) return null;
 
   const meta = getCurriculumById(tag);
@@ -53,10 +70,10 @@ const CurriculumBenchmarkBadge = ({ poll }) => {
   }
   if (!data || data.events_count < 3 || data.avg_accuracy === null) return null;
 
-  // Compute current poll accuracy
-  const opts = Array.isArray(poll.options) ? poll.options : [];
-  const total = opts.reduce((a, o) => a + (o.votes || 0), 0);
-  const correct = opts.filter((o) => o.is_correct).reduce((a, o) => a + (o.votes || 0), 0);
+  // Counted from the graded votes rows rather than summed off the options, so
+  // nothing here needs to know which option was the right one.
+  const total = accuracy?.total ?? 0;
+  const correct = accuracy?.correct ?? 0;
   const myAcc = total > 0 ? (correct / total) * 100 : null;
   const benchAcc = Number(data.avg_accuracy);
 

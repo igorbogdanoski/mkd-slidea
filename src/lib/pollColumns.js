@@ -24,7 +24,19 @@
 // today. Rating and scale map taps positionally onto that array, so changing the
 // order is a behaviour change and belongs in its own commit with its own check.
 
-/** Every column of `polls` a screen reads. `embedding` is the one it omits. */
+/**
+ * Every column of `polls` a screen reads. Two deliberate omissions:
+ *
+ * `embedding` — a 1536-float pgvector column nothing in src/ reads. It was 93%
+ * of the payload a participant's phone downloaded on every vote.
+ *
+ * `correct_answer`, `answer_explanation` and `blanks` — the answer key. Read
+ * through poll_answer_key() and participant_blanks() instead (see
+ * src/hooks/useAnswerKey.js), which return it only once the host has revealed
+ * it. Omitting them here is what makes the REVOKE in section 4 of
+ * SUPABASE_ANSWER_KEY_SCOPED.sql survivable: a revoked column does not vanish
+ * from `select=*`, it fails the whole request with 42501.
+ */
 export const POLL_COLUMNS = [
   'id',
   'event_id',
@@ -34,9 +46,6 @@ export const POLL_COLUMNS = [
   'position',
   'active',
   'created_at',
-  'blanks',
-  'correct_answer',
-  'answer_explanation',
   'answer_revealed',
   'results_visible',
   'needs_moderation',
@@ -48,14 +57,20 @@ export const POLL_COLUMNS = [
   'cover_meta',
 ].join(', ');
 
-/** Every column of `options` a screen reads. */
+/**
+ * Every column of `options` a screen reads.
+ *
+ * `is_correct` is omitted for the same reason as the key above: it is the quiz
+ * answer sheet, and the participant's result view gets its verdict from
+ * quiz_verdict() now. The host side is unaffected — it reads options through
+ * owner-scoped queries as `authenticated`, and only `anon` loses the column.
+ */
 export const OPTION_COLUMNS = [
   'id',
   'poll_id',
   'event_id',
   'text',
   'votes',
-  'is_correct',
   'label',
   'is_approved',
   'created_at',

@@ -18,6 +18,7 @@ import { useEventStore } from '../lib/store';
 import { supabase } from '../lib/supabase';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useLiveAnnouncer } from '../hooks/useLiveAnnouncer';
+import { useAnswerKey, useParticipantBlanks } from '../hooks/useAnswerKey';
 
 const toggleFullscreen = () => {
   try {
@@ -127,6 +128,15 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
   // the projector fell through to the multiple-choice branch and rendered an
   // empty panel: the class answered on their phones and the wall stayed blank.
   const [blankResponses, setBlankResponses] = useState([]);
+  // The projector is an anonymous route, so it gets the key the same way a
+  // participant does: has_key always, the key itself only once the host has
+  // revealed it. That is a deliberate change to what the wall shows — the
+  // fill-in-the-blanks panel used to print every gap's accepted answer and mark
+  // each response right or wrong from the moment the activity loaded, which
+  // meant anyone in the room could read the answers by opening /present on a
+  // phone before answering.
+  const { hasKey, key: answerKey } = useAnswerKey(currentPoll.id, currentPoll.answer_revealed);
+  const blankGaps = useParticipantBlanks(currentPoll.id, currentPoll.type === 'fill_blanks');
   useEffect(() => {
     if (currentPoll.type !== 'fill_blanks') { setBlankResponses([]); return; }
     // poll_answer_texts() returns the answers for this one activity and
@@ -261,6 +271,8 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
                 currentPoll={currentPoll}
                 visibleOptions={visibleOptions}
                 blankResponses={blankResponses}
+                blankGaps={blankGaps}
+                answerKey={answerKey}
                 totalVotes={totalVotes}
                 surveyResponses={surveyResponses}
                 averageRating={averageRating}
@@ -339,6 +351,7 @@ const Presenter = ({ event, polls, questions, activePollIndex, leaderboard, reac
           fireConfetti={fireConfetti}
           onStartTimer={onStartTimer}
           currentPoll={currentPoll}
+          hasKey={hasKey}
         />
       </div>
     </div>

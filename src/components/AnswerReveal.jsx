@@ -5,16 +5,22 @@ import MathText from './MathText';
 // Shown once the host reveals the answer to an open or fill-in-the-blanks
 // question.
 //
+// It takes the key rather than the poll. correct_answer, answer_explanation and
+// blanks no longer come down with the activity, because that put the answer sheet
+// on every phone from the moment it loaded. useAnswerKey() fetches them through
+// poll_answer_key(), which returns null until answer_revealed — so the gate lives
+// in the database, and this component simply has nothing to render before then.
+//
 // It deliberately does not tell the student whether *they* were right. For an
 // open question nothing has marked them, and for blanks the check is advisory
 // — Macedonian inflects, and a confident "неточно" in front of a class for an
 // answer a teacher would have accepted is the failure mode worth avoiding. The
 // student sees the answer and judges their own against it, which is also the
 // better learning moment.
-const AnswerReveal = ({ poll, given }) => {
-  const answer = poll?.correct_answer;
-  const explanation = poll?.answer_explanation;
-  const blanks = Array.isArray(poll?.blanks) ? poll.blanks : [];
+const AnswerReveal = ({ answerKey, given }) => {
+  const answer = answerKey?.correct_answer;
+  const explanation = answerKey?.answer_explanation;
+  const blanks = Array.isArray(answerKey?.blanks) ? answerKey.blanks : [];
 
   if (!answer && !explanation && !blanks.length) return null;
 

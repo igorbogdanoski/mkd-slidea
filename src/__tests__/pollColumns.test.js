@@ -28,17 +28,25 @@ describe('pollColumns', () => {
   });
 
   it('carries every column the participant and presenter screens read', () => {
-    // The reveal, the answer panel, the timer, moderation, the survey sub-questions
-    // and the branding all come off this one read.
+    // The reveal flag, the timer, moderation, the survey sub-questions and the
+    // branding all come off this one read.
     for (const col of [
       'id', 'event_id', 'question', 'type', 'is_quiz', 'position',
       'answer_revealed', 'results_visible', 'needs_moderation', 'survey_questions',
       'timer_ends_at', 'presenter_notes', 'curriculum_tags', 'cover_url', 'cover_meta',
-      // still read today; stage B moves these behind poll_answer_key() and they
-      // come out of this list then, not before
-      'blanks', 'correct_answer', 'answer_explanation',
     ]) {
       expect(pollCols, col).toContain(col);
+    }
+  });
+
+  it('does not carry the answer key', () => {
+    // These are what poll_answer_key() and participant_blanks() hand out instead,
+    // and only once the host has revealed. Leaving them in this list would not
+    // merely undo that: the REVOKE in SUPABASE_ANSWER_KEY_SCOPED.sql turns a
+    // named-but-unreadable column into a 42501 that fails the entire fetch, which
+    // is a blank screen for every participant rather than a missing answer.
+    for (const col of ['blanks', 'correct_answer', 'answer_explanation', 'embedding']) {
+      expect(pollCols, col).not.toContain(col);
     }
   });
 
@@ -46,6 +54,12 @@ describe('pollColumns', () => {
     for (const col of ['id', 'poll_id', 'text', 'votes', 'label', 'is_approved']) {
       expect(optionCols, col).toContain(col);
     }
+  });
+
+  it('does not carry the quiz answer sheet', () => {
+    // quiz_verdict() returns the verdict and the correct option id, and only to a
+    // session that has a votes row for that activity.
+    expect(optionCols).not.toContain('is_correct');
   });
 
   it('embeds options inside the polls select', () => {
