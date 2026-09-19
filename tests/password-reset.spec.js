@@ -3,6 +3,20 @@ import { test, expect } from '@playwright/test';
 
 const BASE = process.env.BASE_URL || 'https://slidea.mismath.net';
 
+// The control that switches the login modal to its reset form.
+//
+// This was `locator('text=/Заборав|forgot/i').first()`, which also matches the
+// landing page's own marketing copy — EducationSection says "Направи ја секоја
+// лекција незаборавна", and незаборавна contains заборав. Landing is lazy, so
+// whether that paragraph existed yet when the click landed was a race: when it
+// did, `.first()` resolved to it, the modal's own overlay intercepted the click,
+// and the test timed out. Faster page loads make the losing side of that race
+// more likely, not less.
+//
+// Scoped to the button by role and exact name, so nothing outside the modal can
+// match it.
+const forgotButton = (page) => page.getByRole('button', { name: 'Заборавена лозинка?' });
+
 test.describe('Password reset flow', () => {
   test('PWR-01 — login modal opens from home page', async ({ page }) => {
     await page.goto(BASE + '/?login=1');
@@ -12,14 +26,14 @@ test.describe('Password reset flow', () => {
   test('PWR-02 — "forgot password" link is visible in login modal', async ({ page }) => {
     await page.goto(BASE + '/?login=1');
     await expect(page.locator('input[type="email"]').first()).toBeVisible({ timeout: 10000 });
-    const forgotLink = page.locator('text=/Заборав|forgot|Ресет/i').first();
-    await expect(forgotLink).toBeVisible();
+    const forgot = forgotButton(page);
+    await expect(forgot).toBeVisible();
   });
 
   test('PWR-03 — clicking forgot password shows email input for reset', async ({ page }) => {
     await page.goto(BASE + '/?login=1');
     await expect(page.locator('input[type="email"]').first()).toBeVisible({ timeout: 10000 });
-    await page.locator('text=/Заборав|forgot/i').first().click();
+    await forgotButton(page).click();
     await page.waitForTimeout(400);
     // Reset form should have an email input visible
     await expect(page.locator('input[type="email"]').first()).toBeVisible();
@@ -28,7 +42,7 @@ test.describe('Password reset flow', () => {
   test('PWR-04 — entering email and submitting shows success/sent state', async ({ page }) => {
     await page.goto(BASE + '/?login=1');
     await expect(page.locator('input[type="email"]').first()).toBeVisible({ timeout: 10000 });
-    await page.locator('text=/Заборав|forgot/i').first().click();
+    await forgotButton(page).click();
     await page.waitForTimeout(400);
     await page.locator('input[type="email"]').first().fill('test_nonexistent_user@example.com');
     await page.locator('button[type="submit"]').first().click();

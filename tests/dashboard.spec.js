@@ -100,7 +100,12 @@ test.describe('Dashboard', () => {
     await clientNavigate(page, '/dashboard');
     await clickTab(page, 'Профил');
     const deleteLink = page.locator('a:has-text("Барај бришење")').first();
-    await expect(deleteLink).toBeVisible();
+    // 20s, not the 5s default. clickTab waits a fixed 500ms and the Profile tab
+    // then fetches the profile row before it renders anything; with four workers
+    // driving production at once that occasionally overran 5s and this failed
+    // while passing on its own. Polling costs nothing when the element is
+    // already there, so the longer bound only helps.
+    await expect(deleteLink).toBeVisible({ timeout: 20_000 });
     const href = await deleteLink.getAttribute('href');
     expect(href).toMatch(/^mailto:support@mismath\.net/);
     expect(href).toContain('бришење');
