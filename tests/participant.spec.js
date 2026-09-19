@@ -195,6 +195,38 @@ test.describe('Participant — Voting Interactions', () => {
     await ctx.close();
     await hostCtx.close();
   });
+
+  test('P-16: A question a participant asks actually reaches the list', async ({ browser }) => {
+    // Nothing covered this, and the feature had been 100% dead for the whole
+    // life of the app: questions.session_id did not exist in the database, so
+    // the insert was refused with 42703 on every submission, the error went to
+    // a console.error, and the input was cleared as though it had been sent.
+    // Zero rows in questions across 242 events — with a green suite, because no
+    // test ever typed into the box.
+    const { code, hostCtx } = await liveEventWith(browser, {
+      base: BASE, email: EMAIL, password: PASSWORD, type: 'poll',
+      question: 'Што предавате?', options: ['Математика', 'Физика'],
+    });
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    await joinEvent(page, BASE, code, 'Тест Прашање');
+    await expect(page.locator('#poll-question')).toContainText('Што предавате', { timeout: 30_000 });
+
+    const asked = 'Зошто е важен редоследот на операциите?';
+    const box = page.locator('input[placeholder="Што те интересира?"]');
+    await expect(box).toBeVisible({ timeout: 20_000 });
+    await box.fill(asked);
+    // Enter submits; the send button is icon-only with no accessible name.
+    await box.press('Enter');
+
+    // The list is fed by the questions realtime channel, which only delivers
+    // because the table is in the publication — so this asserts the write landed
+    // and the row came back, not merely that the field was cleared.
+    await expect(page.locator('p', { hasText: asked }).first()).toBeVisible({ timeout: 30_000 });
+
+    await ctx.close();
+    await hostCtx.close();
+  });
 });
 
 test.describe('Participant — Scoreboard', () => {

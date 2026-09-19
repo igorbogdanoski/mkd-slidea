@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Hash, PieChart, MessageSquare, Send, ThumbsUp, Trophy, CheckCircle2, XCircle, Star, GripVertical, BarChart2, Bell, BellOff, WifiOff, Wifi } from 'lucide-react';
+import { Hash, PieChart, MessageSquare, Send, ThumbsUp, Trophy, CheckCircle2, XCircle, Star, GripVertical, BarChart2, Bell, BellOff, WifiOff, Wifi, Clock } from 'lucide-react';
 import { useEventStore } from '../lib/store';
 import PoweredByBadge from '../components/PoweredByBadge';
 import ParticipantCaptions from '../components/ParticipantCaptions';
@@ -24,6 +24,7 @@ const Participant = ({
   questions,
   activePollIndex,
   userVoted,
+  answerNotSent = false,
   quizResult,
   voteError,
   resultsVisible = true,
@@ -474,6 +475,20 @@ const Participant = ({
                       <Trophy className="w-4 h-4" /> Погледни го скорбордот
                     </a>
                   </>
+                ) : answerNotSent ? (
+                  // The timer ran out on someone who never answered. Telling
+                  // them "Ви благодариме, одговорот е испратен" — which is what
+                  // this slot said before — is the one thing that guarantees
+                  // they will not tell the teacher something went missing.
+                  <div className="py-12 text-center space-y-4">
+                    <div className="bg-amber-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto">
+                      <Clock className="w-10 h-10 text-amber-500" />
+                    </div>
+                    <p className="text-xl font-black text-slate-800">Времето истече</p>
+                    <p className="text-slate-500 font-bold">
+                      Не стигна да одговориш на оваа активност. Следната те чека.
+                    </p>
+                  </div>
                 ) : (
                   <div className="py-12 text-center space-y-4">
                     <div className="bg-emerald-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto">
@@ -599,8 +614,20 @@ const Participant = ({
                     )}
                   </div>
                 ) : currentPoll.type === 'rating' ? (
+                  // One star per stored option, not a hardcoded five.
+                  // submitRating maps a tap positionally onto options[val - 1]
+                  // and clamps to the last one, so on a scale of any other
+                  // length the high stars silently counted the top real option:
+                  // a three-point activity recorded every 4 and every 5 as a 3,
+                  // and the average on the projector was wrong with nothing
+                  // anywhere to say why.
+                  (currentPoll.options || []).length === 0 ? (
+                    <div className="w-full p-6 rounded-3xl border-2 border-dashed border-amber-200 bg-amber-50 text-amber-900 font-bold text-center">
+                      Оваа активност сè уште нема скала за оценување. Почекајте го водителот.
+                    </div>
+                  ) : (
                   <div className="flex justify-center gap-4 py-8">
-                    {[1, 2, 3, 4, 5].map((star) => (
+                    {Array.from({ length: currentPoll.options.length }, (_, i) => i + 1).map((star) => (
                       <button
                         key={star}
                         onClick={() => {
@@ -609,7 +636,7 @@ const Participant = ({
                           submitRating(star);
                         }}
                         onMouseEnter={() => !userVoted && setRating(star)}
-                        aria-label={`Оцени ${star} од 5`}
+                        aria-label={`Оцени ${star} од ${currentPoll.options.length}`}
                         aria-pressed={star <= rating}
                         className="transition-transform active:scale-90"
                       >
@@ -627,6 +654,7 @@ const Participant = ({
                       </button>
                     ))}
                   </div>
+                  )
                 ) : currentPoll.type === 'ranking' ? (
                   <div className="space-y-4">
                     <p className="text-sm font-bold text-slate-500">Постави ги во редослед по важност — на прво место ставете го најважното.</p>

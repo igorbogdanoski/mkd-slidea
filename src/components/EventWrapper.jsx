@@ -528,6 +528,11 @@ const EventWrapper = ({ type, username, setUsername }) => {
       questions={questions}
       activePollIndex={activePollIndex}
       userVoted={userVoted || isVoting || timerExpired}
+      // The line above locks the input when the timer runs out, which is right.
+      // It also put every non-voter on the "Ви благодариме! … Вашиот одговор е
+      // успешно испратен" screen — a student who never answered was told they
+      // had, in the one moment they were most likely to believe it.
+      answerNotSent={timerExpired && !userVoted}
       quizResult={quizResult}
       voteError={voteError}
       resultsVisible={resultsVisible}

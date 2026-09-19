@@ -230,9 +230,15 @@ export const useEvent = (eventCode, username) => {
       .channel(`presence:${event.id}`, { config: { presence: { key: getSessionId() } } })
       .on('presence', { event: 'sync' }, () => {
         const state = presenceNavChannel.presenceState();
-        setPresence(Object.keys(state).length);
-
         const allMeta = Object.values(state).flat();
+
+        // The host tracks on this same channel, with role:'host'. Counting every
+        // key put the teacher in their own audience: "N во живо" on every phone
+        // was one higher than the number of people who could answer, and the
+        // projector's "N/M одговориле" — whose denominator this feeds — could
+        // never reach 100% in a room where everyone had responded.
+        setPresence(allMeta.filter((m) => m?.role !== 'host').length);
+
         const hostMeta = allMeta
           .filter((m) => m?.role === 'host' && m?.active_poll_id)
           .sort((a, b) => new Date(b.online_at || 0).getTime() - new Date(a.online_at || 0).getTime())[0];
