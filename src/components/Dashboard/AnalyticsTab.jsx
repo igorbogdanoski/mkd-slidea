@@ -10,6 +10,7 @@ import {
   Tooltip, ResponsiveContainer, PieChart, Pie, Cell
 } from 'recharts';
 import { supabase } from '../../lib/supabase';
+import { OPTION_COLUMNS } from '../../lib/pollColumns';
 
 const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#06b6d4'];
 
@@ -230,7 +231,7 @@ const AnalyticsTab = ({ user }) => {
 
       const { data: polls } = await supabase
         .from('polls')
-        .select('id, question, type, options(*)')
+        .select(`id, question, type, options(${OPTION_COLUMNS})`)
         .eq('event_id', aiEventId);
 
       if (!polls?.length) {
