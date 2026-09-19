@@ -240,9 +240,21 @@ const AnalyticsTab = ({ user }) => {
       }
 
       const pollIds = polls.map(p => p.id);
+      // There is no votes.option_index column — measured against the live
+      // database, it answers 42703. Asking for it made this whole read fail,
+      // `votes` came back null, and the AI was then handed a deck where every
+      // option had zero responses and every quiz a null accuracy. It answered
+      // confidently about a lesson it had been told nothing about, and nothing
+      // on screen said the data was missing.
+      //
+      // What the row does carry is answer_text, which deriveAnswer() fills with
+      // the chosen option's own text, and is_correct, which it fills from the
+      // answer key. Matching on text recovers the per-option counts, and
+      // is_correct is a more direct source for accuracy than looking the option
+      // up again.
       const { data: votes } = await supabase
         .from('votes')
-        .select('poll_id, option_index, session_id')
+        .select('poll_id, answer_text, is_correct, session_id')
         .in('poll_id', pollIds);
 
       const allSessions = new Set((votes || []).map(v => v.session_id));
@@ -257,7 +269,10 @@ const AnalyticsTab = ({ user }) => {
         const options = p.options || [];
 
         const optCount = {};
-        pVotes.forEach(v => { if (v.option_index != null) optCount[v.option_index] = (optCount[v.option_index] || 0) + 1; });
+        pVotes.forEach(v => {
+          const idx = options.findIndex(o => o.text === v.answer_text);
+          if (idx >= 0) optCount[idx] = (optCount[idx] || 0) + 1;
+        });
 
         const topAnswers = options.map((opt, idx) => ({
           text: opt.text || `Опција ${idx + 1}`,
@@ -267,7 +282,7 @@ const AnalyticsTab = ({ user }) => {
 
         let quizAccuracy = null;
         if (isQuiz && totalVotes > 0) {
-          const correct = pVotes.filter(v => options[v.option_index]?.is_correct).length;
+          const correct = pVotes.filter(v => v.is_correct).length;
           quizAccuracy = Math.round((correct / totalVotes) * 100);
         }
 

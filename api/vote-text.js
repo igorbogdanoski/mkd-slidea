@@ -13,7 +13,19 @@ import { getClientIp, checkRateLimit } from './_lib/rateLimit.js';
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const RATE_LIMIT = 20;
+// Per IP, not per participant — and a whole class sits behind one school NAT,
+// so this bucket is shared by every phone in the room. At 20/min a word cloud
+// put through by 30 students inside half a minute refused the last third of
+// them, and each refusal used to be a dead end: the vote had already been
+// claimed, so retrying answered "Веќе гласавте". The client now queues and
+// replays a refused text vote, but the word still reaches the wall a minute
+// late, which in a live lesson means after the teacher has moved on.
+//
+// 200/min leaves a real class unreachable by the limit while still bounding a
+// solo abuser to ~3 requests a second against an endpoint that writes with the
+// service role. Submissions of the same word merge in upsert_text_option, so
+// the damage from one that gets through is a count, not a row per request.
+const RATE_LIMIT = 200;
 const RATE_WINDOW_MS = 60 * 1000;
 
 export default async function handler(req) {

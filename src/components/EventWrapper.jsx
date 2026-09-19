@@ -7,7 +7,8 @@ import Presenter from '../views/Presenter';
 import Participant from '../views/Participant';
 import { useEventStore } from '../lib/store';
 import { supabase } from '../lib/supabase';
-import { queueVote, flushQueue } from '../lib/offlineQueue';
+import { queueVote, flushQueue, scheduleFlush } from '../lib/offlineQueue';
+import { answerLimit } from '../lib/answerLimits';
 import { Lock, Eye, EyeOff } from 'lucide-react';
 import PoweredByBadge from './PoweredByBadge';
 
@@ -38,6 +39,39 @@ export function deriveAnswer(val, poll) {
   // Thrown before anything is counted, so a bad index costs nothing.
   if (!option) throw new Error('Invalid option selected');
   return { answerText: option.text, isCorrect: option.is_correct ?? null };
+}
+
+// The aggregate increments one answer needs — the same four branches
+// handleVote walks, but pure and network-free.
+//
+// handleVote cannot build this list itself in time: it claims the vote first,
+// and when the claim is what fails (the phone has no signal) nothing has been
+// pushed yet, so the queued item carried an empty `ops` and the replay wrote
+// the votes row while options.votes never moved. The answer was recorded and
+// counted nowhere — invisible on the projector, missing from the CSV.
+//
+// The text branch trims with answerLimit(type), matching what vote() sends to
+// /api/vote-text. It used to be a flat 300 here, which cut an open answer
+// queued offline to a third of the length the same answer submitted online.
+export function voteOpsFor(val, poll) {
+  // Fill-in-the-blanks: the responses are read, nothing is counted.
+  if (val && typeof val === 'object' && !Array.isArray(val)) return [];
+  if (typeof val === 'string') {
+    const clean = val.replace(/<[^>]+>/g, '').trim().slice(0, answerLimit(poll?.type));
+    return clean ? [{ kind: 'text', pollId: poll?.id, text: clean }] : [];
+  }
+  if (Array.isArray(val)) {
+    // Ranking, Borda: the top pick gets N points, the last gets 1.
+    const n = val.length;
+    const ops = [];
+    for (let rank = 0; rank < n; rank++) {
+      const option = poll?.options?.[val[rank]];
+      if (option) ops.push({ kind: 'weighted', optionId: option.id, weight: n - rank });
+    }
+    return ops;
+  }
+  const option = poll?.options?.[val];
+  return option ? [{ kind: 'option', optionId: option.id }] : [];
 }
 
 // Retries a vote call a few times on Supabase's known auth-lock contention
@@ -100,6 +134,7 @@ const EventWrapper = ({ type, username, setUsername }) => {
   const isVotingRef = useRef(false);
   const [voteError, setVoteError] = useState(null);
   const [newQuestion, setNewQuestion] = useState('');
+  const [questionError, setQuestionError] = useState(null);
   const [pwdInput, setPwdInput] = useState('');
   const [pwdError, setPwdError] = useState(false);
   const [pwdVisible, setPwdVisible] = useState(false);
@@ -470,11 +505,20 @@ const EventWrapper = ({ type, username, setUsername }) => {
   const handleSubmitQuestion = async () => {
     const clean = String(newQuestion || '').replace(/<[^>]+>/g, '').trim();
     if (clean.length < 3) return;
+    // submitQuestion resolves with { data, error } rather than throwing, so the
+    // try/catch this used to sit in never fired: the input was cleared and the
+    // student was left believing the question was on its way to the teacher.
+    // For as long as questions.session_id did not exist in the database, every
+    // question anyone ever asked this way was rejected with 42703 and vanished.
+    // Keep the text when it fails, and say so.
     try {
-      await submitQuestion(clean, username || 'Анонимен');
+      const { error } = (await submitQuestion(clean, username || 'Анонимен')) || {};
+      if (error) throw error;
+      setQuestionError(null);
       setNewQuestion('');
     } catch (err) {
       console.error('Question submit failed:', err);
+      setQuestionError('Прашањето не се испрати. Обиди се повторно.');
     }
   };
 
@@ -497,10 +541,19 @@ const EventWrapper = ({ type, username, setUsername }) => {
         const sid = getSessionId();
         isVotingRef.current = true;
         try {
-          await submitSurvey(currentPoll.id, answers, sid);
+          // submitSurvey resolves with { data, error } — a refused policy or a
+          // dropped connection arrives in `error`, not as a throw. Reading only
+          // the throw let every failure fall through to markVoted: the
+          // participant saw "Ви благодариме!", the form locked, and nothing had
+          // been stored. The projector's panel stayed empty and nobody could
+          // tell whose fault it was.
+          const { error } = await submitSurvey(currentPoll.id, answers, sid);
+          if (error) throw error;
           markVoted(currentPoll.id);
+          setVoteError(null);
         } catch (err) {
           console.error('Survey submit failed:', err);
+          setVoteError('Анкетата не се испрати. Обидете се повторно.');
         } finally {
           isVotingRef.current = false;
         }
@@ -519,6 +572,17 @@ const EventWrapper = ({ type, username, setUsername }) => {
         // (ranking fires one call per option) only the missing ones get queued
         // for replay — see offlineQueue.js.
         const pendingOps = [];
+        // Whether claim_vote() got the votes row in. Decides what the catch
+        // below owes: before it, the whole answer still has to be cast; after
+        // it, only the aggregate does.
+        let claimLanded = false;
+        const sid = getSessionId();
+        // With multiple votes allowed each attempt needs its own row, or it
+        // would no-op against the previous vote via that same constraint. The
+        // queued row below has to carry the very same id: replaying under the
+        // bare session id would collide with a vote already cast, claim_vote
+        // would answer false, and the flush would read that as done.
+        const voteRowSid = event?.allow_multiple_votes ? `${sid}-${Date.now()}` : sid;
 
         try {
           let answerText = null;
@@ -546,10 +610,6 @@ const EventWrapper = ({ type, username, setUsername }) => {
           // that failed. The function performs the same INSERT … ON CONFLICT
           // DO NOTHING and returns whether a row was created, which is the
           // only thing this code needs to know.
-          const sid = getSessionId();
-          // With multiple votes allowed each attempt needs its own row, or it
-          // would no-op against the previous vote via that same constraint.
-          const voteRowSid = event?.allow_multiple_votes ? `${sid}-${Date.now()}` : sid;
           const { answerText: claimText, isCorrect: claimCorrect } = deriveAnswer(val, currentPoll);
 
           const { data: claimed, error: claimError } = await supabase.rpc('claim_vote', {
@@ -570,6 +630,10 @@ const EventWrapper = ({ type, username, setUsername }) => {
             setVoteError('Веќе гласавте на оваа активност.');
             return;
           }
+          // From here the votes row exists. Everything below only moves the
+          // aggregate, so a failure past this point is a debt the queue can
+          // repay — not a vote that has to be cast again. See the catch.
+          claimLanded = true;
 
           // Fill-in-the-blanks arrives as { blankId: answer, … }. It has to be
           // matched before the numeric branch below, which would otherwise
@@ -585,7 +649,7 @@ const EventWrapper = ({ type, username, setUsername }) => {
           } else if (typeof val === 'string') {
             answerText = val;
             // Mirrors the sanitising vote() applies before POSTing to /api/vote-text.
-            const cleanText = val.replace(/<[^>]+>/g, '').trim().slice(0, 300);
+            const cleanText = val.replace(/<[^>]+>/g, '').trim().slice(0, answerLimit(currentPoll.type));
             if (cleanText) pendingOps.push({ kind: 'text', pollId: currentPoll.id, text: cleanText });
             const textVoteRes = await withLockRetry(() => vote(null, currentPoll.id, val, false));
             if (textVoteRes?.error) throw textVoteRes.error;
@@ -639,37 +703,56 @@ const EventWrapper = ({ type, username, setUsername }) => {
           const isOffline = (typeof navigator !== 'undefined' && navigator.onLine === false)
             || /Failed to fetch|NetworkError|TypeError/i.test(msg);
 
-          if (isOffline) {
-            // Persist locally and replay when back online.
-            const currentPoll = polls[activePollIndex];
-            if (currentPoll) {
-              queueVote({
-                row: {
-                  poll_id: currentPoll.id,
-                  session_id: getSessionId(),
-                  username: username || 'Анонимен',
-                  // Same ordering rule as the online path: the fill_blanks
-                  // object has to be matched before the option-index branch,
-                  // or an answer written offline is queued as `null`.
-                  answer_text: (val && typeof val === 'object' && !Array.isArray(val))
-                    ? JSON.stringify(val).slice(0, 2000)
-                    : typeof val === 'string'
-                      ? val
-                      : Array.isArray(val)
-                        ? val.map((optIdx) => currentPoll.options?.[optIdx]?.text).filter(Boolean).join(' > ')
-                        : currentPoll.options?.[val]?.text ?? null,
-                  is_correct: (typeof val === 'object' || typeof val === 'string' || Array.isArray(val))
-                    ? null
-                    : (currentPoll.options?.[val]?.is_correct ?? null),
-                },
-                // Without these the queued vote would replay into `votes` but
-                // never reach options.votes — counted nowhere, charted nowhere.
-                ops: pendingOps,
-              });
-              markVoted(currentPoll.id);
-              setVoteError('Офлајн сте — гласот е зачуван и ќе се испрати кога ќе се поврзете.');
-              if (typeof window !== 'undefined') window.addEventListener('online', flushQueue, { once: true });
-            }
+          // The aggregate still owed. While the claim was in flight nothing has
+          // been pushed yet, so a failure there — the ordinary offline case —
+          // would queue an empty list: the replay wrote the votes row and
+          // options.votes never moved, leaving an answer that was recorded and
+          // counted nowhere. voteOpsFor derives the same increments purely.
+          const owedOps = pendingOps.length
+            ? pendingOps
+            : (claimLanded ? [] : voteOpsFor(val, currentPoll));
+
+          // Once the claim is in, the answer exists and this session cannot cast
+          // it again — a retry only ever earns "Веќе гласавте на оваа
+          // активност", and the aggregate is silently lost with it. So anything
+          // still owed is queued whatever the reason, not only when offline.
+          //
+          // The reason that made this necessary is not exotic. /api/vote-text
+          // rate limits per IP, and a whole class submits a word cloud from
+          // behind one school NAT inside a few seconds; everyone past the limit
+          // used to hit a dead end with their word missing from the wall.
+          if (isOffline || owedOps.length) {
+            queueVote({
+              row: {
+                poll_id: currentPoll.id,
+                session_id: voteRowSid,
+                username: username || 'Анонимен',
+                // Same ordering rule as the online path: the fill_blanks
+                // object has to be matched before the option-index branch,
+                // or an answer written offline is queued as `null`.
+                answer_text: (val && typeof val === 'object' && !Array.isArray(val))
+                  ? JSON.stringify(val).slice(0, 2000)
+                  : typeof val === 'string'
+                    ? val
+                    : Array.isArray(val)
+                      ? val.map((optIdx) => currentPoll.options?.[optIdx]?.text).filter(Boolean).join(' > ')
+                      : currentPoll.options?.[val]?.text ?? null,
+                is_correct: (typeof val === 'object' || typeof val === 'string' || Array.isArray(val))
+                  ? null
+                  : (currentPoll.options?.[val]?.is_correct ?? null),
+              },
+              // Without these the queued vote would replay into `votes` but
+              // never reach options.votes — counted nowhere, charted nowhere.
+              ops: owedOps,
+            });
+            markVoted(currentPoll.id);
+            setVoteError(isOffline
+              ? 'Офлајн сте — гласот е зачуван и ќе се испрати кога ќе се поврзете.'
+              : 'Одговорот е зачуван, а бројењето ќе се испрати за неколку секунди. Не ја освежувајте страницата.');
+            if (typeof window !== 'undefined') window.addEventListener('online', flushQueue, { once: true });
+            // Online and still owed — a rate limit or a transient RPC failure.
+            // No `online` event will come, so ask the queue to try again.
+            if (!isOffline) scheduleFlush();
           } else {
             console.error('Vote failed:', err);
             setVoteError('Гласањето не успеа. Обидете се повторно.');
@@ -683,6 +766,7 @@ const EventWrapper = ({ type, username, setUsername }) => {
       sendReaction={sendReaction}
       newQuestion={newQuestion}
       setNewQuestion={setNewQuestion}
+      questionError={questionError}
       submitQuestion={handleSubmitQuestion}
       username={username}
       setUsername={setUsername}

@@ -23,6 +23,7 @@ const ProfileTab = ({ user }) => {
   const [savedAt, setSavedAt] = useState(0);
   const [error, setError] = useState('');
   const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState('');
 
   useEffect(() => {
     if (!user?.id) return;
@@ -64,15 +65,23 @@ const ProfileTab = ({ user }) => {
   const exportData = async () => {
     if (!user?.id || exporting) return;
     setExporting(true);
+    setExportError('');
     try {
-      const { data: events } = await supabase.from('events').select('id, title, code, created_at').eq('user_id', user.id);
+      const { data: events, error: eventsError } = await supabase.from('events').select('id, title, code, created_at').eq('user_id', user.id);
+      if (eventsError) throw eventsError;
       if (!events?.length) { setExporting(false); return; }
       const eventIds = events.map(e => e.id);
       const { data: polls } = await supabase.from('polls').select('id, event_id, question, type').in('event_id', eventIds);
       const pollIds = polls?.map(p => p.id) || [];
-      const { data: votes } = pollIds.length
-        ? await supabase.from('votes').select('poll_id, option_index, session_id, created_at').in('poll_id', pollIds)
-        : { data: [] };
+      // answer_text, not option_index. There is no option_index column — the
+      // live database answers 42703 for it — so this read failed outright and
+      // the export below produced an events file and no votes file, silently.
+      // For a data-subject request that is the worst shape of failure: the
+      // teacher believes they handed over everything they hold.
+      const { data: votes, error: votesError } = pollIds.length
+        ? await supabase.from('votes').select('poll_id, answer_text, session_id, created_at').in('poll_id', pollIds)
+        : { data: [], error: null };
+      if (votesError) throw votesError;
 
       // Events CSV
       downloadCSV(`mkd-slidea-events-${new Date().toISOString().slice(0,10)}.csv`, [
@@ -86,16 +95,19 @@ const ProfileTab = ({ user }) => {
         const eventMap = Object.fromEntries(events.map(e => [e.id, e]));
         setTimeout(() => {
           downloadCSV(`mkd-slidea-votes-${new Date().toISOString().slice(0,10)}.csv`, [
-            ['Настан', 'Прашање', 'Тип', 'Индекс на опција', 'Сесија', 'Датум'],
+            ['Настан', 'Прашање', 'Тип', 'Одговор', 'Сесија', 'Датум'],
             ...(votes || []).map(v => {
               const poll = pollMap[v.poll_id];
               const ev = poll ? eventMap[poll.event_id] : null;
-              return [ev?.title || '', poll?.question || '', poll?.type || '', v.option_index, v.session_id, v.created_at];
+              return [ev?.title || '', poll?.question || '', poll?.type || '', v.answer_text, v.session_id, v.created_at];
             }),
           ]);
         }, 600);
       }
-    } catch { /* ignore */ }
+    } catch (err) {
+      console.error('Data export failed:', err);
+      setExportError('Извозот не успеа. Обиди се повторно, или пиши на support@mismath.net.');
+    }
     setExporting(false);
   };
 
@@ -265,6 +277,9 @@ const ProfileTab = ({ user }) => {
             <Trash2 className="w-4 h-4" /> Барај бришење на сметка
           </a>
         </div>
+        {exportError && (
+          <p className="text-sm text-red-600 font-bold mt-4" role="alert">{exportError}</p>
+        )}
         <p className="text-xs text-slate-400 font-medium mt-4">
           Барањето за бришење ќе биде обработено во рок од 30 дена согласно GDPR.
         </p>

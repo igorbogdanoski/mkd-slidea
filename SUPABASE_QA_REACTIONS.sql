@@ -1,6 +1,20 @@
 -- ============================================================================
 -- ФАЗА 8.3.1 + 8.3.2 — Q&A upvote stream + Emoji reactions
 -- ----------------------------------------------------------------------------
+-- !! NEVER APPLIED. Found 2026-09-19: questions.session_id did not exist, nor
+-- !! did the question_upvotes table, nor events.is_qa_enabled — while
+-- !! is_pinned / is_hidden / answered_at did, from section 3 of
+-- !! SUPABASE_ALL_MISSING_COLUMNS.sql. So three of the four columns this file
+-- !! adds to questions were there and the fourth was not, which is why nothing
+-- !! ever looked half-finished.
+-- !!
+-- !! The consequence was that submitQuestion() named session_id in its insert
+-- !! and was rejected with 42703 on every call: 0 questions across all 242
+-- !! events. The gap is closed by SUPABASE_QA_MISSING_COLUMNS.sql, applied
+-- !! 2026-09-19 — prefer that file. Running this one now would also replace
+-- !! questions_public_insert with a version that reads events.is_qa_enabled,
+-- !! which is harmless today but is a second change nobody needs.
+-- ----------------------------------------------------------------------------
 -- ВАЖНО: го НАДОГРАДУВА постоечкиот `questions` (од SUPABASE_SETUP.sql),
 -- НЕ создава нова табела. Така постоечкиот код во useEvent/Presenter
 -- продолжува да работи без break-аже.

@@ -259,9 +259,14 @@ export const useEvent = (eventCode, username) => {
     const syncInterval = setInterval(async () => {
       try {
         if (Date.now() - lastRealtimeNavAtRef.current < 8000) return;
+        // ended_at travels with is_locked on purpose. The lock screen below
+        // tells "paused" from "finished" by that column alone, and this
+        // fallback is exactly the path a phone reaches when it was asleep for
+        // the update — the one participant who most needs to be told the
+        // lesson is over was the one told it was merely paused.
         const { data } = await supabase
           .from('events')
-          .select('active_poll_id, is_locked')
+          .select('active_poll_id, is_locked, ended_at')
           .eq('id', event.id)
           .single();
         if (!data) return;
@@ -274,7 +279,12 @@ export const useEvent = (eventCode, username) => {
           setEvent(prev => {
             if (!prev) return prev;
             if (String(prev.active_poll_id || '') === nextId) return prev;
-            return { ...prev, active_poll_id: data.active_poll_id, is_locked: data.is_locked };
+            return {
+              ...prev,
+              active_poll_id: data.active_poll_id,
+              is_locked: data.is_locked,
+              ended_at: data.ended_at,
+            };
           });
         }
       } catch {
@@ -432,9 +442,12 @@ export const useEvent = (eventCode, username) => {
 
   const refetchLockState = useCallback(async () => {
     if (!event?.id) return;
+    // ended_at as well: this is the wake path, and a phone that was asleep
+    // through the end of a lesson has to come back to "завршена", not to
+    // "паузирано" — the two are told apart by that column and nothing else.
     const { data } = await supabase
       .from('events')
-      .select('is_locked, active_poll_id')
+      .select('is_locked, active_poll_id, ended_at')
       .eq('id', event.id)
       .single();
     if (data) setEvent((prev) => (prev ? { ...prev, ...data } : prev));

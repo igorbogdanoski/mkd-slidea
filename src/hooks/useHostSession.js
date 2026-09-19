@@ -246,13 +246,16 @@ export const useHostSession = (user) => {
     } catch { /* push is best-effort */ }
   };
 
-  const setActivePoll = async (index) => {
-    const nextPoll = polls[index];
+  // Activates a poll the caller already has in hand. Split out of setActivePoll
+  // because deleting the active card is the one case where the array the index
+  // refers to is not `polls` any more — reading it from the closure there picks
+  // the wrong neighbour once realtime has refetched.
+  const activatePoll = async (nextPoll, index, total) => {
     if (!nextPoll) return;
 
     setActivePollIndex(index);
     setEvent((prev) => (prev ? { ...prev, active_poll_id: nextPoll.id } : prev));
-    announce(`Активна активност ${index + 1} од ${polls.length}: ${nextPoll.question || 'без наслов'}`);
+    announce(`Активна активност ${index + 1} од ${total}: ${nextPoll.question || 'без наслов'}`);
 
     sendPushToParticipants(nextPoll);
 
@@ -305,6 +308,8 @@ export const useHostSession = (user) => {
       if (!ok) alert('Синхронизацијата со учесниците не успеа. Освежи ја страницата за да провериш дека сите гледаат исто прашање.');
     });
   };
+
+  const setActivePoll = (index) => activatePoll(polls[index], index, polls.length);
 
   const goNext = () => { if (activePollIndex < polls.length - 1) setActivePoll(activePollIndex + 1); };
   const goPrev = () => { if (activePollIndex > 0) setActivePoll(activePollIndex - 1); };
@@ -505,15 +510,37 @@ export const useHostSession = (user) => {
   };
 
   const onDeletePoll = async (pollId) => {
-    if (window.confirm('Дали сте сигурни дека сакате да ја избришете оваа активност?')) {
-      const isActive = polls[activePollIndex]?.id === pollId;
-      await supabase.from('polls').delete().eq('id', pollId);
-      if (isActive && polls.length > 1) {
-        // Navigate away before realtime removes it from the array
-        const safeIndex = activePollIndex > 0 ? activePollIndex - 1 : 1;
-        setActivePoll(safeIndex);
-      }
+    if (!window.confirm('Дали сте сигурни дека сакате да ја избришете оваа активност?')) return;
+    const isActive = polls[activePollIndex]?.id === pollId;
+    // The deck as it will read once the delete lands. Resolving the replacement
+    // against `polls` is what left the room a card off whenever the deleted
+    // activity was the first: every index below it shifts down, so a local
+    // index of 1 pointed at the third card while the database named the second.
+    const remaining = polls.filter((p) => p.id !== pollId);
+    await supabase.from('polls').delete().eq('id', pollId);
+    if (!isActive) return;
+
+    if (remaining.length === 0) {
+      // Clearing the pointer matters more than it looks. onSavePoll only
+      // auto-activates a new activity when active_poll_id is empty, so leaving
+      // a deleted id there meant the next card the host created never reached
+      // the room — it sat on the waiting screen with nothing to say why.
+      setEvent((prev) => (prev ? { ...prev, active_poll_id: null } : prev));
+      setActivePollIndex(0);
+      const { error } = await supabase
+        .from('events')
+        .update({ active_poll_id: null })
+        .eq('id', event.id);
+      if (error) console.warn('Could not clear the active activity:', error.message);
+      return;
     }
+
+    // Step back onto the previous card when there is one, exactly as before;
+    // the difference is that the index now means the same thing in `remaining`
+    // as it did in `polls`, because nothing below the deleted card moved.
+    const nextIndex = activePollIndex > 0 ? activePollIndex - 1 : 0;
+    setPolls(remaining);
+    await activatePoll(remaining[nextIndex], nextIndex, remaining.length);
   };
 
   const onDuplicatePoll = async (poll) => {

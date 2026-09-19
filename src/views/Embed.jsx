@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle } from 'lucide-react';
 import { useEvent } from '../hooks/useEvent';
 import { supabase } from '../lib/supabase';
+import { queueVote, scheduleFlush } from '../lib/offlineQueue';
 
 const getSessionId = () => {
   let sid = localStorage.getItem('mkd_session_id');
@@ -69,10 +70,15 @@ const Embed = () => {
 
   const handleVote = async (optionIndex) => {
     if (voted || isVoting || !currentPoll) return;
+    const option = currentPoll.options?.[optionIndex];
+    if (!option) return;
     setIsVoting(true);
     setVoteError('');
+    // Whether claim_vote() got the audit row in. Past that point the answer
+    // exists and this session cannot cast it again, so a failure is a debt the
+    // queue can repay rather than a vote to retry.
+    let claimLanded = false;
     try {
-      const option = currentPoll.options[optionIndex];
       const sid = getSessionId();
       // Claim before counting, the same way the main participant view does.
       // This used to call vote() first and record afterwards with the conflict
@@ -87,10 +93,34 @@ const Embed = () => {
       });
       if (claimError) throw claimError;
       if (claimed === false) { setVoted(true); return; }
-      await vote(option.id);
+      claimLanded = true;
+      // vote() resolves with { error } rather than throwing. Reading only the
+      // throw let an uncounted increment fall through to setVoted(true): the
+      // widget locked, options.votes never moved, and the claim row already in
+      // place meant a second tap only earned "already voted".
+      const { error: incError } = await vote(option.id);
+      if (incError) throw incError;
       setVoted(true);
-    } catch {
-      setVoteError('Гласањето не успеа.');
+    } catch (err) {
+      console.error('Embed vote failed:', err);
+      if (claimLanded) {
+        // Only the increment is owed — replaying claim_vote finds the row and
+        // answers false, which flushQueue correctly reads as done.
+        queueVote({
+          row: {
+            poll_id: currentPoll.id,
+            session_id: getSessionId(),
+            username: 'Анонимен',
+            answer_text: option.text ?? null,
+            is_correct: option.is_correct ?? null,
+          },
+          ops: [{ kind: 'option', optionId: option.id }],
+        });
+        setVoted(true);
+        scheduleFlush();
+      } else {
+        setVoteError('Гласањето не успеа.');
+      }
     } finally {
       setIsVoting(false);
     }

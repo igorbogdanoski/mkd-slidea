@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Pause, Play } from 'lucide-react';
+import { Pause, Play, CheckCircle2 } from 'lucide-react';
 
 // ─── Small overlays: presenter notes / countdown / pause banner ───────────────
 const PresenterOverlays = ({ showNotes, setShowNotes, currentPoll, timerRemaining, event, onToggleLock, handleToggleLock }) => (
@@ -62,24 +62,41 @@ const PresenterOverlays = ({ showNotes, setShowNotes, currentPoll, timerRemainin
       )}
     </AnimatePresence>
 
-    {/* Pause overlay banner */}
+    {/* Pause / ended overlay banner.
+        EventWrapper returns the Presenter before it ever reaches the lock
+        screen the participant gets, so without this the projector kept showing
+        a live question after the host pressed Заврши — the room read "session
+        over" on their phones while the board still invited them to answer.
+        ended_at is what separates the two states, exactly as it does on the
+        participant's screen. */}
     <AnimatePresence>
       {event?.is_locked && (
         <motion.div
           initial={{ y: -60, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -60, opacity: 0 }}
-          className="fixed top-0 left-0 right-0 z-[70] flex items-center justify-center gap-4 py-3 bg-red-600 text-white font-bold text-sm uppercase tracking-widest"
+          className={`fixed top-0 left-0 right-0 z-[70] flex items-center justify-center gap-4 py-3 text-white font-bold text-sm uppercase tracking-widest ${
+            event.ended_at ? 'bg-emerald-600' : 'bg-red-600'
+          }`}
         >
-          <Pause className="w-4 h-4" />
-          Гласањето е паузирано — учесниците не можат да гласаат
-          {onToggleLock && (
-            <button
-              onClick={handleToggleLock}
-              className="ml-4 px-4 py-1 bg-white text-red-600 rounded-xl text-xs font-semibold hover:bg-red-50 transition-all"
-            >
-              <Play className="w-3 h-3 inline mr-1" /> Продолжи
-            </button>
+          {event.ended_at ? (
+            <>
+              <CheckCircle2 className="w-4 h-4" />
+              Сесијата е завршена — учесниците ја гледаат завршната порака
+            </>
+          ) : (
+            <>
+              <Pause className="w-4 h-4" />
+              Гласањето е паузирано — учесниците не можат да гласаат
+              {onToggleLock && (
+                <button
+                  onClick={handleToggleLock}
+                  className="ml-4 px-4 py-1 bg-white text-red-600 rounded-xl text-xs font-semibold hover:bg-red-50 transition-all"
+                >
+                  <Play className="w-3 h-3 inline mr-1" /> Продолжи
+                </button>
+              )}
+            </>
           )}
         </motion.div>
       )}
