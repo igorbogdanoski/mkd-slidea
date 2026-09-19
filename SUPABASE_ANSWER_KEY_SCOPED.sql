@@ -206,11 +206,13 @@ GRANT EXECUTE ON FUNCTION public.poll_accuracy(UUID) TO anon, authenticated;
 --   quiz_verdict for a session that never did → 0 rows
 --   verdicts disagreeing with options.is_correct, across all 19 quiz votes → 0
 --
--- Section 4 is NOT applied. It waits on the client rewiring listed below.
+-- Section 4 has been APPLIED — it lives in SUPABASE_ANSWER_KEY_REVOKE.sql, which
+-- records the verification and the rollback. Everything below is the state the
+-- client was in when these functions were written; the rewiring it lists is done.
 --
--- ── What is left before section 4 can run ──────────────────────────────────
--- The key is still in src/lib/pollColumns.js, so every one of these still reads
--- it straight off the poll object and would break on a revoke:
+-- ── The rewiring section 4 waited on — all done ────────────────────────────
+-- Each of these read the key straight off the poll object, and each would have
+-- broken on a revoke. Kept as the record of what a change like this touches:
 --
 --   src/components/AnswerReveal.jsx        → poll_answer_key
 --   src/components/FillBlanksInput.jsx     → participant_blanks
