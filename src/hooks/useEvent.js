@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase, warmUp } from '../lib/supabase';
 import { answerLimit } from '../lib/answerLimits';
+import { POLLS_WITH_OPTIONS } from '../lib/pollColumns';
 import { pipelineQuestions } from '../lib/questionsCore';
 import { useEventStore } from '../lib/store';
 
@@ -31,9 +32,12 @@ export const useEvent = (eventCode, username) => {
   const reactionTimeoutsRef = useRef(new Set());
 
   const fetchPolls = useCallback(async (eventId) => {
+    // Named columns, not `*`: the wildcard pulled polls.embedding, a 1536-float
+    // vector no screen reads, and this runs on every vote in the room. See
+    // src/lib/pollColumns.js for the measurement.
     const { data } = await supabase
       .from('polls')
-      .select('*, options(*)')
+      .select(POLLS_WITH_OPTIONS)
       .eq('event_id', eventId)
       .order('position', { ascending: true })
       .order('created_at', { ascending: true });

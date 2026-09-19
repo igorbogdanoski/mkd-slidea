@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Download, BarChart2, Cloud, Star, AlignLeft, ListOrdered, Trophy } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { supabase } from '../../lib/supabase';
+import { POLLS_WITH_OPTIONS } from '../../lib/pollColumns';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 const PALETTE = ['#6366f1','#8b5cf6','#10b981','#f59e0b','#ef4444','#06b6d4'];
@@ -152,7 +153,7 @@ const EventResultsModal = ({ event, onClose }) => {
     const load = async () => {
       const { data } = await supabase
         .from('polls')
-        .select('*, options(*)')
+        .select(POLLS_WITH_OPTIONS)
         .eq('event_id', event.id)
         .order('created_at', { ascending: true });
       setPolls(data || []);
