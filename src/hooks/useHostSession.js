@@ -79,6 +79,7 @@ export const useHostSession = (user) => {
 
   useEffect(() => {
     const initEvent = async () => {
+      try {
       let eventCode = localStorage.getItem('active_event_code');
       if (!eventCode) {
         const { data, code, error } = await createEventWithRetry(user?.id);
@@ -114,7 +115,14 @@ export const useHostSession = (user) => {
           }
         }
       }
+    } finally {
+      // In a finally, not at the end of the try. Every branch above handles its
+      // own Supabase error by returning { data, error }, so this only fires on
+      // something that throws outright — localStorage over quota in private
+      // mode, track() — and the failure mode there was a spinner that never
+      // stopped and nothing on screen to say why.
       setLoading(false);
+    }
     };
     initEvent();
   }, []);
