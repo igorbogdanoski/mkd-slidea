@@ -19,26 +19,33 @@ const isLockErrorMsg = (msg) => String(msg || '').includes('lock:sb-');
 // any tally moves, so this cannot depend on a call that has already counted
 // something. The branches in handleVote produce the same strings — this stays
 // in step with them, and voteAnswer.test.js holds the two together.
+//
+// It returns the id of the chosen option, NOT whether that option is right.
+// Grading is claim_vote_graded's job, done against the key in the database:
+// options.is_correct is readable by anyone holding the public anon key, so a
+// verdict computed here was a verdict the caller supplied — and the scoreboard
+// counted it either way.
 export function deriveAnswer(val, poll) {
   // Fill-in-the-blanks arrives as { blankId: answer, … } and must be matched
   // before the numeric branch, which would read the object as an option index.
   if (val && typeof val === 'object' && !Array.isArray(val)) {
-    return { answerText: JSON.stringify(val).slice(0, 2000), isCorrect: null };
+    return { answerText: JSON.stringify(val).slice(0, 2000), optionId: null };
   }
   if (typeof val === 'string') {
-    return { answerText: val, isCorrect: null };
+    return { answerText: val, optionId: null };
   }
   if (Array.isArray(val)) {
-    // Ranking: the whole ordering, most preferred first.
+    // Ranking: the whole ordering, most preferred first. Not graded — a Borda
+    // ordering has no single right answer to check against.
     return {
       answerText: val.map((i) => poll?.options?.[i]?.text).filter(Boolean).join(' > '),
-      isCorrect: null,
+      optionId: null,
     };
   }
   const option = poll?.options?.[val];
   // Thrown before anything is counted, so a bad index costs nothing.
   if (!option) throw new Error('Invalid option selected');
-  return { answerText: option.text, isCorrect: option.is_correct ?? null };
+  return { answerText: option.text, optionId: option.id };
 }
 
 // The aggregate increments one answer needs — the same four branches
@@ -577,15 +584,19 @@ const EventWrapper = ({ type, username, setUsername }) => {
         // (ranking fires one call per option) only the missing ones get queued
         // for replay — see offlineQueue.js.
         const pendingOps = [];
-        // Whether claim_vote() got the votes row in. Decides what the catch
-        // below owes: before it, the whole answer still has to be cast; after
-        // it, only the aggregate does.
+        // Hoisted so the catch can queue exactly what the online path named,
+        // instead of re-deriving it with a second copy of deriveAnswer's branch
+        // order — the copy that used to be there is how an offline fill_blanks
+        // answer nearly got queued as `null`. Grading belongs to the database
+        // now, so this is an id and a string, not a verdict.
         let claimLanded = false;
+        let claimOptionId = null;
+        let claimText = null;
         const sid = getSessionId();
         // With multiple votes allowed each attempt needs its own row, or it
         // would no-op against the previous vote via that same constraint. The
         // queued row below has to carry the very same id: replaying under the
-        // bare session id would collide with a vote already cast, claim_vote
+        // bare session id would collide with a vote already cast, the claim
         // would answer false, and the flush would read that as done.
         const voteRowSid = event?.allow_multiple_votes ? `${sid}-${Date.now()}` : sid;
 
@@ -608,21 +619,29 @@ const EventWrapper = ({ type, username, setUsername }) => {
           //
           // Now the row is claimed first and its conflict is the gate.
           //
-          // Through claim_vote() rather than an upsert whose result is read
-          // back. The read-back version needed SELECT on the votes table, and
-          // the moment that was closed to participants every vote returned 401
-          // — the insert was always fine, it was asking for the row afterwards
-          // that failed. The function performs the same INSERT … ON CONFLICT
-          // DO NOTHING and returns whether a row was created, which is the
-          // only thing this code needs to know.
-          const { answerText: claimText, isCorrect: claimCorrect } = deriveAnswer(val, currentPoll);
+          // Through claim_vote_graded() rather than an upsert whose result is
+          // read back. The read-back version needed SELECT on the votes table,
+          // and the moment that was closed to participants every vote returned
+          // 401 — the insert was always fine, it was asking for the row
+          // afterwards that failed. The function performs the same
+          // INSERT … ON CONFLICT DO NOTHING and returns whether a row was
+          // created, which is the only thing this code needs to know.
+          //
+          // _graded because the verdict is the database's now. The predecessor
+          // took p_is_correct from this file, and options.is_correct is readable
+          // by anyone holding the public anon key — so the caller decided whether
+          // its own answer counted as correct, and event_scoreboard believed it.
+          // This sends the option id and nothing else.
+          const { answerText: derivedText, optionId: derivedOptionId } = deriveAnswer(val, currentPoll);
+          claimText = derivedText;
+          claimOptionId = derivedOptionId;
 
-          const { data: claimed, error: claimError } = await supabase.rpc('claim_vote', {
+          const { data: claimed, error: claimError } = await supabase.rpc('claim_vote_graded', {
             p_poll_id: currentPoll.id,
             p_session_id: voteRowSid,
             p_username: username || 'Анонимен',
             p_answer_text: claimText,
-            p_is_correct: claimCorrect,
+            p_option_id: claimOptionId,
           });
 
           // A network failure must not be read as "already voted" — that would
@@ -732,19 +751,11 @@ const EventWrapper = ({ type, username, setUsername }) => {
                 poll_id: currentPoll.id,
                 session_id: voteRowSid,
                 username: username || 'Анонимен',
-                // Same ordering rule as the online path: the fill_blanks
-                // object has to be matched before the option-index branch,
-                // or an answer written offline is queued as `null`.
-                answer_text: (val && typeof val === 'object' && !Array.isArray(val))
-                  ? JSON.stringify(val).slice(0, 2000)
-                  : typeof val === 'string'
-                    ? val
-                    : Array.isArray(val)
-                      ? val.map((optIdx) => currentPoll.options?.[optIdx]?.text).filter(Boolean).join(' > ')
-                      : currentPoll.options?.[val]?.text ?? null,
-                is_correct: (typeof val === 'object' || typeof val === 'string' || Array.isArray(val))
-                  ? null
-                  : (currentPoll.options?.[val]?.is_correct ?? null),
+                // Exactly what the claim above named, not a second derivation of
+                // it. The replay goes through claim_vote_graded too, so it needs
+                // the option id to be graded from — never a verdict from here.
+                answer_text: claimText,
+                option_id: claimOptionId,
               },
               // Without these the queued vote would replay into `votes` but
               // never reach options.votes — counted nowhere, charted nowhere.

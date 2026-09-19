@@ -4,6 +4,9 @@ import { deriveAnswer, voteOpsFor } from '../components/EventWrapper';
 // The votes row is now claimed before anything is counted, so what it records
 // has to be derivable without making the call that does the counting. These
 // hold that derivation in step with the branches in handleVote.
+//
+// It derives the answer and names the option chosen — it does not judge it.
+// Grading is claim_vote_graded's, against a key the participant cannot read.
 const poll = {
   options: [
     { id: 'a', text: '3/4', is_correct: true },
@@ -13,30 +16,36 @@ const poll = {
 };
 
 describe('deriveAnswer', () => {
-  it('records the chosen option and whether it was right', () => {
-    expect(deriveAnswer(0, poll)).toEqual({ answerText: '3/4', isCorrect: true });
-    expect(deriveAnswer(1, poll)).toEqual({ answerText: '2/6', isCorrect: false });
+  it('records the chosen option and names it for the database to grade', () => {
+    expect(deriveAnswer(0, poll)).toEqual({ answerText: '3/4', optionId: 'a' });
+    expect(deriveAnswer(1, poll)).toEqual({ answerText: '2/6', optionId: 'b' });
   });
 
-  it('reports an unmarked option as unknown, not as wrong', () => {
-    // `is_correct` absent means the poll has no answer key, which is not the
-    // same as the participant being wrong.
-    expect(deriveAnswer(2, poll).isCorrect).toBe(null);
+  it('names an option with no answer key the same as one that has one', () => {
+    // Whether an option carries is_correct at all is the database's business.
+    // Handing back a verdict from here is what let a caller decide its own
+    // score, so this returns an id and nothing that could be read as a grade.
+    expect(deriveAnswer(2, poll)).toEqual({ answerText: '1/6', optionId: 'c' });
   });
 
   it('keeps the whole ordering for a ranking', () => {
     expect(deriveAnswer([2, 0, 1], poll).answerText).toBe('1/6 > 3/4 > 2/6');
   });
 
+  it('names no option for a ranking, which has no single right answer', () => {
+    expect(deriveAnswer([2, 0, 1], poll).optionId).toBe(null);
+  });
+
   it('serialises fill-in-the-blanks rather than reading it as an index', () => {
     // The object branch must be matched before the numeric one, or the answer
     // is silently lost.
-    const { answerText } = deriveAnswer({ b1: '∈', b2: 'множество' }, poll);
+    const { answerText, optionId } = deriveAnswer({ b1: '∈', b2: 'множество' }, poll);
     expect(JSON.parse(answerText)).toEqual({ b1: '∈', b2: 'множество' });
+    expect(optionId).toBe(null);
   });
 
   it('passes free text through', () => {
-    expect(deriveAnswer('Прилеп', poll)).toEqual({ answerText: 'Прилеп', isCorrect: null });
+    expect(deriveAnswer('Прилеп', poll)).toEqual({ answerText: 'Прилеп', optionId: null });
   });
 
   it('throws on an index that is not an option, before anything is counted', () => {

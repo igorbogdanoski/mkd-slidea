@@ -4,7 +4,7 @@
 //
 // A queued item carries two independent halves, because the app writes the
 // vote in two places and only one of them is idempotent:
-//   • `row`  — the `votes` audit row, claimed through claim_vote().
+//   • `row`  — the `votes` audit row, claimed through claim_vote_graded().
 //   • `ops`  — the aggregate increments (`increment_vote` /
 //              `increment_vote_weighted` / `/api/vote-text`) that actually move
 //              `options.votes`. There is no AFTER INSERT trigger on `votes`, so
@@ -121,8 +121,8 @@ export async function flushQueue() {
       remainingOps.set(id, ops);
       if (ops.length) continue; // still owes increments — retry the whole item later
 
-      // 2. Then the audit row, through claim_vote() — the same SECURITY DEFINER
-      //    function the online path uses.
+      // 2. Then the audit row, through claim_vote_graded() — the same SECURITY
+      //    DEFINER function the online path uses.
       //
       //    This was `supabase.from('votes').upsert(row, { onConflict: … })`.
       //    An upsert is INSERT … ON CONFLICT DO UPDATE, and the planner wants
@@ -134,16 +134,21 @@ export async function flushQueue() {
       //    never arrived — the item stayed queued and retried into the same
       //    denial on every `online` event and every app boot, forever.
       //
-      //    claim_vote() runs as its definer, so it needs no grant on the table,
+      //    The function runs as its definer, so it needs no grant on the table,
       //    and its ON CONFLICT DO NOTHING makes the replay safe to repeat.
       //    `false` means a row is already there for this session and activity,
       //    which is the outcome we wanted — only a call error keeps it queued.
-      const { error } = await supabase.rpc('claim_vote', {
+      //
+      //    It grades from p_option_id rather than taking a verdict, so a queued
+      //    item carries the option the participant chose. An item written by an
+      //    older build carries is_correct and no option_id; it replays as
+      //    ungraded, which is still better than what it did before — nothing.
+      const { error } = await supabase.rpc('claim_vote_graded', {
         p_poll_id: item.row.poll_id,
         p_session_id: item.row.session_id,
         p_username: item.row.username ?? 'Анонимен',
         p_answer_text: item.row.answer_text ?? null,
-        p_is_correct: item.row.is_correct ?? null,
+        p_option_id: item.row.option_id ?? null,
       });
       if (!error) succeededIds.add(id);
     } catch {

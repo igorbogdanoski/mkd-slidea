@@ -89,17 +89,22 @@ async function makePoll(type, extra = {}, optionTexts = []) {
 // claimed first so its uniqueness constraint is the gate, and nothing is
 // counted if the claim is refused.
 //
-// Through claim_vote(), the same call the app makes. An earlier version of
-// this script inserted directly and asked for the row back, which is what the
-// app used to do — and that is exactly how this check found that closing reads
-// on votes had broken voting itself with a 401.
-async function claimVote(pollId, sessionId, answerText, isCorrect) {
-  const r = await rpc('claim_vote', {
+// Through claim_vote_graded(), the same call the app makes. An earlier version
+// of this script inserted directly and asked for the row back, which is what
+// the app used to do — and that is exactly how this check found that closing
+// reads on votes had broken voting itself with a 401.
+//
+// The fourth argument is the option chosen, not a verdict. Grading happens
+// inside the function, against a key the caller cannot read: the predecessor
+// took p_is_correct from the client, which meant anyone holding the public
+// anon key could award themselves a correct answer and top the scoreboard.
+async function claimVote(pollId, sessionId, answerText, optionId) {
+  const r = await rpc('claim_vote_graded', {
     p_poll_id: pollId,
     p_session_id: sessionId,
     p_username: 'Тест',
     p_answer_text: answerText,
-    p_is_correct: isCorrect ?? null,
+    p_option_id: optionId ?? null,
   });
   return { ok: r.ok, claimed: r.body === true, status: r.status };
 }
@@ -131,8 +136,35 @@ async function run() {
     check(type, 'create', true, `${poll.options.length} options`);
 
     const chosen = poll.options[0];
-    const claim = await claimVote(poll.id, sid, chosen.text, poll.is_quiz ? chosen.is_correct : null);
+    const claim = await claimVote(poll.id, sid, chosen.text, chosen.id);
     check(type, 'participant can claim a vote', claim.claimed, `HTTP ${claim.status}`);
+
+    // The verdict is the database's now, so it has to be checked rather than
+    // assumed. options[0] of the quiz is the keyed one, so its row must read
+    // true and a second session picking options[1] must read false — before
+    // this change both values came from whoever submitted them.
+    if (poll.is_quiz) {
+      const right = ((await rest(
+        `votes?select=is_correct&poll_id=eq.${poll.id}&session_id=eq.${sid}`
+      )).body || [])[0];
+      check(type, 'the right answer is graded true by the database',
+        right?.is_correct === true, `is_correct=${right?.is_correct}`);
+
+      const wrongSid = `${sid}-wrong`;
+      const wrongClaim = await claimVote(poll.id, wrongSid, poll.options[1].text, poll.options[1].id);
+      const wrong = ((await rest(
+        `votes?select=is_correct&poll_id=eq.${poll.id}&session_id=eq.${wrongSid}`
+      )).body || [])[0];
+      check(type, 'the wrong answer is graded false, not whatever the caller said',
+        wrongClaim.claimed && wrong?.is_correct === false, `is_correct=${wrong?.is_correct}`);
+
+      // An id that is not one of this activity's options must be refused rather
+      // than graded NULL: NULL would sit on the leaderboard's denominator as an
+      // answered-but-ungraded question forever.
+      const forged = await claimVote(poll.id, `${sid}-forged`, poll.options[0].text,
+        '00000000-0000-0000-0000-000000000000');
+      check(type, 'an option from outside this activity is refused', !forged.ok, `HTTP ${forged.status}`);
+    }
 
     const inc = await rpc('increment_vote', { option_id: chosen.id });
     check(type, 'tally accepts the vote', inc.ok, `HTTP ${inc.status}`);
@@ -140,7 +172,7 @@ async function run() {
     const after = ((await rest(`options?select=votes&id=eq.${chosen.id}`)).body || [])[0];
     check(type, 'count landed on the option', after?.votes === 1, `votes=${after?.votes}`);
 
-    const second = await claimVote(poll.id, sid, chosen.text, null);
+    const second = await claimVote(poll.id, sid, chosen.text, chosen.id);
     check(type, 'second vote from same session refused', second.ok && !second.claimed);
 
     const projector = (await rest(`options?select=id,text,votes&poll_id=eq.${poll.id}`, {}, ANON));

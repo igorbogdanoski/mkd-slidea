@@ -74,7 +74,7 @@ const Embed = () => {
     if (!option) return;
     setIsVoting(true);
     setVoteError('');
-    // Whether claim_vote() got the audit row in. Past that point the answer
+    // Whether claim_vote_graded() got the audit row in. Past that point the answer
     // exists and this session cannot cast it again, so a failure is a debt the
     // queue can repay rather than a vote to retry.
     let claimLanded = false;
@@ -84,12 +84,15 @@ const Embed = () => {
       // This used to call vote() first and record afterwards with the conflict
       // ignored, so a second submission moved the chart while the votes table
       // stayed at one row — the embedded widget had the identical defect.
-      const { data: claimed, error: claimError } = await supabase.rpc('claim_vote', {
+      //
+      // The option id goes up, not a verdict: is_correct is graded inside the
+      // database, where the key cannot be read by whoever is answering.
+      const { data: claimed, error: claimError } = await supabase.rpc('claim_vote_graded', {
         p_poll_id: currentPoll.id,
         p_session_id: sid,
         p_username: 'Анонимен',
         p_answer_text: option.text,
-        p_is_correct: option.is_correct ?? null,
+        p_option_id: option.id,
       });
       if (claimError) throw claimError;
       if (claimed === false) { setVoted(true); return; }
@@ -104,7 +107,7 @@ const Embed = () => {
     } catch (err) {
       console.error('Embed vote failed:', err);
       if (claimLanded) {
-        // Only the increment is owed — replaying claim_vote finds the row and
+        // Only the increment is owed — replaying claim_vote_graded finds the row and
         // answers false, which flushQueue correctly reads as done.
         queueVote({
           row: {
@@ -112,7 +115,7 @@ const Embed = () => {
             session_id: getSessionId(),
             username: 'Анонимен',
             answer_text: option.text ?? null,
-            is_correct: option.is_correct ?? null,
+            option_id: option.id ?? null,
           },
           ops: [{ kind: 'option', optionId: option.id }],
         });
