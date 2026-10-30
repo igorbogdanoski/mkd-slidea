@@ -130,8 +130,11 @@ export const useHostSession = (user) => {
   useEffect(() => {
     if (!event?.id) return;
     const eventId = event.id;
+
+
+
     const fetchPolls = async () => {
-      const { data } = await supabase.from('polls').select(HOST_POLLS_WITH_OPTIONS).eq('event_id', eventId).order('position', { ascending: true }).order('created_at', { ascending: true });
+      const { data } = await supabase.from('polls').select(HOST_POLLS_WITH_OPTIONS).eq('event_id', eventId).order('position', { ascending: true }).order('created_at', { ascending: true }).order('id', { ascending: true });
       if (data) setPolls(data);
     };
     const fetchPendingQuestions = async () => {
@@ -222,13 +225,15 @@ export const useHostSession = (user) => {
   useEffect(() => {
     if (!timerRemaining) return;
     if (timerRemaining <= 0) { setTimerRemaining(null); return; }
-    const t = setTimeout(() => setTimerRemaining(r => r - 1), 1000);
+        const t = setTimeout(() => setTimerRemaining(r => r - 1), 1000);
     return () => clearTimeout(t);
   }, [timerRemaining]);
 
   const refreshPolls = async () => {
     if (!event?.id) return;
-    const { data } = await supabase.from('polls').select(HOST_POLLS_WITH_OPTIONS).eq('event_id', event.id).order('position', { ascending: true }).order('created_at', { ascending: true });
+    // .order('id') matches fetchPolls in useEvent.js so host and participant
+    // resolve the same active slide — see the note there.
+    const { data } = await supabase.from('polls').select(HOST_POLLS_WITH_OPTIONS).eq('event_id', event.id).order('position', { ascending: true }).order('created_at', { ascending: true }).order('id', { ascending: true });
     if (data) setPolls(data);
   };
 
@@ -481,7 +486,7 @@ export const useHostSession = (user) => {
         // entirely for a rating imported with an empty array — the shape the
         // interchange format produces, since a rating has no authored choices.
         // The activity then had no scale to tap.
-        const wanted = optionsForType(p.type, p.options);
+                const wanted = optionsForType(p.type, p.options);
         if (wanted.length > 0) {
           const optionsToInsert = wanted.map(o => ({
             poll_id: newPoll.id,
@@ -492,7 +497,9 @@ export const useHostSession = (user) => {
           if (optError) throw optError;
         }
       }
-      const { data } = await supabase.from('polls').select(HOST_POLLS_WITH_OPTIONS).eq('event_id', event.id).order('position', { ascending: true }).order('created_at', { ascending: true });
+      // Re-read rather than patching state: the insert above only returns the
+      // poll row, and the deck needs the options it was just given.
+      const { data } = await supabase.from('polls').select(HOST_POLLS_WITH_OPTIONS).eq('event_id', event.id).order('position', { ascending: true }).order('created_at', { ascending: true }).order('id', { ascending: true });
       if (data) setPolls(data);
     } catch (err) {
       console.error('Apply template failed:', err);
@@ -592,12 +599,20 @@ export const useHostSession = (user) => {
         // `position` was omitted here, so every imported slide landed with a
         // null position and ORDER BY position put them all at the end in
         // whatever order the database returned — the deck arrived shuffled.
-        const { data: newPoll, error: pollError } = await supabase.from('polls').insert([{
+                                const { data: newPoll, error: pollError } = await supabase.from('polls').insert([{
           event_id: event.id,
           question: ai.question,
           type: normaliseActivityType(ai.type || 'quiz'),
           is_quiz: !!ai.is_quiz,
           position: nextPosition++,
+          // A JSON import (Slidea Interchange) carries an answer key, an
+          // explanation, blanks and curriculum tags. Without these the quiz
+          // arrived with no answer to reveal and a fill-in-the-blanks had no
+          // gaps — the same omission that was fixed on the editor paths.
+          correct_answer: slide._key ?? null,
+          answer_explanation: slide._explanation ?? null,
+          blanks: slide._blanks ?? null,
+          curriculum_tags: ai.curriculum_tags ?? null,
         }]).select().single();
         if (pollError) continue;
         const opts = (ai.options || [])

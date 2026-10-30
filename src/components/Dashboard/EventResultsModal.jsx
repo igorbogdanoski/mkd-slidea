@@ -155,7 +155,12 @@ const EventResultsModal = ({ event, onClose }) => {
         .from('polls')
         .select(HOST_POLLS_WITH_OPTIONS)
         .eq('event_id', event.id)
-        .order('created_at', { ascending: true });
+        // Same total order as the live views — see fetchPolls in useEvent.js.
+        // created_at alone put a batch-imported deck in insert order rather
+        // than author order.
+        .order('position', { ascending: true })
+        .order('created_at', { ascending: true })
+        .order('id', { ascending: true });
       setPolls(data || []);
       setLoading(false);
     };

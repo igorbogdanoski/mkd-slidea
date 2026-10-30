@@ -31,16 +31,37 @@ export const useEvent = (eventCode, username) => {
   const reactionChannelRef = useRef(null);
   const reactionTimeoutsRef = useRef(new Set());
 
-  const fetchPolls = useCallback(async (eventId) => {
+    const fetchPolls = useCallback(async (eventId) => {
     // Named columns, not `*`: the wildcard pulled polls.embedding, a 1536-float
     // vector no screen reads, and this runs on every vote in the room. See
     // src/lib/pollColumns.js for the measurement.
+    //
+    // `id` is a deliberate final tiebreaker, and it is load-bearing. EventWrapper
+    // resolves the active slide with findIndex(p => p.id === active_poll_id) over
+    // THIS array, so the array's order decides which question a phone shows.
+    //
+    // Two ways the first two keys fail to produce a total order: decks written
+    // before the import paths learned to set `position` carry whole runs at 0
+    // (27 of 58 multi-slide events in production still do), and a bulk import
+    // stamps every row with the same created_at to the millisecond. On those
+    // ties the database may return the rows in any order, and need not pick the
+    // same order for two consecutive requests.
+    //
+    // Measured on such a deck (W2TY8K, both polls at position 0): a participant
+    // who joined while the host was on slide 1 was shown slide 2 and stayed
+    // there. Both self-correcting paths compare the incoming id against the one
+    // already held, so with the wrong id held there was nothing to react to.
+    //
+    // A total order can still be the wrong order, but it is the SAME order on
+    // the host screen, the projector and every phone — which is what makes
+    // "everyone sees the slide the host activated" true again.
     const { data } = await supabase
       .from('polls')
       .select(POLLS_WITH_OPTIONS)
       .eq('event_id', eventId)
       .order('position', { ascending: true })
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: true })
+      .order('id', { ascending: true });
     setPolls(data || []);
   }, []);
 

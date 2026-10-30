@@ -82,10 +82,17 @@ export const useDashboardData = ({ user, activeTab, setView }) => {
       }
       if (eventError) throw eventError;
 
+            // `position` was omitted, so every slide in a template-created deck landed
+      // at 0 and the deck had no order of its own. The participant resolves the
+      // active slide with findIndex(active_poll_id) over polls ordered by
+      // position, so with every row tied the database could hand back any order
+      // — that is how a phone came to show slide 2 while the host was on slide
+      // 1. 27 of 58 multi-slide events in production still carry this.
+      let position = 0;
       for (const poll of template.polls) {
         const { data: newPoll, error: pollError } = await supabase
           .from('polls')
-          .insert([{ event_id: event.id, question: poll.question, type: poll.type, is_quiz: poll.is_quiz }])
+          .insert([{ event_id: event.id, question: poll.question, type: poll.type, is_quiz: poll.is_quiz, position: position++ }])
           .select()
           .single();
         if (pollError) throw pollError;

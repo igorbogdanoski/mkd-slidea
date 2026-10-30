@@ -365,11 +365,17 @@ const PublicResults = () => {
       if (!ev) { setNotFound(true); setLoading(false); return; }
       setEvent(ev);
 
-      const { data: ps } = await supabase
+            const { data: ps } = await supabase
         .from('polls')
         .select('id, event_id, question, active, is_quiz, created_at, type, results_visible, position, timer_ends_at, survey_questions, answer_revealed, needs_moderation, curriculum_tags, options(id, poll_id, text, votes, is_approved)')
         .eq('event_id', ev.id)
-        .order('created_at', { ascending: true });
+        // Position first, then the two tiebreakers — the same total order
+        // useEvent and useHostSession use, so this page numbers the slides
+        // the way the room does. Ordering by created_at alone put a deck
+        // written in one batch in insert order rather than author order.
+        .order('position', { ascending: true })
+        .order('created_at', { ascending: true })
+        .order('id', { ascending: true });
 
       setPolls(ps || []);
       setLoading(false);

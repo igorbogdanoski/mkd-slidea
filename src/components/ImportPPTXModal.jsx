@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Upload, FileText, Check, Loader, ChevronRight, AlertCircle, Sparkles } from 'lucide-react';
 import { getAuthHeader } from '../lib/authHeader';
+import { importTemplate } from '../lib/templateImport';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 // JSZip loaded on demand — only when user actually opens this modal
 
@@ -111,9 +112,10 @@ const ImportPPTXModal = ({ isOpen, onClose, onImport, user }) => {
     const lower = file.name.toLowerCase();
     const isPptx = lower.endsWith('.pptx');
     const isPdf = lower.endsWith('.pdf');
-    const isText = lower.endsWith('.txt') || lower.endsWith('.md') || lower.endsWith('.markdown');
-    if (!isPptx && !isPdf && !isText) {
-      setError('Поддржани се .pptx, .pdf, .txt и .md датотеки.');
+        const isText = lower.endsWith('.txt') || lower.endsWith('.md') || lower.endsWith('.markdown');
+    const isJson = lower.endsWith('.json');
+    if (!isPptx && !isPdf && !isText && !isJson) {
+      setError('Поддржани се .pptx, .pdf, .txt, .md и .json датотеки.');
       return;
     }
     if (file.size > 8 * 1024 * 1024) {
@@ -159,10 +161,47 @@ const ImportPPTXModal = ({ isOpen, onClose, onImport, user }) => {
           setLoading(false);
           return;
         }
-        if (!parsed.length) {
+                if (!parsed.length) {
           setError('PDF-от не содржи текст за извлекување (можеби е скениран).');
           setLoading(false);
           return;
+        }
+      } else if (isJson) {
+        // Slidea Interchange Format (docs/IMPORT_FORMAT.md). The importer
+        // already validates and normalises every activity — this only adapts
+        // its output to the { index, title, _aiPoll } shape handleImport
+        // forwards to handlePPTXImport, so a JSON document and an AI-generated
+        // deck travel the same path into the database.
+        const raw = await file.text();
+        const result = importTemplate(raw);
+        if (!result.ok) {
+          setError((result.errors && result.errors[0]) || 'Датотеката не е валиден Slidea увоз.');
+          setLoading(false);
+          return;
+        }
+        parsed = result.template.polls.map((p, i) => ({
+          index: i + 1,
+          title: p.question,
+          body: (p.options || []).map((o) => o.text).join(' · ').slice(0, 200),
+          allText: [p.question],
+          _aiPoll: {
+            question: p.question,
+            type: p.type,
+            is_quiz: !!p.is_quiz,
+            options: (p.options || []).map((o) => ({ text: o.text, is_correct: !!o.is_correct })),
+          },
+        }));
+        // Answer keys and explanations do not travel in _aiPoll; carry them on
+        // the slide so handleImport can persist them alongside the options.
+        result.template.polls.forEach((p, i) => {
+          if (parsed[i]) {
+            parsed[i]._key = p.correct_answer || null;
+            parsed[i]._explanation = p.answer_explanation || null;
+            parsed[i]._blanks = p.blanks || null;
+          }
+        });
+        if (parsed.length && result.skipped && result.skipped.length) {
+          setError(`Увезени ${parsed.length} активности. Прескокнати: ${result.skipped.join('; ')}`);
         }
       } else {
         const raw = await file.text();
@@ -174,7 +213,11 @@ const ImportPPTXModal = ({ isOpen, onClose, onImport, user }) => {
         }
       }
 
-      const withContent = parsed.filter(s => s.title || s.body);
+            const withContent = parsed.filter(s => s.title || s.body);
+      // A JSON document has fully-formed activities, so it bypasses the type
+      // picker entirely: forcing 'ai' routes it down the branch that reuses
+      // _aiPoll rather than generating anything from the text.
+      if (isJson) setPollType('ai');
       setSlides(withContent);
       setSelected(withContent.map(s => s.index));
     } catch (e) {
@@ -220,11 +263,14 @@ const ImportPPTXModal = ({ isOpen, onClose, onImport, user }) => {
     if (!toImport.length) return;
     setImporting(true);
     try {
-      let importResult;
+            let importResult;
       let aiGenFailed = 0;
       if (pollType === 'ai') {
         const aiPolls = [];
         for (const slide of toImport) {
+          // A JSON import already carries a finished activity in _aiPoll — it
+          // is not a prompt to generate from, so it goes straight through.
+          if (slide._aiPoll) { aiPolls.push(slide); continue; }
           try {
             const generated = await aiGenerateForSlide(slide);
             if (generated && generated.question) {
@@ -297,7 +343,7 @@ const ImportPPTXModal = ({ isOpen, onClose, onImport, user }) => {
             <div className="flex items-center justify-between px-10 pt-10 pb-6 border-b border-slate-50">
               <div>
                 <h3 className="text-2xl font-black text-slate-900">Увези документ</h3>
-                <p className="text-slate-400 font-bold text-sm mt-1">PowerPoint, текст или Markdown → интерактивни активности</p>
+                <p className="text-slate-400 font-bold text-sm mt-1">PowerPoint, PDF, текст, Markdown или Slidea JSON → интерактивни активности</p>
               </div>
               <button onClick={handleClose} className="p-2 text-slate-300 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all">
                 <X size={22} />
@@ -313,7 +359,7 @@ const ImportPPTXModal = ({ isOpen, onClose, onImport, user }) => {
                   onDrop={e => { e.preventDefault(); handleFile(e.dataTransfer.files[0]); }}
                   className="border-2 border-dashed border-slate-200 rounded-3xl p-16 text-center cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/30 transition-all"
                 >
-                  <input ref={inputRef} type="file" accept=".pptx,.pdf,.txt,.md,.markdown" className="hidden"
+                                    <input ref={inputRef} type="file" accept=".pptx,.pdf,.txt,.md,.markdown,.json" className="hidden"
                     onChange={e => handleFile(e.target.files[0])} />
                   {loading ? (
                     <div className="flex flex-col items-center gap-4">
@@ -323,7 +369,7 @@ const ImportPPTXModal = ({ isOpen, onClose, onImport, user }) => {
                   ) : (
                     <>
                       <Upload size={48} className="text-slate-300 mx-auto mb-4" />
-                      <p className="font-black text-slate-700 text-lg mb-2">Повлечи .pptx · .pdf · .txt · .md овде</p>
+                      <p className="font-black text-slate-700 text-lg mb-2">Повлечи .pptx · .pdf · .txt · .md · .json овде</p>
                       <p className="font-bold text-slate-400 text-sm mb-6">или кликни за да изберeш</p>
                       <span className="px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold text-sm hover:bg-indigo-700 transition-all">
                         Избери датотека
