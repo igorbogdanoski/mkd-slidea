@@ -102,11 +102,19 @@ export const useEvent = (eventCode, username) => {
         let eventData = null;
         let eventError = null;
         for (let attempt = 0; attempt < 4; attempt++) {
-          // SECURITY: explicit column list — password & cohost_code are
+                    // SECURITY: explicit column list — password & cohost_code are
           // revoked from the anon role and must not be requested here.
+          //
+          // is_reactions_enabled belongs in this list: sendReaction below reads
+          // it to honour a host who turned reactions off, and it was absent, so
+          // the flag was always undefined and the toggle was silently ignored in
+          // the room. (bg_variant is also read, by Presenter's background, but
+          // the column does not exist in the database — asking for it here would
+          // fail the whole event lookup with 42703 and lock every participant
+          // out. It needs a migration first, not a select.)
           const { data, error } = await supabase
             .from('events')
-            .select('id, code, title, created_at, active_poll_id, is_locked, async_mode, async_deadline, questions_moderation, brand_color, logo_url, user_id, has_password, allow_multiple_votes, ended_at')
+            .select('id, code, title, created_at, active_poll_id, is_locked, async_mode, async_deadline, questions_moderation, brand_color, logo_url, user_id, has_password, allow_multiple_votes, ended_at, is_reactions_enabled')
             .ilike('code', normalizedCode)
             .order('created_at', { ascending: false })
             .limit(1);
